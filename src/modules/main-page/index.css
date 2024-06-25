@@ -1,0 +1,37 @@
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.main-container {
+    width: 100%;
+    height: auto;
+}
+
+/* Container styiling */
+.portfolio-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100vh;
+    height: 100vh;
+    overflow-y: scroll;
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+/* Text styling within ScrollAppear components */
+.scroll-text {
+    font-size: 20px;
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    margin-bottom: 20px;
+    transition: transform 0.3s ease-in-out;
+}
+
+.hover-elements:hover {
+    transform: scale(1.05);
+}
