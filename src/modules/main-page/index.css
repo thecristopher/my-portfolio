@@ -1,37 +1,42 @@
 /* Basic Reset */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .main-container {
-    width: 100%;
-    height: auto;
+  width: 100%;
+  height: auto;
 }
 
 /* Container styiling */
 .portfolio-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100vh;
-    height: 100vh;
-    overflow-y: scroll;
-    padding: 20px;
-    background-color: #f4f4f4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+  overflow-y: scroll;
+  background-color: #f4f4f4;
+}
+
+@media (max-width: 768px) {
+  .portfolio-container {
+    padding-top: 60px; /* Ajusta esto según la altura de tu encabezado en móvil */
+  }
 }
 
 /* Text styling within ScrollAppear components */
 .scroll-text {
-    font-size: 20px;
-    font-family: 'Arial', sans-serif;
-    color: #333;
-    margin-bottom: 20px;
-    transition: transform 0.3s ease-in-out;
+  font-size: 20px;
+  font-family: "Arial", sans-serif;
+  color: #333;
+  margin-bottom: 20px;
+  transition: transform 0.3s ease-in-out;
 }
 
 .hover-elements:hover {
-    transform: scale(1.05);
+  transform: scale(1.05);
 }

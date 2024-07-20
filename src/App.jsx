@@ -1,11 +1,13 @@
 import "./App.css";
 import { MainPage } from "./modules/main-page";
-import { WorkInProgress } from "./modules/work-in-progress";
 
 function App() {
   return (
-    <WorkInProgress />
-    // <MainPage />
+    <div className="app-container">
+      <main className="main-content">
+        <MainPage />
+      </main>
+    </div>
   );
 }
 
