@@ -1,15 +1,22 @@
-import { Box } from "@mui/material";
+import { Grid } from "@mui/material";
 import { Header } from "../../components/header";
 import "./index.css";
-import WorkInProgress from "../work-in-progress";
+import { data } from "../../data";
+import { About } from "../about";
+import { Work } from "../work";
 
 export const MainPage = () => {
   return (
-    <div>
-      <Header />
-      <Box className="portfolio-container">
-        <WorkInProgress />
-      </Box>
-    </div>
+    <Grid container spacing={2} className="portfolio-container">
+      <Grid item xs={12}>
+        <Header options={data.header.options} />
+      </Grid>
+      <Grid item xs={12}>
+        <About />
+      </Grid>
+      <Grid item xs={12}>
+        <Work />
+      </Grid>
+    </Grid>
   );
 };
