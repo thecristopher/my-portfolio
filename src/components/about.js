@@ -18,11 +18,11 @@ const About = () => {
               </p>
             ))}
           </div>
-          <img
+          {/* <img
             className="image-wrapper"
             src={data.about.image}
             alt="about"
-          ></img>
+          ></img> */}
         </div>
       </div>
     </div>
