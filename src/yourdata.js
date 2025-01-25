@@ -44,7 +44,7 @@ export default {
     {
       id: 1, //DO NOT CHANGE THIS (Please)😅
       title: "PSL Group", //Project Title - Add Your Project Title Here
-      para: "Senior Application Developer under the FirstWord project", // Add Your Service Type Here
+      para: "Senior Application Developer under the FirstWord name", // Add Your Service Type Here
       //Project Image - Add Your Project Image Here
       imageSrc:
         "https://i.imgur.com/M6R8LMH.png&auto=format&fit=crop&w=400&q=60",
@@ -128,19 +128,19 @@ export default {
       id: 3,
       img: reactIcon,
       para:
-        "With my React skills, we can build a responsive, modern and stylized interfaces that not only feel and look amazing, but also are easy-to-maintain.",
+        "With my React skills, we can build responsive, modern and stylized interfaces that not only feel and look amazing, but also are easy-to-maintain.",
     },
     {
       id: 4,
       img: designIcon,
       para:
-        "From designing captivating web pages, all the way to animating your mascot in a promo video, I possess the expertise to bring your brand to life. Let's work together to create a unique and memorable experience for your users.",
+        "From designing captivating web pages, all the way to animating your mascot in a promo video, I have the expertise to bring your brand to life. Let's work together to create a unique and memorable experience for your users.",
     },
     {
       id: 5,
       img: jsIcon,
       para:
-        "If React is not your cup of tea and you solely want to enhance your current website, my expertise with JavaScript and CSS can revitalize your brand, giving your product a fresh new coat of paint.",
+        "If React is not your cup of tea and you just want to enhance your current website, my expertise with JavaScript and CSS can revitalize your brand, giving your product a fresh new coat of paint.",
     },
     {
       id: 6,
@@ -152,7 +152,7 @@ export default {
 
   interestsHeading: "Interests",
   interestsPara:
-    "I am looking to collaborate along companies agencies and inviduals. Not to simply work for them, but to work with them, bringing my experience to the table. Together we can tackle real business and technological challenges, harnessing our collective expertise and knowledge.",
+    "I am looking to collaborate along companies agencies and individuals. Not to simply work for them, but to work with them, bringing my experience to the table. Together we can tackle real business and technological challenges, harnessing our collective expertise and knowledge.",
   // End interests Section -----------------
 
   //   Contact Section --------------
