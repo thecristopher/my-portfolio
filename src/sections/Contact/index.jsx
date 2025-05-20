@@ -1,21 +1,25 @@
-import { FaLinkedin, FaInstagram, FaTiktok, FaTwitch } from "react-icons/fa";
+import { FaLinkedin, FaInstagram, FaTiktok, FaTwitch, FaYoutube } from "react-icons/fa";
 
 const socials = [
   {
     icon: <FaLinkedin size={24} />,
-    url: "https://www.linkedin.com/in/cristophercervantes",
+    url: "https://www.linkedin.com/in/thecristopher",
+  },
+   {
+    icon: <FaYoutube size={24} />,
+    url: "https://www.youtube.com/@thecristopherofficial",
   },
   {
     icon: <FaInstagram size={24} />,
-    url: "https://www.instagram.com/cris.artcode",
+    url: "https://www.instagram.com/thecristopher",
   },
   {
     icon: <FaTiktok size={24} />,
-    url: "https://www.tiktok.com/@cris.artcode",
+    url: "https://www.tiktok.com/@thecristopherofficial",
   },
   {
     icon: <FaTwitch size={24} />,
-    url: "https://www.twitch.tv/yourchannel",
+    url: "https://www.twitch.tv/thecristopherofficial",
   },
 ];
 

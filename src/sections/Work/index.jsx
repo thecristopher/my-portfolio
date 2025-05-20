@@ -16,7 +16,7 @@ const workItems = [
   {
     title: "Grupo Tress",
     image: grupoTress,
-    url: "https://www.grupotress.com/",
+    url: "https://www.tress.com.mx/",
     description:
       "Built enterprise-grade payroll tools with secure, high-performance architecture.",
   },
@@ -30,7 +30,7 @@ const workItems = [
   {
     title: "Umbrella Seguros",
     image: umbrella,
-    url: "https://www.umbrellaseguros.com/",
+    url: "https://www.umbrella-seguros.com/",
     description:
       "Built modern insurance platform focused on speed, UX, and digital reach.",
   },
