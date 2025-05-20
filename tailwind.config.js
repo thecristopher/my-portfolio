@@ -3,6 +3,9 @@ export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
+      transformOrigin: {
+        center: "center",
+      },
       fontFamily: {
         sans: [
           "-apple-system",
@@ -15,7 +18,10 @@ export default {
       },
     },
   },
-  plugins: [
-    require('tailwind-scrollbar-hide')
-  ],
+  plugins: [require("tailwind-scrollbar-hide")],
+  variants: {
+    extend: {
+      transform: ["hover", "group-hover"],
+    },
+  },
 };

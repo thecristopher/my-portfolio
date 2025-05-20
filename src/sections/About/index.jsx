@@ -12,23 +12,40 @@ const paragraphs = [
 
 const About = () => {
   return (
-    <section className="bg-black text-white px-6 sm:px-12 md:px-32 lg:px-60 py-24 space-y-12">
-      <h2 className="text-sm uppercase tracking-widest text-gray-400 mb-6">
-        About
-      </h2>
+    <section className="relative bg-black text-white px-6 sm:px-12 md:px-20 lg:px-40 py-32 overflow-hidden">
+      <div className="relative z-10 max-w-5xl mx-auto">
+        {/* Sticky Title on larger screens */}
+        <div className="mb-10 md:mb-16 sticky top-10">
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-sm uppercase tracking-widest text-gray-400"
+          >
+            About
+          </motion.h2>
+        </div>
 
-      {paragraphs.map((text, index) => (
-        <motion.p
-          key={index}
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.6 }}
-          transition={{ duration: 0.6, delay: index * 0.1 }}
-          className="text-lg md:text-xl leading-relaxed max-w-4xl"
-        >
-          {text}
-        </motion.p>
-      ))}
+        {/* Paragraphs */}
+        <div className="space-y-12">
+          {paragraphs.map((text, index) => (
+            <motion.p
+              key={index}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.6 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              className="text-lg sm:text-xl md:text-2xl text-gray-100 leading-relaxed"
+            >
+              {text}
+            </motion.p>
+          ))}
+        </div>
+      </div>
+
+      {/* Scroll fade hint (bottom gradient) */}
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
     </section>
   );
 };
