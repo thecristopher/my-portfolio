@@ -1,52 +1,36 @@
 {
-  "name": "react-portfolio-template",
+  "name": "my-portfolio",
   "private": true,
-  "description": "Portfolio for Cristopher Cervantes",
-  "version": "0.1.0",
-  "author": "Cristopher Cervantes",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
   "dependencies": {
-    "gatsby": "^4.17.2",
-    "gatsby-image": "^3.11.0",
-    "gatsby-plugin-manifest": "^4.17.0",
-    "gatsby-plugin-offline": "^5.17.0",
-    "gatsby-plugin-react-helmet": "^5.17.0",
-    "gatsby-plugin-sass": "^5.17.0",
-    "gatsby-plugin-sharp": "^4.17.0",
-    "gatsby-plugin-smoothscroll": "^1.2.0",
-    "gatsby-source-filesystem": "^4.17.0",
-    "gatsby-transformer-sharp": "^4.17.0",
-    "prop-types": "^15.7.2",
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0",
-    "react-helmet": "^6.1.0",
-    "react-ig-feed": "^1.0.4",
-    "react-reveal": "^1.2.2",
-    "react-scroll": "^1.8.1",
-    "react-scroll-up": "^1.3.7",
-    "webpack": "^5.73.0"
+    "@tailwindcss/postcss": "^4.1.7",
+    "@tailwindcss/vite": "^4.1.7",
+    "framer-motion": "^12.11.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-icons": "^5.5.0",
+    "tailwind": "^4.0.0",
+    "tailwind-scrollbar-hide": "^2.0.0"
   },
   "devDependencies": {
-    "prettier": "2.1.2",
-    "sass": "^1.53.0"
-  },
-  "keywords": [
-    "gatsby"
-  ],
-  "license": "0BSD",
-  "scripts": {
-    "build": "gatsby build",
-    "develop": "gatsby develop",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
-    "start": "npm run develop",
-    "serve": "gatsby serve",
-    "clean": "gatsby clean",
-    "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/gatsbyjs/gatsby-starter-default"
-  },
-  "bugs": {
-    "url": "https://github.com/gatsbyjs/gatsby/issues"
+    "@eslint/js": "^9.25.0",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.4.1",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.25.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.0.0",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.7",
+    "vite": "^6.3.5"
   }
 }
