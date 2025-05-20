@@ -29,12 +29,12 @@ function App() {
 
   return (
     <div className="relative min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors duration-500">
-      <button
+      {/* <button
         onClick={toggleTheme}
         className="fixed top-4 right-4 z-50 bg-gray-200 dark:bg-zinc-800 text-black dark:text-white px-4 py-2 rounded-full shadow-md hover:scale-105 transition"
       >
         {theme === "dark" ? "🌞" : "🌙"}
-      </button>
+      </button> */}
       <main className="flex flex-col gap-32">
         <Greeting />
         <About />
