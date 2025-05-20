@@ -6,7 +6,7 @@ const rightLines = ["DEVELOPER", "ARTIST", "ENTHUSIAST"];
 
 const Greeting = () => {
   return (
-    <section className="relative min-h-screen bg-black text-white flex flex-col items-center justify-center px-4 sm:px-12 py-32 overflow-hidden">
+    <section className="bg-transparent text-black dark:text-white relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-12 py-32 overflow-hidden">
       {/* Ambient Glows */}
       <div className="absolute left-[-10%] top-1/2 -translate-y-1/2 w-[38rem] h-[38rem] bg-red-600/20 rounded-full blur-3xl" />
       <div className="absolute right-[-10%] top-1/2 -translate-y-1/2 w-[38rem] h-[38rem] bg-blue-500/20 rounded-full blur-3xl" />

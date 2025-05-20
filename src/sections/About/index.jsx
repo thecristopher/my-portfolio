@@ -12,7 +12,7 @@ const paragraphs = [
 
 const About = () => {
   return (
-    <section className="relative bg-black text-white px-6 sm:px-12 md:px-20 lg:px-40 py-32 overflow-hidden">
+    <section className="relative  text-white px-6 sm:px-12 md:px-20 lg:px-40 py-32 overflow-hidden">
       <div className="relative z-10 max-w-5xl mx-auto">
         {/* Sticky Title on larger screens */}
         <div className="mb-10 md:mb-16 sticky top-10">

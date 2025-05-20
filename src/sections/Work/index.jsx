@@ -45,7 +45,7 @@ const workItems = [
 
 const Work = () => {
   return (
-    <section className="relative bg-black text-white py-24 px-6">
+    <section className="relative  text-white py-24 px-6">
       <div className="absolute inset-0 opacity-5 bg-[url('/images/noise-texture.png')] bg-repeat z-0 pointer-events-none" />
 
       <div className="relative z-10 mb-10 px-2 sm:px-8 md:px-16 lg:px-32 flex justify-between items-center">
