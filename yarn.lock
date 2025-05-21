@@ -3476,6 +3476,11 @@ tailwind@^4.0.0:
     uuidv4 "3.0.1"
     ws "6.2.0"
 
+tailwindcss-text-stroke@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/tailwindcss-text-stroke/-/tailwindcss-text-stroke-0.0.5.tgz#a4aa70e06fd856024153b0cc4d8dccba67c8a3b0"
+  integrity sha512-RXPokA6HirRAutNlzEFA94ly5oZ/mtP7H0X/dzTrjA9RBQLdNU8Rq6ifFntZ2/NS7d1wtwMwSu9W0sLFMVEYMg==
+
 tailwindcss@4.1.7, tailwindcss@^4.1.7:
   version "4.1.7"
   resolved "https://registry.yarnpkg.com/tailwindcss/-/tailwindcss-4.1.7.tgz#949f76d50667946ddd7291e0c7a4b5a7dfc9e765"

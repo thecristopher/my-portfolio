@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useRef, useState } from "react";
 import psl from "../../assets/images/psl.png";
 import grupoTress from "../../assets/images/grupotress.jpg";
 import hisense from "../../assets/images/hisense.png";
@@ -44,54 +45,89 @@ const workItems = [
 ];
 
 const Work = () => {
+  const [items, setItems] = useState(workItems);
+  const hasDraggedRef = useRef(false);
+
+  const handleSwipe = () => {
+    const [first, ...rest] = items;
+    setItems([...rest, first]);
+  };
+
   return (
-    <section className="relative  text-white py-24 px-6">
+    <section className="relative bg-black text-white py-16 px-6 overflow-hidden flex flex-col items-center justify-center">
       <div className="absolute inset-0 opacity-5 bg-[url('/images/noise-texture.png')] bg-repeat z-0 pointer-events-none" />
 
-      <div className="relative z-10 mb-10 px-2 sm:px-8 md:px-16 lg:px-32 flex justify-between items-center">
+      <div className="z-10 mb-10 text-center">
         <h2 className="text-sm uppercase tracking-widest text-gray-400">
           Work
         </h2>
-        <span className="text-xs text-gray-500 animate-pulse">← Swipe →</span>
+        <p className="text-xs text-gray-500 mt-1 animate-pulse">
+          ↑ Slightly drag the card ↑
+        </p>
       </div>
 
-      <div className="relative z-10 flex space-x-8 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-2 sm:px-8 md:px-16 lg:px-32">
-        {workItems.map((item, index) => (
-          <motion.a
-            key={index}
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: index * 0.1 }}
-            className="snap-center flex-shrink-0 w-[80vw] sm:w-[60vw] md:w-[40vw] lg:w-[28vw] h-[360px] bg-zinc-900 rounded-2xl overflow-hidden relative shadow-lg border border-white/10 hover:border-white/30 transition-all duration-500 group"
-          >
-            {/* Background image */}
-            <img
-              src={item.image}
-              alt={item.title}
-              className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
-            />
+      <div className="relative w-full max-w-md h-[550px] z-10">
+        {items.map((item, index) => {
+          const isTop = index === 0;
 
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/30 z-10" />
-
-            {/* Content */}
-            <div className="relative z-20 p-5 flex flex-col justify-end h-full">
-              <h3 className="text-lg sm:text-xl font-bold text-white/90 mb-1 uppercase tracking-wide">
-                {item.title}
-              </h3>
-              <p className="text-sm text-gray-300 leading-snug font-light">
-                {item.description}
-              </p>
-            </div>
-
-            {/* Accent ring glow on hover */}
-            <div className="absolute inset-0 z-0 rounded-2xl border border-transparent group-hover:border-blue-500/30 group-hover:shadow-[0_0_30px_#1c95d733] transition-all duration-500" />
-          </motion.a>
-        ))}
+          return (
+            <motion.div
+              key={item.title}
+              className={`absolute top-0 left-0 w-full h-full ${
+                isTop ? "cursor-grab active:cursor-grabbing" : "cursor-default"
+              }`}
+              style={{ zIndex: workItems.length - index }}
+              animate={{
+                y: index * 12,
+                scale: isTop ? 1 : 0.95,
+                opacity: 1,
+              }}
+              transition={{ duration: 0.3 }}
+              drag={isTop ? "y" : false}
+              dragConstraints={{ top: -80, bottom: 0 }}
+              onDragStart={() => {
+                hasDraggedRef.current = false;
+              }}
+              onDrag={(event, info) => {
+                if (Math.abs(info.offset.y) > 10) {
+                  hasDraggedRef.current = true;
+                }
+              }}
+              onDragEnd={(e, info) => {
+                if (info.offset.y < -30) {
+                  handleSwipe(); // swipe up
+                }
+              }}
+              onClick={(e) => {
+                if (hasDraggedRef.current) {
+                  e.preventDefault(); // suppress accidental click
+                } else {
+                  window.open(item.url, "_blank");
+                }
+              }}
+            >
+              <motion.div
+                className="w-full h-full rounded-xl overflow-hidden bg-zinc-900 border border-white/10 shadow-2xl relative"
+                whileHover={isTop ? { scale: 1.02 } : {}}
+              >
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="absolute inset-0 w-full h-full object-cover opacity-80"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/30 z-10" />
+                <div className="relative z-20 p-5 flex flex-col justify-end h-full">
+                  <h3 className="text-lg sm:text-xl font-bold text-white/90 mb-1 uppercase tracking-wide">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-gray-300 leading-snug font-light">
+                    {item.description}
+                  </p>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );

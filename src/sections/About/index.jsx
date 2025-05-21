@@ -1,51 +1,58 @@
 import { motion } from "framer-motion";
 
 const paragraphs = [
-  `Hi, I'm Cristopher Cervantes, a design and development professional with over nine years of experience across a variety of creative and technical disciplines. I've built a career out of translating innovative ideas into compelling digital solutions.`,
+  `Hey there — I’m Cristopher Cervantes, a fullstack developer with 9+ years of experience crafting everything from quick prototypes to enterprise-grade systems. I bridge the gap between front-end finesse and back-end muscle — think React meets C# in a NodeJS-powered coffee shop.`,
 
-  `I've worked across on-premises and cloud environments, developing applications that solve complex technical challenges. My technical toolkit includes languages like C#, .NET, PHP, Python, NodeJS, and React, allowing me to craft versatile and robust software solutions.`,
+  `Throughout my career, I’ve had the chance to work with companies that didn’t just need "a developer," but someone who could jump between stacks, tackle legacy dragons, and still deliver clean, scalable code. From building PHP-based CMS platforms to wrangling cloud-native APIs with Python, I’ve pretty much been everywhere.`,
 
-  `Instead of focusing only on what I’ve done in the past, I like to keep my eyes on the future. I’m all about learning new things, tackling challenges, and going after goals that truly matter.`,
+  `I'm fluent in several tech dialects: C#, .NET, React, PHP, Python, Node.js — you name it. Databases? Oh yeah. Whether it's MySQL, PostgreSQL, or NoSQL flavors, I love getting into data structure debates (and winning them).`,
 
-  `I have an insatiable appetite to keep learning — this drives me to stay at the forefront of technology and industry trends. My passion for continuous improvement motivates me to seek innovative, impactful projects.`,
+  `I’m also officially AWS-certified — both as a Cloud Practitioner and a Developer Associate. Translation: I can launch, scale, and troubleshoot your cloud infrastructure before my second cup of coffee.`,
+
+  `At the core of it all, I’m someone who loves learning, building, and solving the kind of problems that make other developers sigh dramatically. I’m always up for a challenge — especially the kind that lets me push tech boundaries while having a good laugh in the process.`,
 ];
 
 const About = () => {
   return (
-    <section className="relative  text-white px-6 sm:px-12 md:px-20 lg:px-40 py-32 overflow-hidden">
+    <section className="relative text-white px-6 sm:px-12 md:px-20 lg:px-40 py-20 overflow-hidden bg-gradient-to-b from-black via-zinc-900 to-black">
       <div className="relative z-10 max-w-5xl mx-auto">
-        {/* Sticky Title on larger screens */}
-        <div className="mb-10 md:mb-16 sticky top-10">
-          <motion.h2
-            initial={{ opacity: 0, y: -20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-sm uppercase tracking-widest text-gray-400"
-          >
-            About
-          </motion.h2>
-        </div>
+        {/* Title with animated stripe */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="mb-12 sticky top-10"
+        >
+          <div className="relative inline-block">
+            <h2 className="text-sm uppercase tracking-widest text-red-400 z-10 relative">
+              About
+            </h2>
+            <div className="absolute left-0 top-1/2 transform -translate-y-1/2 h-0.5 w-full bg-gradient-to-r from-cyan-500 to-transparent opacity-30" />
+          </div>
+        </motion.div>
 
-        {/* Paragraphs */}
-        <div className="space-y-12">
+        {/* Paragraphs with motion and dividers */}
+        <div className="space-y-16">
           {paragraphs.map((text, index) => (
-            <motion.p
+            <motion.div
               key={index}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.6 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="text-lg sm:text-xl md:text-2xl text-gray-100 leading-relaxed"
+              transition={{ duration: 0.7, delay: index * 0.15 }}
+              className="relative"
             >
-              {text}
-            </motion.p>
+              <p className="text-lg sm:text-xl md:text-2xl text-gray-100 leading-relaxed">
+                {text}
+              </p>
+              {index !== paragraphs.length - 1 && (
+                <div className="w-32 h-1 mt-6 bg-gradient-to-r from-cyan-500 to-transparent opacity-20 rounded-full" />
+              )}
+            </motion.div>
           ))}
         </div>
       </div>
-
-      {/* Scroll fade hint (bottom gradient) */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
     </section>
   );
 };
