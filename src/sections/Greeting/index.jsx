@@ -19,7 +19,7 @@ const Greeting = () => {
   const leftEnd = Math.floor(totalLetters / 2);
 
   return (
-    <section className="relative min-h-screen bg-black text-white overflow-hidden flex flex-col items-center justify-center px-4 sm:px-12 py-16">
+    <section id="greeting" className="relative min-h-screen bg-black text-white overflow-hidden flex flex-col items-center justify-center px-4 sm:px-12 py-16">
       {/* Ambient Glows */}
       <div className="absolute left-[-20%] top-1/2 -translate-y-1/2 w-[55rem] h-[55rem] bg-red-600/20 rounded-full blur-3xl z-0" />
       <div className="absolute right-[-20%] top-1/2 -translate-y-1/2 w-[55rem] h-[55rem] bg-blue-500/20 rounded-full blur-3xl z-0" />
@@ -68,7 +68,7 @@ const Greeting = () => {
         <img
           src={heroImage}
           alt="Cristopher"
-          className="relative z-10 w-[320px] h-[460px] sm:w-[360px] sm:h-[500px] object-cover rounded-2xl shadow-[0_0_100px_#000000bb]"
+          className="relative z-10 w-[320px] h-[460px] sm:w-[560px] sm:h-[800px] object-cover rounded-2xl shadow-[0_0_100px_#000000bb]"
         />
       </motion.div>
 

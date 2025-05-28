@@ -19,7 +19,7 @@ const skills = [
       "With AWS and DevOps know-how, I ship scalable and production-ready systems that run smoothly and securely at any scale.",
   },
   {
-    title: "Frontend Engineering",
+    title: "Frontend",
     icon: <FaReact size={32} />,
     description:
       "Beyond React, I focus on creating intuitive interfaces that scale with your users — blending design, accessibility, and performance.",
@@ -80,7 +80,7 @@ const FlipCard = ({ skill }) => {
 
 const SkillsSection = () => {
   return (
-    <section className="relative  text-white px-6 sm:px-12 md:px-24 lg:px-48 py-20 overflow-hidden">
+    <section id="skills" className="relative  text-white px-6 sm:px-12 md:px-24 lg:px-48 py-20 overflow-hidden">
       {/* Section Title */}
       <h2 className="text-center text-3xl md:text-4xl font-extrabold mb-16 tracking-wide relative z-10">
         <span className="text-white drop-shadow-[0_0_15px_rgba(255,0,128,0.2)]">

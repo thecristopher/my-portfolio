@@ -54,7 +54,7 @@ const Work = () => {
   };
 
   return (
-    <section className="relative bg-black text-white py-16 px-6 overflow-hidden flex flex-col items-center justify-center">
+    <section id="work" className="relative bg-black text-white py-16 px-6 overflow-hidden flex flex-col items-center justify-center">
       <div className="absolute inset-0 opacity-5 bg-[url('/images/noise-texture.png')] bg-repeat z-0 pointer-events-none" />
 
       <div className="z-10 mb-10 text-center">

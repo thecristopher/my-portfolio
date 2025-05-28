@@ -25,7 +25,7 @@ const socials = [
 
 const ContactSection = () => {
   return (
-    <section className="relative  text-white py-20 px-6 sm:px-12 text-center overflow-hidden">
+    <section id="contact" className="relative  text-white py-20 px-6 sm:px-12 text-center overflow-hidden">
       <h2 className="text-3xl md:text-4xl font-extrabold mb-6 tracking-wide relative z-10">
         Let’s Create Something Together
       </h2>

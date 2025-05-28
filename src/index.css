@@ -1,8 +1,14 @@
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk&display=swap");
 
 @import "tailwindcss";
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: "Space Grotesk", sans-serif;
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 .perspective {

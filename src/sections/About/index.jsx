@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 
 const paragraphs = [
-  `Hey there — I’m Cristopher Cervantes, a fullstack developer with 9+ years of experience crafting everything from quick prototypes to enterprise-grade systems. I bridge the gap between front-end finesse and back-end muscle — think React meets C# in a NodeJS-powered coffee shop.`,
+  `Hey there! I’m Cristopher Cervantes, a fullstack developer with 9+ years of experience crafting everything from quick prototypes to enterprise-grade systems. I bridge the gap between front-end finesse and back-end muscle.`,
 
-  `Throughout my career, I’ve had the chance to work with companies that didn’t just need "a developer," but someone who could jump between stacks, tackle legacy dragons, and still deliver clean, scalable code. From building PHP-based CMS platforms to wrangling cloud-native APIs with Python, I’ve pretty much been everywhere.`,
+  `Throughout my career, I’ve had the chance to work with companies that didn’t just need "a developer," but someone who could jump between stacks, tackle legacy obstacles, and still deliver clean, scalable code. From building PHP-based platforms to wrangling cloud-native APIs with Python, I’ve pretty much been everywhere.`,
 
-  `I'm fluent in several tech dialects: C#, .NET, React, PHP, Python, Node.js — you name it. Databases? Oh yeah. Whether it's MySQL, PostgreSQL, or NoSQL flavors, I love getting into data structure debates (and winning them).`,
+  `I'm fluent in several tech dialects: C#, .NET, React, PHP, Python, Node.js — you name it. Databases? Oh yeah. Whether it's MySQL, PostgreSQL, or NoSQL flavors, I love getting into data structure debates.`,
 
   `I’m also officially AWS-certified — both as a Cloud Practitioner and a Developer Associate. Translation: I can launch, scale, and troubleshoot your cloud infrastructure before my second cup of coffee.`,
 
@@ -14,7 +14,7 @@ const paragraphs = [
 
 const About = () => {
   return (
-    <section className="relative text-white px-6 sm:px-12 md:px-20 lg:px-40 py-20 overflow-hidden bg-gradient-to-b from-black via-zinc-900 to-black">
+    <section id="about" className="relative text-white px-6 sm:px-12 md:px-20 lg:px-40 py-30 overflow-hidden bg-gradient-to-b from-black via-[#250c15] via-40% to-[#000001]">
       <div className="relative z-10 max-w-5xl mx-auto">
         {/* Title with animated stripe */}
         <motion.div
@@ -25,14 +25,14 @@ const About = () => {
           className="mb-12 sticky top-10"
         >
           <div className="relative inline-block">
-            <h2 className="text-sm uppercase tracking-widest text-red-400 z-10 relative">
+            <h2 className="text-sm uppercase tracking-widest  text-gray-400 z-10 relative">
               About
             </h2>
             <div className="absolute left-0 top-1/2 transform -translate-y-1/2 h-0.5 w-full bg-gradient-to-r from-cyan-500 to-transparent opacity-30" />
           </div>
         </motion.div>
 
-        {/* Paragraphs with motion and dividers */}
+        {/* Paragraphs with motion and glowing dividers */}
         <div className="space-y-16">
           {paragraphs.map((text, index) => (
             <motion.div
@@ -47,7 +47,7 @@ const About = () => {
                 {text}
               </p>
               {index !== paragraphs.length - 1 && (
-                <div className="w-32 h-1 mt-6 bg-gradient-to-r from-cyan-500 to-transparent opacity-20 rounded-full" />
+                <div className="w-32 h-1 mt-6 bg-gradient-to-r from-red-400 to-blue-400 opacity-30 rounded-full" />
               )}
             </motion.div>
           ))}
