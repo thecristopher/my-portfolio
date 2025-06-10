@@ -1,60 +1,31 @@
 import { motion } from "framer-motion";
-import { useRef, useState } from "react";
-import psl from "../../assets/images/psl.png";
-import grupoTress from "../../assets/images/grupotress.jpg";
-import hisense from "../../assets/images/hisense.png";
-import umbrella from "../../assets/images/umbrella.jpg";
-import dentist from "../../assets/images/dentist_genesis.png";
-
-const workItems = [
-  {
-    title: "PSL Group / FirstWord",
-    image: psl,
-    url: "https://www.pslgroup.com/",
-    description:
-      "Delivered scalable pharma insights through modern web apps & feed infrastructure.",
-  },
-  {
-    title: "Grupo Tress",
-    image: grupoTress,
-    url: "https://www.tress.com.mx/",
-    description:
-      "Built enterprise-grade payroll tools with secure, high-performance architecture.",
-  },
-  {
-    title: "Hisense México",
-    image: hisense,
-    url: "https://www.hisense.com.mx/",
-    description:
-      "Developed corporate & factory tooling for productivity and systems integration.",
-  },
-  {
-    title: "Umbrella Seguros",
-    image: umbrella,
-    url: "https://www.umbrella-seguros.com/",
-    description:
-      "Built modern insurance platform focused on speed, UX, and digital reach.",
-  },
-  {
-    title: "Genesis Cazares, DDS",
-    image: dentist,
-    url: "https://dentistagenesiscazares.com",
-    description:
-      "Promoted services through a responsive C# MVC web app tailored for visibility.",
-  },
-];
+import { useEffect, useRef, useState } from "react";
+import { useGetProjectsQuery } from "../../api/projectsApi";
+import { imageMap } from "../../lib/imageMap";
+import { techIconMap } from "../../lib/techIconMap";
 
 const Work = () => {
+  const { data: workItems = [], isLoading = false } = useGetProjectsQuery();
   const [items, setItems] = useState(workItems);
   const hasDraggedRef = useRef(false);
+
+  useEffect(() => {
+    setItems(workItems);
+  }, [workItems]);
 
   const handleSwipe = () => {
     const [first, ...rest] = items;
     setItems([...rest, first]);
   };
 
+  if (isLoading)
+    return <div className="text-center text-white">Loading skills...</div>;
+
   return (
-    <section id="work" className="relative bg-black text-white py-16 px-6 overflow-hidden flex flex-col items-center justify-center">
+    <section
+      id="work"
+      className="relative bg-black text-white py-16 px-6 overflow-hidden flex flex-col items-center justify-center"
+    >
       <div className="absolute inset-0 opacity-5 bg-[url('/images/noise-texture.png')] bg-repeat z-0 pointer-events-none" />
 
       <div className="z-10 mb-10 text-center">
@@ -111,7 +82,7 @@ const Work = () => {
                 whileHover={isTop ? { scale: 1.02 } : {}}
               >
                 <img
-                  src={item.image}
+                  src={imageMap[item?.image]}
                   alt={item.title}
                   className="absolute inset-0 w-full h-full object-cover opacity-80"
                 />
@@ -123,6 +94,21 @@ const Work = () => {
                   <p className="text-sm text-gray-300 leading-snug font-light">
                     {item.description}
                   </p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {item.technologies?.map(
+                      (tech, j) =>
+                        techIconMap[tech] && (
+                          <div
+                            key={j}
+                            className="flex items-center gap-1 text-xs bg-zinc-800 text-white px-3 py-2 rounded-full"
+                          >
+                            <span className="text-base">
+                              {techIconMap[tech]}
+                            </span>
+                          </div>
+                        )
+                    )}
+                  </div>
                 </div>
               </motion.div>
             </motion.div>
