@@ -8,7 +8,7 @@ import Navbar from "./components/Navbar";
 function App() {
   return (
     <div className="relative min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors duration-500">
-      {/* <Navbar /> */}
+      <Navbar />
       <main className="flex flex-col gap-32">
         <Greeting />
         <About />
