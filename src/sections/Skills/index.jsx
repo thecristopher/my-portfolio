@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { iconMap } from "../../lib/iconMap";
 import { useGetSkillsQuery } from "../../api/skillsApi";
+import LoadingD20 from "../../components/LoadingD20";
 
 const FlipCard = ({ skill }) => {
   const [flipped, setFlipped] = useState(false);
@@ -41,7 +42,7 @@ const SkillsSection = () => {
   const { data: skills = [], isLoading } = useGetSkillsQuery();
 
   if (isLoading)
-    return <div className="text-center text-white">Loading skills...</div>;
+    return <LoadingD20 message="Loading skills..." />;
   return (
     <section
       id="skills"

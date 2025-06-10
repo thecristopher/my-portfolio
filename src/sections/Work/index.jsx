@@ -6,12 +6,17 @@ import { techIconMap } from "../../lib/techIconMap";
 
 const Work = () => {
   const { data: workItems = [], isLoading = false } = useGetProjectsQuery();
-  const [items, setItems] = useState(workItems);
+  const [items, setItems] = useState([]);
+  const hasInitialized = useRef(false);
   const hasDraggedRef = useRef(false);
 
-  useEffect(() => {
+useEffect(() => {
+  if (workItems.length > 0 && !hasInitialized.current) {
     setItems(workItems);
-  }, [workItems]);
+    hasInitialized.current = true;
+  }
+}, [workItems]);
+
 
   const handleSwipe = () => {
     const [first, ...rest] = items;
