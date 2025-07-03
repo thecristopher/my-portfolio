@@ -8,8 +8,8 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-white/80 dark:bg-black/80 backdrop-blur-lg shadow-md px-6 sm:px-12 py-4">
-      <ul className="flex justify-center gap-6 text-sm sm:text-base font-semibold text-gray-800 dark:text-gray-200">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-black/80 backdrop-blur-lg shadow-md px-6 sm:px-12 py-4">
+      <ul className="flex justify-center gap-6 text-sm sm:text-base font-semibold text-gray-200">
         {links.map((link) => (
           <li key={link.href}>
             <a

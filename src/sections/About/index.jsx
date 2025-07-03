@@ -14,7 +14,10 @@ const paragraphs = [
 
 const About = () => {
   return (
-    <section id="about" className="relative text-white px-6 sm:px-12 md:px-20 lg:px-40 py-30 overflow-hidden bg-gradient-to-b from-black via-[#250c15] via-40% to-[#000001]">
+    <section
+      id="about"
+      className="relative bg-black text-white px-6 sm:px-12 md:px-20 lg:px-40 py-30 overflow-hidden bg-gradient-to-b from-black via-[#250c15] via-40% to-[#000001]"
+    >
       <div className="relative z-10 max-w-5xl mx-auto">
         {/* Title with animated stripe */}
         <motion.div
@@ -43,7 +46,7 @@ const About = () => {
               transition={{ duration: 0.7, delay: index * 0.15 }}
               className="relative"
             >
-              <p className="text-lg sm:text-xl md:text-2xl text-gray-100 leading-relaxed">
+              <p className="text-lg sm:text-xl md:text-2xl text-white/90 leading-relaxed">
                 {text}
               </p>
               {index !== paragraphs.length - 1 && (
