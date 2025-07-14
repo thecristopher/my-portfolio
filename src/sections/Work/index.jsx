@@ -29,7 +29,7 @@ useEffect(() => {
   return (
     <section
       id="work"
-      className="relative bg-black text-white py-16 px-6 overflow-hidden flex flex-col items-center justify-center"
+      className="relative text-white py-16 px-6 overflow-hidden flex flex-col items-center justify-center"
     >
       <div className="absolute inset-0 opacity-5 bg-[url('/images/noise-texture.png')] bg-repeat z-0 pointer-events-none" />
 
@@ -86,6 +86,8 @@ useEffect(() => {
                 className="w-full h-full rounded-xl overflow-hidden bg-zinc-900 border border-white/10 shadow-2xl relative"
                 whileHover={isTop ? { scale: 1.02 } : {}}
               >
+                <div className="absolute bottom-0 left-0 w-72 h-72 bg-red-600/40 rounded-full blur-3xl z-0" />
+                <div className="absolute top-0 right-0 w-72 h-72 bg-blue-500/40 rounded-full blur-3xl z-0" />
                 <img
                   src={imageMap[item?.image]}
                   alt={item.title}

@@ -19,11 +19,7 @@ const Greeting = () => {
   const leftEnd = Math.floor(totalLetters / 2);
 
   return (
-    <section id="greeting" className="relative min-h-screen bg-black text-white overflow-hidden flex flex-col items-center justify-center px-4 sm:px-12 py-16">
-      {/* Ambient Glows */}
-      <div className="absolute left-[-20%] top-1/2 -translate-y-1/2 w-[55rem] h-[55rem] bg-red-600/20 rounded-full blur-3xl z-0" />
-      <div className="absolute right-[-20%] top-1/2 -translate-y-1/2 w-[55rem] h-[55rem] bg-blue-500/20 rounded-full blur-3xl z-0" />
-
+    <section id="greeting" className="relative min-h-screen text-white overflow-hidden flex flex-col items-center justify-center px-4 sm:px-12 py-16">
       {/* DESKTOP: Passing behind photo */}
       <div className="hidden md:block absolute top-[calc(50%-11rem)] w-full overflow-hidden z-0 pointer-events-none leading-[0.9]">
         <div className="flex justify-center items-center gap-[6px] text-[9vw] xl:text-[6vw] font-extrabold uppercase tracking-tight">

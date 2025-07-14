@@ -16,7 +16,7 @@ const About = () => {
   return (
     <section
       id="about"
-      className="relative bg-black text-white px-6 sm:px-12 md:px-20 lg:px-40 py-30 overflow-hidden bg-gradient-to-b from-black via-[#250c15] via-40% to-[#000001]"
+      className="relative text-white px-6 sm:px-12 md:px-20 lg:px-40 py-30 overflow-hidden from-black via-[#250c15] via-40% to-[#000001]"
     >
       <div className="relative z-10 max-w-5xl mx-auto">
         {/* Title with animated stripe */}

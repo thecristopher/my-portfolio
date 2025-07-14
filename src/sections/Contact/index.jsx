@@ -1,13 +1,13 @@
-import { FaLinkedin, FaInstagram, FaTiktok, FaTwitch, FaYoutube } from "react-icons/fa";
+import { FaGithub, FaLinkedin, FaInstagram, FaTiktok, FaTwitch, FaYoutube } from "react-icons/fa";
 
 const socials = [
   {
+    icon: <FaGithub size={24} />,
+    url: "https://github.com/thecristopher",
+  },
+  {
     icon: <FaLinkedin size={24} />,
     url: "https://www.linkedin.com/in/thecristopher",
-  },
-   {
-    icon: <FaYoutube size={24} />,
-    url: "https://www.youtube.com/@thecristopherofficial",
   },
   {
     icon: <FaInstagram size={24} />,
@@ -16,6 +16,10 @@ const socials = [
   {
     icon: <FaTiktok size={24} />,
     url: "https://www.tiktok.com/@thecristopherofficial",
+  },
+  {
+    icon: <FaYoutube size={24} />,
+    url: "https://www.youtube.com/@thecristopherofficial",
   },
   {
     icon: <FaTwitch size={24} />,
