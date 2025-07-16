@@ -21,14 +21,14 @@ function App() {
   }, []);
 
   const handleSuccess = () => {
-    setPassedCheck(true); // 🌟 Actualiza la UI inmediatamente
+    setPassedCheck(true);
   };
 
   return (
     <div className="relative min-h-screen bg-black text-white transition-colors duration-500">
       <Navbar />
-      <div className="fixed left-[-20%] top-1/2 -translate-y-1/2 w-[55rem] h-[55rem] bg-red-600/20 rounded-full blur-3xl z-0 pointer-events-none" />
-      <div className="fixed right-[-20%] top-1/2 -translate-y-1/2 w-[55rem] h-[55rem] bg-blue-500/20 rounded-full blur-3xl z-0 pointer-events-none" />
+      <div className="fixed left-[-25%] top-1/2 -translate-y-1/2 w-[70rem] h-[70rem] max-sm:h-[15rem] bg-red-600/10 rounded-full blur-[150px] z-0 pointer-events-none" />
+      <div className="fixed right-[-25%] top-1/2 -translate-y-1/2 w-[70rem] h-[70rem] max-sm:h-[15rem] bg-blue-500/10 rounded-full blur-[150px] z-0 pointer-events-none" />
       <main className="flex flex-col gap-32">
         <Greeting />
         <About />
