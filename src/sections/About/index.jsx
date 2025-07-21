@@ -3,13 +3,13 @@ import { motion } from "framer-motion";
 const paragraphs = [
   `Hey there! I’m Cristopher Cervantes, a fullstack developer with 9+ years of experience crafting everything from quick prototypes to enterprise-grade systems. I bridge the gap between front-end finesse and back-end muscle.`,
 
-  `Throughout my career, I’ve had the chance to work with companies that didn’t just need "a developer," but someone who could jump between stacks, tackle legacy obstacles, and still deliver clean, scalable code. From building PHP-based platforms to wrangling cloud-native APIs with Python, I’ve pretty much been everywhere.`,
+  `Throughout my career, I’ve had the chance to work with companies that didn’t just need "a developer," but someone who could jump between stacks, tackle legacy obstacles, and still deliver clean, scalable code. From building .NET based platforms to wrangling cloud-native APIs with Python, I’ve pretty much been everywhere.`,
 
   `I'm fluent in several tech dialects: C#, .NET, React, PHP, Python, Node.js — you name it. Databases? Oh yeah. Whether it's MySQL, PostgreSQL, or NoSQL flavors, I love getting into data structure debates.`,
 
-  `I’m also officially AWS-certified — both as a Cloud Practitioner and a Developer Associate. Translation: I can launch, scale, and troubleshoot your cloud infrastructure before my second cup of coffee.`,
+  `I’m also officially AWS-certified, both as a Cloud Practitioner and a Developer Associate. What does that mean? Well, I can launch, scale, and troubleshoot your cloud infrastructure before my second cup of coffee.`,
 
-  `At the core of it all, I’m someone who loves learning, building, and solving the kind of problems that make other developers sigh dramatically. I’m always up for a challenge — especially the kind that lets me push tech boundaries while having a good laugh in the process.`,
+  `At the core of it all, I’m someone who loves learning, building, and solving the kind of problems that make other developers sigh. I’m always up for a challenge, especially the kind that lets me push tech boundaries and keep learning in the process.`,
 ];
 
 const About = () => {
