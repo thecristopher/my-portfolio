@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk&display=swap");
-
 @import "tailwindcss";
 
+/* GLOBAL STYLES */
 html {
   scroll-behavior: smooth;
 }
@@ -11,23 +11,22 @@ body {
   transition: background-color 0.5s ease, color 0.5s ease;
 }
 
-.perspective {
-  perspective: 1000px;
+/* CLASES PERSONALIZADAS, AHORA DENTRO DEL SISTEMA TAILWIND */
+@layer utilities {
+  .perspective {
+    perspective: 1000px;
+  }
+
+  .transform-style-preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
 }
 
-.transform-style-preserve-3d {
-  transform-style: preserve-3d;
-}
-
-.backface-hidden {
-  backface-visibility: hidden;
-}
-
-.rotate-y-180 {
-  transform: rotateY(180deg);
-}
-
-.text-transparent {
-  color: transparent;
-  -webkit-text-stroke: 1.5px white;
-}
