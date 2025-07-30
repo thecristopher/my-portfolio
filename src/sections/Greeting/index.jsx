@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
 import heroImage from "../../assets/images/greeting.png";
 
-const outlined =
-  "text-transparent stroke-white stroke-[2.5px] stroke-white/40";
+const outlined = "text-transparent stroke-2_5 stroke-white-40";
 const filled = "text-white";
 
 const repeatWord = (word, totalLetters) => {
