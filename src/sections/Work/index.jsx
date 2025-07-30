@@ -15,8 +15,9 @@ const FlipCard = ({ item, isTop, flipped, onClick, onDragEnd, onDragStart }) => 
 
   return (
     <motion.div
-      className={`absolute top-0 left-0 w-full h-full ${isTop ? "cursor-grab active:cursor-grabbing z-20" : "cursor-default z-10"
+      className={`absolute top-0 left-0 w-full h-full ${isTop ? "cursor-grab active:cursor-grabbing z-20 touch-none" : "cursor-default z-10"
         }`}
+      dragListener={isTop}
       style={{ y: isTop ? 0 : 12 }}
       drag={isTop ? "y" : false}
       dragConstraints={{ top: -80, bottom: 80 }}
