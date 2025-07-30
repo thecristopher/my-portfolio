@@ -32,7 +32,7 @@ export default function PerceptionCheck({ onSuccess }) {
     }, 80);
 
     const result = await triggerRoll().unwrap();
-    const isSuccess = result.roll >= 10;
+    const isSuccess = result.roll >= 8;
 
     setTimeout(() => {
       clearInterval(animationInterval);
@@ -59,7 +59,7 @@ export default function PerceptionCheck({ onSuccess }) {
           pierce it?
         </p>
         <div className="text-zinc-200 font-bold text-lg">DIFFICULTY CLASS</div>
-        <div className="text-5xl font-bold text-purple-400">10</div>
+        <div className="text-5xl font-bold text-purple-400">8</div>
       </div>
 
       {!rollResult && !isRolling && (
