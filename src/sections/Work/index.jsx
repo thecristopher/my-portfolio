@@ -15,24 +15,28 @@ const FlipCard = ({ item, isTop, flipped, onClick, onDragEnd, onDragStart }) => 
 
   return (
     <motion.div
-      className={`absolute top-0 left-0 w-full h-full ${isTop ? "cursor-grab active:cursor-grabbing z-20 touch-none" : "cursor-default z-10"
-        }`}
+      className={`relative w-full h-full ${isTop ? "cursor-grab active:cursor-grabbing z-20 touch-none" : "cursor-default z-10"}`}
       dragListener={isTop}
       style={{ y: isTop ? 0 : 12 }}
       drag={isTop ? "y" : false}
       dragConstraints={{ top: -80, bottom: 80 }}
-      dragElastic={0.15}
+      dragElastic={0.2}
       dragSnapToOrigin
       onDragEnd={onDragEnd}
       onDragStart={onDragStart}
     >
-      <div className="relative w-full h-full perspective" onClick={onClick}>
+      <div
+        className="relative w-full h-full"
+        onClick={onClick}
+      >
         <div
-          className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${flipped ? "rotate-y-180" : ""
-            }`}
-        >
-          {/* FRONT */}
-          <div className="absolute inset-0 w-full h-full bg-zinc-900 border border-white/10 shadow-2xl rounded-xl overflow-hidden backface-hidden transform-style-preserve-3d">
+          className={`relative w-full h-full transition-transform duration-700`}
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          }}
+        >        {/* FRONT */}
+          <div className="absolute inset-0 w-full h-full bg-zinc-900 border border-white/10 shadow-2xl rounded-xl backface-hidden transform-style-preserve-3d">
             <img
               src={imageMap[item?.image]}
               alt={item.title}
@@ -84,26 +88,19 @@ const Work = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const hasInitialized = useRef(false);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     if (workItems.length > 0 && !hasInitialized.current) {
       hasInitialized.current = true;
       setCurrentIndex(0);
+
+      // 💡 Asegura que el scroll esté al inicio
+      if (scrollRef.current) {
+        scrollRef.current.scrollLeft = 0;
+      }
     }
   }, [workItems]);
-
-  const handleSwipe = (direction) => {
-    setFlipped(false);
-    setCurrentIndex((prevIndex) => {
-      const total = workItems.length;
-      if (direction === "up") {
-        return (prevIndex + 1) % total;
-      } else if (direction === "down") {
-        return (prevIndex - 1 + total) % total;
-      }
-      return prevIndex;
-    });
-  };
 
   if (isLoading) {
     return (
@@ -119,41 +116,45 @@ const Work = () => {
   return (
     <section
       id="work"
-      className="relative text-white py-16 px-6 overflow-hidden flex flex-col items-center justify-center"
+      style={{ perspective: "1500px" }}
+      className="relative text-white py-16 px-6 overflow-visible flex flex-col items-center justify-center"
     >
       <div className="absolute inset-0 opacity-5 bg-[url('/images/noise-texture.png')] bg-repeat z-0 pointer-events-none" />
       <div className="z-10 mb-10 text-center">
         <h2 className="text-sm uppercase tracking-widest text-gray-400">Work</h2>
-        <p className="text-xs text-gray-500 mt-1 animate-pulse">↑ Drag to see next project ↑</p>
-        <p className="text-xs text-gray-500 mt-1 animate-pulse">Click to flip</p>
+        <p className="text-xs text-gray-500 mt-1 animate-pulse">
+          ← Swipe to explore →
+        </p>
+        <p className="text-xs text-gray-500 mt-1 animate-pulse">Tap to flip</p>
       </div>
-
-      <div className="relative w-full max-w-md h-[550px] z-10">
-        {workItems.map((item, index) => {
-          const isTop = index === currentIndex;
-          return (
-            <FlipCard
+      <div
+        ref={scrollRef}
+        class="relative w-full overflow-x-auto overflow-y-visible px-2 sm:px-4 snap-x snap-mandatory scroll-smooth mx-auto"
+      >
+        <div className="flex gap-6 w-fit sm:mx-auto sm:justify-center">
+          {workItems.map((item, index) => (
+            <motion.div
               key={item.title}
-              item={item}
-              isTop={isTop}
-              flipped={isTop && flipped}
-              onClick={() => {
-                if (isTop) {
-                  setFlipped((f) => !f);
-                }
-              }}
-              onDragStart={() => { }}
-              onDragEnd={(e, info) => {
-                const threshold = 40;
-                if (info.offset.y < -threshold) {
-                  handleSwipe("up");
-                } else if (info.offset.y > threshold) {
-                  handleSwipe("down");
-                }
-              }}
-            />
-          );
-        })}
+              className="snap-center shrink-0 w-[85vw] sm:w-[400px] h-[600px] relative"
+            >
+              <FlipCard
+                item={item}
+                isTop={false}
+                flipped={currentIndex === index && flipped}
+                onClick={() => {
+                  if (currentIndex === index) {
+                    setFlipped(f => !f);
+                  } else {
+                    setCurrentIndex(index);
+                    setFlipped(false);
+                  }
+                }}
+                onDragStart={() => { }}
+                onDragEnd={() => { }}
+              />
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );
