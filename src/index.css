@@ -16,12 +16,15 @@ body {
   .stroke-2_5 {
     -webkit-text-stroke-width: 2.5px;
   }
+
   .stroke-white {
     -webkit-text-stroke-color: white;
   }
+
   .stroke-white-40 {
     -webkit-text-stroke-color: rgba(255, 255, 255, 0.4);
   }
+
   .perspective {
     perspective: 1000px;
   }
@@ -37,5 +40,15 @@ body {
   .rotate-y-180 {
     transform: rotateY(180deg);
   }
-}
 
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+}

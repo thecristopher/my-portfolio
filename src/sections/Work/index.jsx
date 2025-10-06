@@ -123,28 +123,30 @@ const Work = () => {
       <div className="z-10 mb-10 text-center">
         <h2 className="text-sm uppercase tracking-widest text-gray-400">Work</h2>
         <p className="text-xs text-gray-500 mt-1 animate-pulse">
-          ← Swipe to explore →
+          ← Swipe or scroll to explore →
         </p>
         <p className="text-xs text-gray-500 mt-1 animate-pulse">Tap to flip</p>
       </div>
       <div
         ref={scrollRef}
-        class="relative w-full overflow-x-auto overflow-y-visible px-2 sm:px-4 snap-x snap-mandatory scroll-smooth mx-auto"
+        className="relative w-full overflow-x-auto overflow-y-hidden px-4 snap-x snap-mandatory scroll-smooth no-scrollbar"
       >
-        <div className="flex gap-6 w-fit sm:mx-auto sm:justify-center">
+
+
+
+        <div className="flex gap-6 items-stretch w-max">
           {workItems.map((item, index) => (
             <motion.div
               key={item.title}
-              className="snap-center shrink-0 w-[85vw] sm:w-[400px] h-[600px] relative"
+              className="snap-center shrink-0 w-[350px] md:w-[400px] h-[550px] relative flex"
             >
               <FlipCard
                 item={item}
                 isTop={false}
                 flipped={currentIndex === index && flipped}
                 onClick={() => {
-                  if (currentIndex === index) {
-                    setFlipped(f => !f);
-                  } else {
+                  if (currentIndex === index) setFlipped(f => !f);
+                  else {
                     setCurrentIndex(index);
                     setFlipped(false);
                   }
@@ -156,6 +158,7 @@ const Work = () => {
           ))}
         </div>
       </div>
+
     </section>
   );
 };
