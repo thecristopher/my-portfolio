@@ -42,10 +42,10 @@ const ContactSection = () => {
       {/* CTA Email */}
       <div className="relative z-10">
         <a
-          href="mailto:isc.cristopher@gmail.com"
+          href="mailto:contact@cristophercervantes.com"
           className="inline-block bg-white text-black px-6 py-3 rounded-full font-semibold hover:bg-gray-200 transition shadow-md"
         >
-          isc.cristopher@gmail.com
+          contact@cristophercervantes.com
         </a>
       </div>
 
