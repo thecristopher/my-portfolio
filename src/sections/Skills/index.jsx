@@ -1,68 +1,127 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
-import { iconMap } from "../../lib/iconMap";
+import SectionHeader from "../../components/SectionHeader";
+import SpotlightCard from "../../components/SpotlightCard";
+import TerminalWindow from "../../components/TerminalWindow";
+import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetSkillsQuery } from "../../api/skillsApi";
+import { useGetAboutQuery } from "../../api/aboutApi";
+import { iconMap } from "../../lib/iconMap";
+import { easeOutExpo } from "../../lib/motion";
+import { conditionFor, formatIndex, markMainStack } from "../../actions";
 
-const FlipCard = ({ skill }) => {
-  const [flipped, setFlipped] = useState(false);
+const MAX_LEVEL = 5;
 
+const CapabilityCard = ({ skill, index }) => {
+  const Icon = iconMap[skill.icon];
   return (
     <motion.div
-      onClick={() => setFlipped(!flipped)}
-      whileHover={{ scale: 1.05 }}
-      className="relative w-full h-64 sm:h-60 cursor-pointer perspective"
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 1, delay: (index % 3) * 0.1, ease: easeOutExpo }}
     >
-      <div
-        className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
-          flipped ? "rotate-y-180" : ""
-        }`}
-      >
-        {/* Front */}
-        <div className="absolute w-full h-full bg-zinc-900 border border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-3 shadow-md backface-hidden">
-          <div className="text-white bg-zinc-800 p-4 rounded-full shadow-lg">
-            {skill.icon}
-          </div>
-          <h3 className="text-white text-lg font-semibold uppercase tracking-wide text-center px-4">
-            {skill.title}
-          </h3>
-          <p className="text-xs text-gray-500">Click to learn more</p>
+      <SpotlightCard className="group flex h-full flex-col gap-6 overflow-hidden rounded-2xl border border-line bg-panel p-7 transition-colors duration-500 hover:border-line-strong sm:p-8">
+        <div className="flex items-center justify-between">
+          <span className="grid size-11 place-items-center rounded-xl border border-line bg-ink text-muted transition-all duration-500 group-hover:border-accent/40 group-hover:text-accent">
+            {Icon && <Icon size={20} aria-hidden="true" />}
+          </span>
+          <span className="font-mono text-[11px] text-faint">{formatIndex(index)}</span>
         </div>
-
-        {/* Back */}
-        <div className="absolute w-full h-full bg-zinc-800 border border-zinc-600 rounded-xl flex items-center justify-center p-6 text-center text-sm text-gray-300 rotate-y-180 backface-hidden">
-          {skill.description}
-        </div>
-      </div>
+        <h3 className="text-xl font-medium tracking-tight">{skill.title}</h3>
+        <p className="text-sm leading-relaxed text-muted text-pretty">{skill.description}</p>
+      </SpotlightCard>
     </motion.div>
   );
 };
 
-const SkillsSection = () => {
-  const { data: skills = [], isLoading } = useGetSkillsQuery();
+const HealthHeading = ({ children }) => (
+  <p className="flex items-center gap-3 text-fg">
+    {children}
+    <span className="h-px flex-1 bg-line" />
+  </p>
+);
 
-  if (isLoading)
-    return <div className="text-center text-white">Loading skills...</div>;
+const CONDITION_COLORS = { Fine: "text-string", Caution: "text-accent", Danger: "text-error" };
+
+// columns fill top to bottom so the list reads in relevance order, like a buffer
+const RatedReport = ({ tools }) => (
+  <ul className="gap-x-12 md:columns-2">
+    {tools.map((tool, index) => {
+      const condition = conditionFor(tool.level);
+      return (
+        <li key={tool.name} className="mb-3.5 grid break-inside-avoid grid-cols-[7.5rem_1fr_2.5rem_4rem] items-center gap-3">
+          <span className={`truncate ${tool.isMain ? "text-fg" : "text-muted"}`}>
+            <span className={tool.isMain ? "text-accent" : "text-transparent"} aria-hidden="true">
+              ●{" "}
+            </span>
+            {tool.name}
+          </span>
+          <span className="h-1.5 overflow-hidden rounded-full bg-line">
+            <motion.span
+              className="block h-full origin-left rounded-full bg-gradient-to-r from-signal/80 to-signal/40"
+              style={{ width: `${(tool.level / MAX_LEVEL) * 100}%` }}
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.4, delay: 0.2 + index * 0.05, ease: easeOutExpo }}
+            />
+          </span>
+          <span className="text-right text-faint">
+            {tool.level}/{MAX_LEVEL}
+          </span>
+          <span className={CONDITION_COLORS[condition]}>{condition}</span>
+        </li>
+      );
+    })}
+  </ul>
+);
+
+// laid out like nvim's :checkhealth so the current stack reads as "all green"
+const StackHealth = ({ mainStack, skillLevels }) => {
+  const ratedTools = markMainStack(skillLevels, mainStack);
 
   return (
-    <section
-      id="skills"
-      className="relative  text-white px-6 sm:px-12 md:px-24 lg:px-48 py-20 overflow-hidden"
-    >
-      {/* Section Title */}
-      <h2 className="text-center text-3xl md:text-4xl font-extrabold mb-16 tracking-wide relative z-10">
-        <span className="text-white drop-shadow-[0_0_15px_rgba(255,0,128,0.2)]">
-          Skills
-        </span>
-      </h2>
+    <TerminalWindow title="~/skills · nvim">
+      <div className="flex flex-col gap-6 font-mono text-xs">
+        <p className="text-muted">
+          <span className="text-signal">:</span>checkhealth stack
+        </p>
+        {ratedTools.length > 0 && (
+          <div className="flex flex-col gap-4">
+            <HealthHeading>stack: condition ~</HealthHeading>
+            <p className="text-faint">
+              - INFO self rated out of {MAX_LEVEL}, by relevance · <span className="text-accent">●</span> main stack
+            </p>
+            <RatedReport tools={ratedTools} />
+          </div>
+        )}
+      </div>
+    </TerminalWindow>
+  );
+};
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 relative z-10">
-        {skills.map((skill, i) => (
-          <FlipCard skill={{ ...skill, icon: iconMap[skill.icon] }} key={i} />
-        ))}
+const Skills = () => {
+  const { data: skills = [], isLoading, isError } = useGetSkillsQuery();
+  const { data: about } = useGetAboutQuery();
+
+  return (
+    <section id="skills" className="relative py-24 sm:py-36">
+      <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
+        <SectionHeader index="04" label="skills.lua" title="How I lead, and the tools I reach for." />
+
+        {isLoading && <SkeletonLines lines={4} />}
+        {isError && <LoadError what="skills" />}
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {skills.map((skill, index) => (
+            <CapabilityCard key={skill.title} skill={skill} index={index} />
+          ))}
+        </div>
+
+        {about && <StackHealth mainStack={about.main_stack ?? []} skillLevels={about.skill_levels} />}
       </div>
     </section>
   );
 };
 
-export default SkillsSection;
+export default Skills;

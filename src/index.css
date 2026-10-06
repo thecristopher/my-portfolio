@@ -1,54 +1,142 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk&display=swap");
 @import "tailwindcss";
+@import "lenis/dist/lenis.css";
 
-/* GLOBAL STYLES */
+@theme {
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* kanagawa wave is the default colorscheme, the others override these below */
+  --color-ink: #1f1f28;
+  --color-panel: #252531;
+  --color-raised: #2a2a37;
+  --color-line: #2d2d3b;
+  --color-line-strong: #3b3b4f;
+  --color-fg: #dcd7ba;
+  --color-muted: #a8a595;
+  --color-faint: #727169;
+  --color-accent: #ffa066;
+  --color-signal: #7e9cd8;
+  --color-string: #98bb6c;
+  --color-error: #e46876;
+}
+
+:root[data-theme="catppuccin"] {
+  --color-ink: #1e1e2e;
+  --color-panel: #232336;
+  --color-raised: #313244;
+  --color-line: #2a2b3d;
+  --color-line-strong: #45475a;
+  --color-fg: #cdd6f4;
+  --color-muted: #a6adc8;
+  --color-faint: #6c7086;
+  --color-accent: #fab387;
+  --color-signal: #89b4fa;
+  --color-string: #a6e3a1;
+  --color-error: #f38ba8;
+}
+
+:root[data-theme="rose-pine"] {
+  --color-ink: #232136;
+  --color-panel: #2a273f;
+  --color-raised: #393552;
+  --color-line: #2f2c45;
+  --color-line-strong: #44415a;
+  --color-fg: #e0def4;
+  --color-muted: #908caa;
+  --color-faint: #6e6a86;
+  --color-accent: #ea9a97;
+  --color-signal: #9ccfd8;
+  --color-string: #f6c177;
+  --color-error: #eb6f92;
+}
+
+/* the original high contrast look, for anyone who misses it */
+:root[data-theme="ember"] {
+  --color-ink: #070708;
+  --color-panel: #0f0f12;
+  --color-raised: #16161a;
+  --color-line: #1d1d22;
+  --color-line-strong: #2c2c33;
+  --color-fg: #f2f2f4;
+  --color-muted: #8d8d96;
+  --color-faint: #55555e;
+  --color-accent: #ff6a3d;
+  --color-signal: #6b9bff;
+  --color-string: #a5e2a0;
+  --color-error: #ff5f57;
+}
+
 html {
-  scroll-behavior: smooth;
+  scroll-padding-top: 6rem;
+  background: var(--color-ink);
+  color-scheme: dark;
 }
 
 body {
-  font-family: "Space Grotesk", sans-serif;
+  padding-bottom: 1.75rem;
+  background: var(--color-ink);
+  color: var(--color-fg);
   transition: background-color 0.5s ease, color 0.5s ease;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* CLASES PERSONALIZADAS, AHORA DENTRO DEL SISTEMA TAILWIND */
-@layer utilities {
-  .stroke-2_5 {
-    -webkit-text-stroke-width: 2.5px;
-  }
+::selection {
+  background: var(--color-accent);
+  color: var(--color-ink);
+}
 
-  .stroke-white {
-    -webkit-text-stroke-color: white;
-  }
+/* film grain over everything, kept very faint so it adds texture without noise */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 
-  .stroke-white-40 {
-    -webkit-text-stroke-color: rgba(255, 255, 255, 0.4);
-  }
+.blueprint {
+  background-image:
+    linear-gradient(to right, var(--color-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 70% 55% at 50% 30%, black 20%, transparent 75%);
+}
 
-  .perspective {
-    perspective: 1000px;
-  }
+.caret {
+  animation: blink 1.05s steps(1) infinite;
+}
 
-  .transform-style-preserve-3d {
-    transform-style: preserve-3d;
+@keyframes blink {
+  50% {
+    opacity: 0;
   }
+}
 
-  .backface-hidden {
-    backface-visibility: hidden;
-  }
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
 
-  .rotate-y-180 {
-    transform: rotateY(180deg);
-  }
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  background: radial-gradient(420px circle at var(--spot-x, 50%) var(--spot-y, 50%), color-mix(in oklab, var(--color-accent) 14%, transparent), transparent 60%);
+}
 
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
+.spotlight:hover::before {
+  opacity: 1;
+}
 
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
+@media (prefers-reduced-motion: reduce) {
+  .caret {
+    animation: none;
   }
 }

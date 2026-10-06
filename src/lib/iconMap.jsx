@@ -1,13 +1,14 @@
-import { FaAws, FaJsSquare, FaReact } from "react-icons/fa";
+import { FaAws } from "react-icons/fa";
 import { GrShieldSecurity } from "react-icons/gr";
-import { PiPaintBrushBroadBold } from "react-icons/pi";
+import { SiAmazondynamodb, SiNeovim, SiNextdotjs } from "react-icons/si";
 import { TbUserCode } from "react-icons/tb";
 
+// keys match the icon names the API sends for each skill
 export const iconMap = {
-  TbUserCode: <TbUserCode size={32} />,
-  FaAws: <FaAws size={32} />,
-  FaReact: <FaReact size={32} />,
-  PiPaintBrushBroadBold: <PiPaintBrushBroadBold size={32} />,
-  FaJsSquare: <FaJsSquare size={32} />,
-  GrShieldSecurity: <GrShieldSecurity size={32} />,
+  TbUserCode,
+  FaAws,
+  SiNextdotjs,
+  SiAmazondynamodb,
+  SiNeovim,
+  GrShieldSecurity,
 };

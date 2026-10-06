@@ -1,59 +1,109 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
+import SectionHeader from "../../components/SectionHeader";
+import Reveal from "../../components/Reveal";
+import TerminalWindow from "../../components/TerminalWindow";
+import TypeLine from "../../components/TypeLine";
+import { LoadError, SkeletonLines } from "../../components/Skeleton";
+import { useGetAboutQuery } from "../../api/aboutApi";
+import { useGetProjectsQuery } from "../../api/projectsApi";
+import { extractYearsOfExperience, splitParagraphs } from "../../actions";
+import { easeOutExpo } from "../../lib/motion";
 
-const paragraphs = [
-  `Hey there! I’m Cristopher Cervantes, a fullstack developer with 9+ years of experience crafting everything from quick prototypes to enterprise-grade systems. I bridge the gap between front-end finesse and back-end muscle.`,
+const JsonString = ({ children }) => <span className="text-string">"{children}"</span>;
 
-  `Throughout my career, I’ve had the chance to work with companies that didn’t just need "a developer," but someone who could jump between stacks, tackle legacy obstacles, and still deliver clean, scalable code. From building .NET based platforms to wrangling cloud-native APIs with Python, I’ve pretty much been everywhere.`,
+const JsonList = ({ items }) => (
+  <>
+    <span className="text-faint">[</span>
+    {items.map((item, index) => (
+      <span key={item}>
+        <JsonString>{item}</JsonString>
+        {index < items.length - 1 && <span className="text-faint">, </span>}
+      </span>
+    ))}
+    <span className="text-faint">]</span>
+  </>
+);
 
-  `I'm fluent in several tech dialects: C#, .NET, React, PHP, Python, Node.js — you name it. Databases? Oh yeah. Whether it's MySQL, PostgreSQL, or NoSQL flavors, I love getting into data structure debates.`,
+const JsonLine = ({ name, children, isLast = false, index }) => (
+  <motion.div
+    initial={{ opacity: 0, x: -8 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ duration: 0.5, delay: index * 0.08, ease: easeOutExpo }}
+    className="pl-5"
+  >
+    <span className="text-signal">"{name}"</span>
+    <span className="text-faint">: </span>
+    {children}
+    {!isLast && <span className="text-faint">,</span>}
+  </motion.div>
+);
 
-  `I’m also officially AWS-certified, both as a Cloud Practitioner and a Developer Associate. What does that mean? Well, I can launch, scale, and troubleshoot your cloud infrastructure before my second cup of coffee.`,
+const ProfileJson = ({ role, years, mainStack, editor, engagements }) => {
+  const [isPrinted, setIsPrinted] = useState(false);
 
-  `At the core of it all, I’m someone who loves learning, building, and solving the kind of problems that make other developers sigh. I’m always up for a challenge, especially the kind that lets me push tech boundaries and keep learning in the process.`,
-];
+  return (
+    <TerminalWindow title="~/cristopher · zsh">
+      <div className="flex flex-col gap-3 font-mono text-[13px] leading-relaxed">
+        <TypeLine text="cat profile.json" delay={0.2} onDone={() => setIsPrinted(true)} className="text-fg" />
+        {isPrinted && (
+          <div className="overflow-x-auto">
+            <span className="text-faint">{"{"}</span>
+            {role && <JsonLine index={0} name="role"><JsonString>{role}</JsonString></JsonLine>}
+            {years && <JsonLine index={1} name="experience"><JsonString>{years} years</JsonString></JsonLine>}
+            {mainStack.length > 0 && <JsonLine index={2} name="main_stack"><JsonList items={mainStack} /></JsonLine>}
+            {editor && <JsonLine index={3} name="editor"><JsonString>{editor}</JsonString></JsonLine>}
+            <JsonLine index={4} name="certified"><JsonList items={["AWS Cloud Practitioner", "AWS Developer Associate"]} /></JsonLine>
+            <JsonLine index={5} name="engagements" isLast>
+              <span className="text-accent">{engagements}</span>
+            </JsonLine>
+            <span className="text-faint">{"}"}</span>
+          </div>
+        )}
+      </div>
+    </TerminalWindow>
+  );
+};
 
 const About = () => {
-  return (
-    <section
-      id="about"
-      className="relative text-white px-6 sm:px-12 md:px-20 lg:px-40 py-30 overflow-hidden from-black via-[#250c15] via-40% to-[#000001]"
-    >
-      <div className="relative z-10 max-w-5xl mx-auto">
-        {/* Title with animated stripe */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="mb-12 sticky top-10"
-        >
-          <div className="relative inline-block">
-            <h2 className="text-sm uppercase tracking-widest  text-gray-400 z-10 relative">
-              About
-            </h2>
-            <div className="absolute left-0 top-1/2 transform -translate-y-1/2 h-0.5 w-full bg-gradient-to-r from-cyan-500 to-transparent opacity-30" />
-          </div>
-        </motion.div>
+  const { data: about, isLoading, isError } = useGetAboutQuery();
+  const { data: projects = [] } = useGetProjectsQuery();
 
-        {/* Paragraphs with motion and glowing dividers */}
-        <div className="space-y-16">
-          {paragraphs.map((text, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.6 }}
-              transition={{ duration: 0.7, delay: index * 0.15 }}
-              className="relative"
-            >
-              <p className="text-lg sm:text-xl md:text-2xl text-white/90 leading-relaxed">
-                {text}
-              </p>
-              {index !== paragraphs.length - 1 && (
-                <div className="w-32 h-1 mt-6 bg-gradient-to-r from-red-400 to-blue-400 opacity-30 rounded-full" />
-              )}
-            </motion.div>
-          ))}
+  const [lead, ...rest] = splitParagraphs(about?.description);
+  const years = extractYearsOfExperience(about?.description);
+
+  return (
+    <section id="about" className="relative py-24 sm:py-36">
+      <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
+        <SectionHeader index="02" label="about.md" title="From the editor to the org chart." />
+
+        <div className="grid gap-14 lg:grid-cols-12">
+          <div className="flex flex-col gap-6 lg:col-span-7">
+            {isLoading && <SkeletonLines lines={6} />}
+            {isError && <LoadError what="the bio" />}
+            {lead && (
+              <Reveal>
+                <p className="text-xl leading-relaxed text-pretty sm:text-2xl">{lead}</p>
+              </Reveal>
+            )}
+            {rest.map((paragraph, index) => (
+              <Reveal key={paragraph.slice(0, 24)} delay={index * 0.05}>
+                <p className="leading-relaxed text-muted text-pretty">{paragraph}</p>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal delay={0.15} className="lg:col-span-5">
+            <div className="lg:sticky lg:top-28">
+              <ProfileJson
+                role={about?.role}
+                years={years}
+                mainStack={about?.main_stack ?? []}
+                editor={about?.editor}
+                engagements={projects.length}
+              />
+            </div>
+          </Reveal>
         </div>
       </div>
     </section>
