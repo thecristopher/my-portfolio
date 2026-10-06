@@ -1,49 +1,85 @@
-import { useEffect, useState } from "react";
-import Greeting from "./sections/Greeting";
+import { useCallback, useEffect, useState } from "react";
+import { MotionConfig, motion, useScroll, useSpring } from "framer-motion";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import CommandMenu from "./components/CommandMenu";
+import Statusline from "./components/Statusline";
+import LineGutter from "./components/LineGutter";
+import Hero from "./sections/Hero";
+import Manifesto from "./sections/Manifesto";
 import About from "./sections/About";
 import Work from "./sections/Work";
-import SkillsSection from "./sections/Skills";
-import ContactSection from "./sections/Contact";
-import Navbar from "./components/Navbar";
-import PerceptionCheck from "./components/PerceptionCheck";
+import Skills from "./sections/Skills";
+import Contact from "./sections/Contact";
+import { startSmoothScroll } from "./lib/smoothScroll";
+import { useVimKeys } from "./hooks/useVimKeys";
+import { useColorscheme } from "./hooks/useColorscheme";
+import { useActiveSection } from "./hooks/useActiveSection";
+import { useGetNavBarQuery } from "./api/navBarApi";
+import { sectionIdFromUrl } from "./actions";
 
-function App() {
-  const [passedCheck, setPassedCheck] = useState(false);
-  const [loading, setLoading] = useState(true);
+const ScrollProgress = () => {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30 });
+  return <motion.div style={{ scaleX }} className="fixed inset-x-0 top-0 z-50 h-px origin-left bg-accent" />;
+};
+
+const App = () => {
+  const [isCmdlineOpen, setIsCmdlineOpen] = useState(false);
+  const { colorscheme, applyColorscheme } = useColorscheme();
+  const { data: links = [] } = useGetNavBarQuery();
+  const activeSectionId = useActiveSection(links.map((link) => sectionIdFromUrl(link.url)));
+
+  const openCmdline = useCallback(() => setIsCmdlineOpen(true), []);
+  const closeCmdline = useCallback(() => setIsCmdlineOpen(false), []);
+
+  useEffect(() => startSmoothScroll(), []);
+  useVimKeys({ onOpenCmdline: openCmdline, isPaused: isCmdlineOpen });
 
   useEffect(() => {
-    const result = localStorage.getItem("perception-check");
-    if (result) {
-      const parsed = JSON.parse(result);
-      setPassedCheck(parsed.success === true);
-    }
-    setLoading(false);
+    const toggleOnShortcut = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setIsCmdlineOpen((open) => !open);
+      }
+    };
+    window.addEventListener("keydown", toggleOnShortcut);
+    return () => window.removeEventListener("keydown", toggleOnShortcut);
   }, []);
 
-  const handleSuccess = () => {
-    setPassedCheck(true);
-  };
-
   return (
-    <div className="relative min-h-screen bg-black text-white transition-colors duration-500">
-      <Navbar />
-      <div className="fixed left-[-25%] top-1/2 -translate-y-1/2 w-[70rem] h-[70rem] max-sm:h-[15rem] bg-red-600/10 rounded-full blur-[150px] z-0 pointer-events-none" />
-      <div className="fixed right-[-25%] top-1/2 -translate-y-1/2 w-[70rem] h-[70rem] max-sm:h-[15rem] bg-blue-500/10 rounded-full blur-[150px] z-0 pointer-events-none" />
-      <main className="flex flex-col gap-32">
-        <Greeting />
+    <MotionConfig reducedMotion="user">
+      <a
+        href="#about"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-fg focus:px-4 focus:py-2 focus:text-ink"
+      >
+        Skip to content
+      </a>
+      <ScrollProgress />
+      <LineGutter />
+      <Navbar onOpenCmdline={openCmdline} />
+      <main>
+        <Hero />
+        <Manifesto />
         <About />
         <Work />
-        <SkillsSection />
-        <ContactSection />
+        <Skills />
+        <Contact />
       </main>
-
-      {!passedCheck && !loading && (
-        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-black/70 flex items-center justify-center">
-          <PerceptionCheck onSuccess={handleSuccess} />
-        </div>
-      )}
-    </div>
+      <Footer onOpenCmdline={openCmdline} />
+      <Statusline
+        mode={isCmdlineOpen ? "COMMAND" : "NORMAL"}
+        colorscheme={colorscheme}
+        activeId={activeSectionId}
+      />
+      <CommandMenu
+        isOpen={isCmdlineOpen}
+        onClose={closeCmdline}
+        colorscheme={colorscheme}
+        onSetColorscheme={applyColorscheme}
+      />
+    </MotionConfig>
   );
-}
+};
 
 export default App;

@@ -1,13 +1,37 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cristopher Cervantes</title>
+    <title>Cristopher Cervantes · Engineering Manager</title>
+    <meta
+      name="description"
+      content="Cristopher Cervantes is an engineering manager with 9+ years of shipping production software, leading teams on TypeScript, Next.js and serverless AWS."
+    />
+    <meta name="theme-color" content="#1f1f28" />
+    <meta property="og:title" content="Cristopher Cervantes · Engineering Manager" />
+    <meta
+      property="og:description"
+      content="Engineering manager. Serverless TypeScript on AWS, written in Neovim."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070708'/%3E%3Cpath d='M16 22l12 10-12 10' fill='none' stroke='%23ff6a3d' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='32' y='40' width='16' height='5' rx='2.5' fill='%23f2f2f4'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      // apply the saved colorscheme before paint so there is no flash of the default theme
+      try {
+        var savedTheme = localStorage.getItem("colorscheme");
+        if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+      } catch (error) {}
+    </script>
   </head>
-  <script>
-    document.documentElement.classList.add("dark");
-  </script>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
