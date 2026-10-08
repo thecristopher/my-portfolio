@@ -1,10 +1,12 @@
+import { Bonfire } from "../Secrets";
+
 const EndOfBuffer = () => (
-  <div aria-hidden="true" className="mx-auto max-w-6xl px-4 pb-6 font-mono text-sm leading-7 text-signal/40 sm:px-6">
-    <p>~</p>
-    <p>~</p>
-    {/* a message left on the ground, elden ring style */}
-    <p>
-      ~ <span className="text-faint">hidden path ahead</span>
+  <div className="mx-auto max-w-6xl px-4 pb-6 font-mono text-sm leading-7 text-signal/40 sm:px-6">
+    <p aria-hidden="true">~</p>
+    <p aria-hidden="true">~</p>
+    <p className="flex items-center gap-1">
+      <span aria-hidden="true">~</span>
+      <Bonfire className="-my-1" />
     </p>
   </div>
 );
