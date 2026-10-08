@@ -108,6 +108,8 @@ export const DEFAULT_THEME = "kanagawa";
 
 export const resolveTheme = (saved) => (THEMES.includes(saved) ? saved : DEFAULT_THEME);
 
+export const isMaxLevel = (level, maxLevel) => level >= maxLevel;
+
 // keeps the API's relevance order and flags which tools belong to the main stack
 export const markMainStack = (skillLevels = [], mainStack = []) =>
   skillLevels.map((skill) => ({ ...skill, isMain: mainStack.includes(skill.name) }));

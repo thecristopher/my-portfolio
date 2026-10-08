@@ -12,9 +12,7 @@ import { easeOutExpo } from "../../lib/motion";
 
 // shown while the API wakes up so the hero never renders half a sentence
 const FALLBACK_ROLE = "Tech Lead & Engineering Manager";
-const FALLBACK_STACK = ["TypeScript", "Next.js", "React", "Node.js", "AWS", "Serverless", "Bedrock", "LLMs"];
-
-const stackList = new Intl.ListFormat("en", { style: "long", type: "conjunction" });
+const FALLBACK_YEARS = "9+";
 
 const riseIn = (delay) => ({
   initial: { opacity: 0, y: 24, filter: "blur(8px)" },
@@ -47,7 +45,6 @@ const Hero = () => {
 
   const years = extractYearsOfExperience(about?.description);
   const role = about?.role ?? FALLBACK_ROLE;
-  const mainStack = about?.main_stack ?? FALLBACK_STACK;
 
   return (
     <section ref={sectionRef} id="home" className="relative flex min-h-svh items-center overflow-hidden pt-28 pb-16">
@@ -80,9 +77,9 @@ const Hero = () => {
           </h1>
 
           <motion.p {...riseIn(1)} className="max-w-xl text-lg leading-relaxed text-muted text-pretty sm:text-xl">
-            I lead the engineers behind platforms that have to work on Monday morning, and lately that means
-            putting <span className="text-fg">LLMs on Amazon Bedrock</span> in front of real users. Day to day I
-            work across <span className="text-fg">{stackList.format(mainStack)}</span>.
+            Hey there! I'm a tech lead from <span className="text-fg">Rosarito, Mexico</span>. {years ?? FALLBACK_YEARS}{" "}
+            years in, I went from intern to leading engineering on products in production, and these days I'm
+            building with <span className="text-fg">TypeScript, AWS and LLMs on Bedrock</span>.
           </motion.p>
 
           <motion.div {...riseIn(1.15)} className="flex flex-wrap gap-3">
