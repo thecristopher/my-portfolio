@@ -4,6 +4,7 @@ import SectionHeader from "../../components/SectionHeader";
 import Reveal from "../../components/Reveal";
 import TerminalWindow from "../../components/TerminalWindow";
 import TypeLine from "../../components/TypeLine";
+import { Triforce } from "../../components/Secrets";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { useGetProjectsQuery } from "../../api/projectsApi";
@@ -102,6 +103,9 @@ const About = () => {
                 editor={about?.editor}
                 engagements={projects.length}
               />
+              <div className="mt-3 flex justify-end">
+                <Triforce />
+              </div>
             </div>
           </Reveal>
         </div>

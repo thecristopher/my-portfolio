@@ -4,6 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import SectionHeader from "../../components/SectionHeader";
 import TerminalWindow from "../../components/TerminalWindow";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
+import { Umbrella } from "../../components/Secrets";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { techIconMap } from "../../lib/techIconMap";
@@ -78,9 +79,12 @@ const Work = () => {
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <SectionHeader index="03" label="work.json" title="Where the systems shipped." />
           {projects.length > 0 && (
-            <p className="font-mono text-xs text-faint">
-              <span className="text-accent">$</span> ls ~/work | wc -l <span className="text-fg">→ {projects.length}</span>
-            </p>
+            <div className="flex items-center gap-1">
+              <p className="font-mono text-xs text-faint">
+                <span className="text-accent">$</span> ls ~/work | wc -l <span className="text-fg">→ {projects.length}</span>
+              </p>
+              <Umbrella className="-my-2" />
+            </div>
           )}
         </div>
 
