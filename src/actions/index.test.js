@@ -18,6 +18,7 @@ import {
   gutterLines,
   fileTypeFor,
   resolveTheme,
+  isMaxLevel,
   markMainStack,
 } from "./index";
 
@@ -243,5 +244,15 @@ describe("markMainStack", () => {
 
   it("handles missing levels", () => {
     expect(markMainStack(undefined)).toEqual([]);
+  });
+});
+
+describe("isMaxLevel", () => {
+  it("flags a tool rated at the top of the scale", () => {
+    expect(isMaxLevel(5, 5)).toBe(true);
+  });
+
+  it("leaves everything below the top alone", () => {
+    expect(isMaxLevel(4, 5)).toBe(false);
   });
 });

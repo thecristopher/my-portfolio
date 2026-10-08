@@ -7,7 +7,7 @@ import { useGetSkillsQuery } from "../../api/skillsApi";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { iconMap } from "../../lib/iconMap";
 import { easeOutExpo } from "../../lib/motion";
-import { formatIndex, markMainStack } from "../../actions";
+import { formatIndex, isMaxLevel, markMainStack } from "../../actions";
 
 const MAX_LEVEL = 5;
 
@@ -41,7 +41,7 @@ const HealthHeading = ({ children }) => (
   </p>
 );
 
-// columns fill top to bottom so the list reads in relevance order, like a buffer
+// columns fill top to bottom so the list reads in relevance order, and 5/5 tools go green like a passing healthcheck
 const RatedReport = ({ tools }) => (
   <ul className="gap-x-12 md:columns-2">
     {tools.map((tool, index) => (
@@ -54,7 +54,9 @@ const RatedReport = ({ tools }) => (
         </span>
         <span className="h-1.5 overflow-hidden rounded-full bg-line">
           <motion.span
-            className="block h-full origin-left rounded-full bg-gradient-to-r from-signal/80 to-signal/40"
+            className={`block h-full origin-left rounded-full bg-gradient-to-r ${
+              isMaxLevel(tool.level, MAX_LEVEL) ? "from-string to-string/60" : "from-signal/80 to-signal/40"
+            }`}
             style={{ width: `${(tool.level / MAX_LEVEL) * 100}%` }}
             initial={{ scaleX: 0 }}
             whileInView={{ scaleX: 1 }}
@@ -62,7 +64,7 @@ const RatedReport = ({ tools }) => (
             transition={{ duration: 1.4, delay: 0.2 + index * 0.05, ease: easeOutExpo }}
           />
         </span>
-        <span className="text-right text-faint">
+        <span className={`text-right ${isMaxLevel(tool.level, MAX_LEVEL) ? "text-string" : "text-faint"}`}>
           {tool.level}/{MAX_LEVEL}
         </span>
       </li>
@@ -84,7 +86,11 @@ const StackHealth = ({ mainStack, skillLevels }) => {
           <div className="flex flex-col gap-4">
             <HealthHeading>stack ~</HealthHeading>
             <p className="text-faint">
-              - INFO self rated out of {MAX_LEVEL}, by relevance · <span className="text-accent">●</span> main stack
+              - INFO self rated out of {MAX_LEVEL}, by relevance · <span className="text-accent">●</span> main stack ·{" "}
+              <span className="text-string">
+                {MAX_LEVEL}/{MAX_LEVEL}
+              </span>{" "}
+              all green
             </p>
             <RatedReport tools={ratedTools} />
           </div>
