@@ -66,7 +66,7 @@ const Hero = () => {
               className="font-mono text-fg"
             >
               {role.toLowerCase()}
-              <span className="text-faint"> · </span>typescript
+              <span className="text-faint"> · </span>full stack
               <span className="hidden sm:inline">
                 <span className="text-faint"> · </span>
                 <span className="text-signal">aws certified</span>
