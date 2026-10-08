@@ -19,7 +19,6 @@ import {
   fileTypeFor,
   resolveTheme,
   markMainStack,
-  conditionFor,
 } from "./index";
 
 describe("splitParagraphs", () => {
@@ -244,19 +243,5 @@ describe("markMainStack", () => {
 
   it("handles missing levels", () => {
     expect(markMainStack(undefined)).toEqual([]);
-  });
-});
-
-describe("conditionFor", () => {
-  it("reads Fine for Leon level tools", () => {
-    expect(conditionFor(5)).toBe("Fine");
-  });
-
-  it("reads Caution for a three", () => {
-    expect(conditionFor(3)).toBe("Caution");
-  });
-
-  it("reads Danger below that, like Barry after the Plant 42 fight", () => {
-    expect(conditionFor(2)).toBe("Danger");
   });
 });

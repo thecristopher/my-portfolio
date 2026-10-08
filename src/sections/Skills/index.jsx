@@ -7,7 +7,7 @@ import { useGetSkillsQuery } from "../../api/skillsApi";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { iconMap } from "../../lib/iconMap";
 import { easeOutExpo } from "../../lib/motion";
-import { conditionFor, formatIndex, markMainStack } from "../../actions";
+import { formatIndex, markMainStack } from "../../actions";
 
 const MAX_LEVEL = 5;
 
@@ -41,38 +41,32 @@ const HealthHeading = ({ children }) => (
   </p>
 );
 
-const CONDITION_COLORS = { Fine: "text-string", Caution: "text-accent", Danger: "text-error" };
-
 // columns fill top to bottom so the list reads in relevance order, like a buffer
 const RatedReport = ({ tools }) => (
   <ul className="gap-x-12 md:columns-2">
-    {tools.map((tool, index) => {
-      const condition = conditionFor(tool.level);
-      return (
-        <li key={tool.name} className="mb-3.5 grid break-inside-avoid grid-cols-[7.5rem_1fr_2.5rem_4rem] items-center gap-3">
-          <span className={`truncate ${tool.isMain ? "text-fg" : "text-muted"}`}>
-            <span className={tool.isMain ? "text-accent" : "text-transparent"} aria-hidden="true">
-              ●{" "}
-            </span>
-            {tool.name}
+    {tools.map((tool, index) => (
+      <li key={tool.name} className="mb-3.5 grid break-inside-avoid grid-cols-[7.5rem_1fr_2.5rem] items-center gap-3">
+        <span className={`truncate ${tool.isMain ? "text-fg" : "text-muted"}`}>
+          <span className={tool.isMain ? "text-accent" : "text-transparent"} aria-hidden="true">
+            ●{" "}
           </span>
-          <span className="h-1.5 overflow-hidden rounded-full bg-line">
-            <motion.span
-              className="block h-full origin-left rounded-full bg-gradient-to-r from-signal/80 to-signal/40"
-              style={{ width: `${(tool.level / MAX_LEVEL) * 100}%` }}
-              initial={{ scaleX: 0 }}
-              whileInView={{ scaleX: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1.4, delay: 0.2 + index * 0.05, ease: easeOutExpo }}
-            />
-          </span>
-          <span className="text-right text-faint">
-            {tool.level}/{MAX_LEVEL}
-          </span>
-          <span className={CONDITION_COLORS[condition]}>{condition}</span>
-        </li>
-      );
-    })}
+          {tool.name}
+        </span>
+        <span className="h-1.5 overflow-hidden rounded-full bg-line">
+          <motion.span
+            className="block h-full origin-left rounded-full bg-gradient-to-r from-signal/80 to-signal/40"
+            style={{ width: `${(tool.level / MAX_LEVEL) * 100}%` }}
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.4, delay: 0.2 + index * 0.05, ease: easeOutExpo }}
+          />
+        </span>
+        <span className="text-right text-faint">
+          {tool.level}/{MAX_LEVEL}
+        </span>
+      </li>
+    ))}
   </ul>
 );
 
@@ -88,7 +82,7 @@ const StackHealth = ({ mainStack, skillLevels }) => {
         </p>
         {ratedTools.length > 0 && (
           <div className="flex flex-col gap-4">
-            <HealthHeading>stack: condition ~</HealthHeading>
+            <HealthHeading>stack ~</HealthHeading>
             <p className="text-faint">
               - INFO self rated out of {MAX_LEVEL}, by relevance · <span className="text-accent">●</span> main stack
             </p>

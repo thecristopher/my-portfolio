@@ -2,7 +2,9 @@ const EndOfBuffer = () => (
   <div aria-hidden="true" className="mx-auto max-w-6xl px-4 pb-6 font-mono text-sm leading-7 text-signal/40 sm:px-6">
     <p>~</p>
     <p>~</p>
-    <p>~</p>
+    <p>
+      ~ <span className="opacity-0 transition-opacity duration-700 hover:opacity-100">hidden path ahead</span>
+    </p>
   </div>
 );
 

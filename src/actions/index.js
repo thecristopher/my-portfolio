@@ -111,10 +111,3 @@ export const resolveTheme = (saved) => (THEMES.includes(saved) ? saved : DEFAULT
 // keeps the API's relevance order and flags which tools belong to the main stack
 export const markMainStack = (skillLevels = [], mainStack = []) =>
   skillLevels.map((skill) => ({ ...skill, isMain: mainStack.includes(skill.name) }));
-
-// the health readout from the resident evil inventory screen
-export const conditionFor = (level) => {
-  if (level >= 4) return "Fine";
-  if (level === 3) return "Caution";
-  return "Danger";
-};
