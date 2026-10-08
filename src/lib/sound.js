@@ -15,6 +15,17 @@ export const noteFrequency = (semitonesFromA4) => 440 * 2 ** (semitonesFromA4 / 
 
 // each note is [semitones from A4, start in seconds, length in seconds]
 export const SOUNDS = {
+  // two jabs land, then the coins ding like a beaten enemy in River City
+  punch: {
+    wave: "square",
+    volume: 0.05,
+    notes: [
+      [-26, 0, 0.05],
+      [-26, 0.16, 0.05],
+      [14, 0.34, 0.08],
+      [19, 0.42, 0.35],
+    ],
+  },
   triforce: {
     wave: "triangle",
     volume: 0.18,
@@ -31,6 +42,32 @@ export const SOUNDS = {
     notes: [
       [-17, 0, 0.9],
       [-22, 0.35, 1.1],
+    ],
+  },
+  magician: {
+    wave: "sine",
+    volume: 0.12,
+    notes: [
+      [12, 0, 0.18],
+      [16, 0.07, 0.18],
+      [19, 0.14, 0.18],
+      [24, 0.21, 0.22],
+      [28, 0.28, 0.5],
+    ],
+  },
+  // three wobbles, a click, then the little "caught" fanfare, timed to the ball's wobble on screen
+  pokeball: {
+    wave: "square",
+    volume: 0.05,
+    notes: [
+      [-5, 0, 0.06],
+      [-5, 0.3, 0.06],
+      [-5, 0.6, 0.06],
+      [-12, 0.9, 0.05],
+      [7, 1, 0.1],
+      [11, 1.1, 0.1],
+      [14, 1.2, 0.1],
+      [19, 1.3, 0.35],
     ],
   },
   bonfire: {

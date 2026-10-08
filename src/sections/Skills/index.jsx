@@ -1,7 +1,9 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import SectionHeader from "../../components/SectionHeader";
 import SpotlightCard from "../../components/SpotlightCard";
 import TerminalWindow from "../../components/TerminalWindow";
+import { Magician } from "../../components/Secrets";
+import { MAGIC_BLUE, MAGIC_PINK, useMagicBuff } from "../../lib/magic";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetSkillsQuery } from "../../api/skillsApi";
 import { useGetAboutQuery } from "../../api/aboutApi";
@@ -10,6 +12,8 @@ import { easeOutExpo } from "../../lib/motion";
 import { formatIndex, isMaxLevel, markMainStack } from "../../actions";
 
 const MAX_LEVEL = 5;
+const BUFF_LASTS_MS = 3400;
+const BUFFED_BAR = { backgroundImage: `linear-gradient(to right, ${MAGIC_PINK}, ${MAGIC_BLUE})`, boxShadow: `0 0 8px ${MAGIC_PINK}` };
 
 const CapabilityCard = ({ skill, index }) => {
   const Icon = iconMap[skill.icon];
@@ -42,7 +46,7 @@ const HealthHeading = ({ children }) => (
 );
 
 // columns fill top to bottom so the list reads in relevance order, and 5/5 tools go green like a passing healthcheck
-const RatedReport = ({ tools }) => (
+const RatedReport = ({ tools, isBuffed }) => (
   <ul className="gap-x-12 md:columns-2">
     {tools.map((tool, index) => (
       <li key={tool.name} className="mb-3.5 grid break-inside-avoid grid-cols-[7.5rem_1fr_2.5rem] items-center gap-3">
@@ -54,10 +58,10 @@ const RatedReport = ({ tools }) => (
         </span>
         <span className="h-1.5 overflow-hidden rounded-full bg-line">
           <motion.span
-            className={`block h-full origin-left rounded-full bg-gradient-to-r ${
+            className={`block h-full origin-left rounded-full bg-gradient-to-r transition-[box-shadow] duration-500 ${
               isMaxLevel(tool.level, MAX_LEVEL) ? "from-string to-string/60" : "from-signal/80 to-signal/40"
             }`}
-            style={{ width: `${(tool.level / MAX_LEVEL) * 100}%` }}
+            style={{ width: `${(tool.level / MAX_LEVEL) * 100}%`, ...(isBuffed ? BUFFED_BAR : {}) }}
             initial={{ scaleX: 0 }}
             whileInView={{ scaleX: 1 }}
             viewport={{ once: true }}
@@ -75,6 +79,7 @@ const RatedReport = ({ tools }) => (
 // laid out like nvim's :checkhealth so the current stack reads as "all green"
 const StackHealth = ({ mainStack, skillLevels }) => {
   const ratedTools = markMainStack(skillLevels, mainStack);
+  const isBuffed = useMagicBuff(BUFF_LASTS_MS);
 
   return (
     <TerminalWindow title="~/skills · nvim">
@@ -92,7 +97,19 @@ const StackHealth = ({ mainStack, skillLevels }) => {
               </span>{" "}
               all green
             </p>
-            <RatedReport tools={ratedTools} />
+            <AnimatePresence>
+              {isBuffed && (
+                <motion.p
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0 }}
+                  style={{ color: MAGIC_PINK }}
+                >
+                  - OK buff applied by Dark Magician Girl, every stat is glowing
+                </motion.p>
+              )}
+            </AnimatePresence>
+            <RatedReport tools={ratedTools} isBuffed={isBuffed} />
           </div>
         )}
       </div>
@@ -118,7 +135,14 @@ const Skills = () => {
           ))}
         </div>
 
-        {about && <StackHealth mainStack={about.main_stack ?? []} skillLevels={about.skill_levels} />}
+        {about && (
+          <div>
+            <StackHealth mainStack={about.main_stack ?? []} skillLevels={about.skill_levels} />
+            <div className="mt-3 flex justify-end">
+              <Magician />
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
