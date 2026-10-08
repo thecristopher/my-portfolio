@@ -10,14 +10,7 @@ import { easeOutExpo } from "../../lib/motion";
 
 const HELP_TEXT = "j/k scroll · d/u half page · gg/G top/bottom · : commands · try :colorscheme or :q";
 
-// one of these shows under the cmdline each time it opens, like a message left on the ground
-const SECRET_HINTS = [
-  "some commands are not listed. try :w",
-  "it's dangerous to go alone. try :sword",
-  "hidden path ahead. try :grace",
-];
-
-// only typed exactly, never listed. nods to raccoon city, hyrule and the lands between
+// only typed exactly, never listed. a few nods to raccoon city
 const SECRET_COMMANDS = [
   { alias: "w", label: "Write", run: () => echo("Progress saved at the typewriter. Ink ribbons left: ∞", "success") },
   { alias: "q", label: "Quit", run: () => echo("E37: You can't quit. Stay a while and read, stranger.", "error") },
@@ -27,28 +20,6 @@ const SECRET_COMMANDS = [
   { alias: "herb", label: "Herb", run: () => echo("Mixed a green and a red herb. Condition: Fine.", "success") },
   { alias: "stars", label: "S.T.A.R.S.", run: () => echo("S.T.A.R.S. clearance confirmed. The mansion is that way, the portfolio is this way.", "success") },
   { alias: "merchant", label: "Merchant", run: () => echo("What're ya buyin'? Scroll down, stranger, the good stuff is in contact.sh", "success") },
-  {
-    alias: "sword",
-    label: "Sword",
-    run: () => {
-      scrollToSection("contact");
-      echo("It's dangerous to go alone! Take this: contact.sh", "success");
-    },
-  },
-  {
-    alias: "listen",
-    label: "Listen",
-    run: () => {
-      scrollToSection("work");
-      echo("Hey! Listen! The good stuff is in work.json!", "success");
-    },
-  },
-  { alias: "triforce", label: "Triforce", run: () => echo("▲ Courage, wisdom and power. Or as we call them: shipping, planning and on call.", "success") },
-  { alias: "zelda", label: "Zelda", run: () => echo("Zelda is the princess. You're looking for the guy holding the keyboard.", "success") },
-  { alias: "grace", label: "Grace", run: () => echo("Site of Lost Grace discovered. Rest here, Tarnished. Your scroll position is safe.", "success") },
-  { alias: "tarnished", label: "Tarnished", run: () => echo("Rise now, ye Tarnished. The portfolio awaits.", "success") },
-  { alias: "malenia", label: "Malenia", run: () => echo("I am Malenia, Blade of Miquella. And I have never known defeat.", "error") },
-  { alias: "die", label: "Die", run: () => echo("YOU DIED. Don't worry, the runes are waiting in contact.sh", "error") },
 ].map((command) => ({ ...command, id: `secret-${command.alias}`, group: "Secrets", icon: HelpCircle, hidden: true }));
 
 const buildCommands = ({ links, contact, colorscheme, onSetColorscheme }) => {
@@ -121,7 +92,6 @@ const Cmdline = ({ onClose, colorscheme, onSetColorscheme }) => {
   const { data: contact } = useGetContactQuery();
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
-  const [hint] = useState(() => SECRET_HINTS[Math.floor(Math.random() * SECRET_HINTS.length)]);
 
   const commands = buildCommands({ links, contact, colorscheme, onSetColorscheme });
   const results = filterCommands(commands, query);
@@ -217,7 +187,7 @@ const Cmdline = ({ onClose, colorscheme, onSetColorscheme }) => {
       <div className="flex gap-4 border-t border-line px-5 py-3 font-mono text-[10px] text-faint">
         <span>↑↓ or ^n ^p</span>
         <span>↵ run</span>
-        <span className="ml-auto">{hint}</span>
+        <span className="ml-auto">some commands are not listed. try :w</span>
       </div>
     </motion.div>
   );

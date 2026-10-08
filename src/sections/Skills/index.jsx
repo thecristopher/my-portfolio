@@ -87,6 +87,9 @@ const StackHealth = ({ mainStack, skillLevels }) => {
               - INFO self rated out of {MAX_LEVEL}, by relevance · <span className="text-accent">●</span> main stack
             </p>
             <RatedReport tools={ratedTools} />
+            <p className="text-faint">
+              - <span className="text-string">OK</span> it's dangerous to go alone. take these.
+            </p>
           </div>
         )}
       </div>
