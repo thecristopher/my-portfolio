@@ -4,6 +4,7 @@ import { ArrowUpRight, Check, Copy } from "lucide-react";
 import TextReveal from "../../components/TextReveal";
 import TerminalWindow from "../../components/TerminalWindow";
 import TypeLine from "../../components/TypeLine";
+import { Bonfire } from "../../components/Secrets";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetContactQuery } from "../../api/contactApi";
 import { socialIconMap } from "../../lib/socialIconMap";
@@ -105,8 +106,11 @@ const ContactTerminal = ({ contact }) => {
         {hasExited && (
           <motion.div {...printedLine(0)} className="flex flex-col gap-1 text-faint">
             <p>logout</p>
-            <p>
-              <span className="text-accent">#</span> come back any time, stranger.
+            <p className="flex items-center gap-1">
+              <span>
+                <span className="text-accent">#</span> rest here any time, stranger.
+              </span>
+              <Bonfire className="-my-1.5" />
             </p>
           </motion.div>
         )}

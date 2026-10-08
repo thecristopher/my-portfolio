@@ -12,7 +12,7 @@ import { easeOutExpo } from "../../lib/motion";
 
 // shown while the API wakes up so the hero never renders half a sentence
 const FALLBACK_ROLE = "Tech Lead & Engineering Manager";
-const FALLBACK_STACK = ["TypeScript", "Next.js", "Serverless", "AWS", "DynamoDB", "MySQL"];
+const FALLBACK_STACK = ["TypeScript", "Next.js", "React", "Node.js", "AWS", "Serverless", "Bedrock", "LLMs"];
 
 const stackList = new Intl.ListFormat("en", { style: "long", type: "conjunction" });
 
@@ -69,7 +69,7 @@ const Hero = () => {
               <span className="text-faint"> · </span>full stack
               <span className="hidden sm:inline">
                 <span className="text-faint"> · </span>
-                <span className="text-signal">aws certified</span>
+                <span className="text-accent">aws certified</span>
               </span>
             </motion.p>
           </div>
@@ -80,8 +80,9 @@ const Hero = () => {
           </h1>
 
           <motion.p {...riseIn(1)} className="max-w-xl text-lg leading-relaxed text-muted text-pretty sm:text-xl">
-            I lead the engineers behind platforms that have to work on Monday morning. People, architecture and
-            delivery, across <span className="text-fg">{stackList.format(mainStack)}</span>.
+            I lead the engineers behind platforms that have to work on Monday morning, and lately that means
+            putting <span className="text-fg">LLMs on Amazon Bedrock</span> in front of real users. Day to day I
+            work across <span className="text-fg">{stackList.format(mainStack)}</span>.
           </motion.p>
 
           <motion.div {...riseIn(1.15)} className="flex flex-wrap gap-3">
