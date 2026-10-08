@@ -19,6 +19,11 @@ import {
   fileTypeFor,
   resolveTheme,
   isMaxLevel,
+  spriteToPixels,
+  isInRegion,
+  overlaySprite,
+  pickIdleMove,
+  idleMoveDelay,
   markMainStack,
 } from "./index";
 
@@ -254,5 +259,73 @@ describe("isMaxLevel", () => {
 
   it("leaves everything below the top alone", () => {
     expect(isMaxLevel(4, 5)).toBe(false);
+  });
+});
+
+describe("spriteToPixels", () => {
+  const palette = { K: "#000", S: "#fff" };
+
+  it("places each known character at its row and column", () => {
+    expect(spriteToPixels(["K.", ".S"], palette)).toEqual([
+      { x: 0, y: 0, color: "#000" },
+      { x: 1, y: 1, color: "#fff" },
+    ]);
+  });
+
+  it("skips characters that are not in the palette", () => {
+    expect(spriteToPixels(["..?"], palette)).toEqual([]);
+  });
+
+  it("repaints swapped characters", () => {
+    expect(spriteToPixels(["E"], palette, { E: "S" })).toEqual([{ x: 0, y: 0, color: "#fff" }]);
+  });
+});
+
+describe("isInRegion", () => {
+  const arm = { minX: 33, minY: 19, maxY: 37 };
+
+  it("includes a pixel inside the bounds", () => {
+    expect(isInRegion({ x: 40, y: 25 }, arm)).toBe(true);
+  });
+
+  it("leaves out a pixel past any edge", () => {
+    expect(isInRegion({ x: 20, y: 25 }, arm)).toBe(false);
+    expect(isInRegion({ x: 40, y: 50 }, arm)).toBe(false);
+  });
+});
+
+describe("overlaySprite", () => {
+  const hand = { left: 1, top: 0, rows: ["S."] };
+
+  it("paints the overlay where it has pixels", () => {
+    expect(overlaySprite(["KKK"], hand)).toEqual(["KSK"]);
+  });
+
+  it("keeps what is underneath where the overlay is a dot", () => {
+    expect(overlaySprite(["KKK"], hand)[0][2]).toBe("K");
+  });
+
+  it("clears the erase region before painting", () => {
+    expect(overlaySprite(["KKK"], hand, { minX: 2, maxX: 2, minY: 0, maxY: 0 })).toEqual(["KS."]);
+  });
+});
+
+describe("pickIdleMove", () => {
+  it("glances around on a low roll", () => {
+    expect(pickIdleMove(0.2)).toBe("look");
+  });
+
+  it("waves on a high roll", () => {
+    expect(pickIdleMove(0.9)).toBe("wave");
+  });
+});
+
+describe("idleMoveDelay", () => {
+  it("waits the minimum on a zero roll", () => {
+    expect(idleMoveDelay(0)).toBe(6000);
+  });
+
+  it("waits the maximum on a full roll", () => {
+    expect(idleMoveDelay(1)).toBe(11000);
   });
 });

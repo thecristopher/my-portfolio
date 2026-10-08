@@ -5,6 +5,7 @@ import portrait from "../../assets/images/portrait.jpg";
 import TextReveal from "../../components/TextReveal";
 import TypeLine from "../../components/TypeLine";
 import CountUp from "../../components/CountUp";
+import PixelAvatar from "../../components/PixelAvatar";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { extractYearsOfExperience } from "../../actions";
@@ -13,6 +14,9 @@ import { easeOutExpo } from "../../lib/motion";
 // shown while the API wakes up so the hero never renders half a sentence
 const FALLBACK_ROLE = "Tech Lead & Engineering Manager";
 const FALLBACK_YEARS = "9+";
+
+// the portrait finishes wiping in around two seconds, the sprite hops in right after
+const AVATAR_ENTERS_AT_S = 1.9;
 
 const riseIn = (delay) => ({
   initial: { opacity: 0, y: 24, filter: "blur(8px)" },
@@ -124,10 +128,19 @@ const Hero = () => {
               />
             </motion.div>
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
-            <p className="absolute inset-x-5 bottom-5 flex justify-between font-mono text-[11px] text-muted">
+            <p className="absolute right-5 bottom-5 flex gap-2 font-mono text-[11px] text-muted">
               <span className="text-accent">fig.01</span>
               <span>portrait.jpg</span>
             </p>
+          </motion.div>
+          {/* the pixel me stands on the frame's bottom edge, looking up at the real one. exact 2x keeps every pixel square */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: AVATAR_ENTERS_AT_S, ease: easeOutExpo }}
+            className="absolute -bottom-1.5 left-5 z-10"
+          >
+            <PixelAvatar className="h-[126px]" firstWaveAfterMs={(AVATAR_ENTERS_AT_S + 0.6) * 1000} />
           </motion.div>
           <div className="absolute -inset-px -z-10 rounded-3xl bg-gradient-to-br from-accent/50 via-transparent to-signal/50 blur-sm" aria-hidden="true" />
         </motion.figure>

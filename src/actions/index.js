@@ -113,3 +113,34 @@ export const isMaxLevel = (level, maxLevel) => level >= maxLevel;
 // keeps the API's relevance order and flags which tools belong to the main stack
 export const markMainStack = (skillLevels = [], mainStack = []) =>
   skillLevels.map((skill) => ({ ...skill, isMain: mainStack.includes(skill.name) }));
+
+// turns text rows into colored pixels, swaps let a frame repaint some of them (like a blink)
+export const spriteToPixels = (rows = [], palette = {}, swaps = {}) =>
+  rows.flatMap((row, y) =>
+    [...row].flatMap((char, x) => {
+      const color = palette[swaps[char] ?? char];
+      return color ? [{ x, y, color }] : [];
+    })
+  );
+
+export const isInRegion = ({ x, y }, { minX = -Infinity, maxX = Infinity, minY = -Infinity, maxY = Infinity }) =>
+  x >= minX && x <= maxX && y >= minY && y <= maxY;
+
+// paints an overlay onto sprite rows after clearing a region, used to swap the fist for an open hand
+export const overlaySprite = (rows = [], overlay = { left: 0, top: 0, rows: [] }, eraseRegion = null) =>
+  rows.map((row, y) =>
+    [...row]
+      .map((char, x) => {
+        const overlayChar = overlay.rows[y - overlay.top]?.[x - overlay.left];
+        if (overlayChar && overlayChar !== ".") return overlayChar;
+        if (eraseRegion && isInRegion({ x, y }, eraseRegion)) return ".";
+        return char;
+      })
+      .join("")
+  );
+
+// the avatar mostly glances around and sometimes waves, so he never looks like he's on a timer
+export const pickIdleMove = (roll = Math.random()) => (roll < 0.6 ? "look" : "wave");
+
+export const idleMoveDelay = (roll = Math.random(), minMs = 6000, maxMs = 11000) =>
+  Math.round(minMs + roll * (maxMs - minMs));

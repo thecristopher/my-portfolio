@@ -14,7 +14,11 @@ describe("noteFrequency", () => {
 
 describe("SOUNDS", () => {
   it("has a jingle for every secret", () => {
-    expect(Object.keys(SOUNDS).sort()).toEqual([...SECRET_IDS].sort());
+    for (const id of SECRET_IDS) expect(SOUNDS).toHaveProperty(id);
+  });
+
+  it("has the jab and coins for the avatar", () => {
+    expect(SOUNDS).toHaveProperty("punch");
   });
 });
 

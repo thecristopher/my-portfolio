@@ -3,7 +3,7 @@ import { playSound } from "./sound";
 
 // the little icons hidden around the page. finding one remembers it, so a lit bonfire stays lit
 const STORAGE_KEY = "secrets-found";
-export const SECRET_IDS = ["triforce", "umbrella", "bonfire"];
+export const SECRET_IDS = ["triforce", "umbrella", "bonfire", "magician", "pokeball"];
 
 const readFound = () => {
   try {
@@ -31,11 +31,11 @@ export const useSecret = (id) => {
 
   useEffect(() => () => clearTimeout(captionTimer.current), []);
 
-  const find = (message) => {
+  const find = (message, { withSound = true } = {}) => {
     const found = [...new Set([...readFound(), id])];
     saveFound(found);
     setIsFound(true);
-    playSound(id);
+    if (withSound) playSound(id);
     setCaption(`${message} ${found.length}/${SECRET_IDS.length} secrets found.`);
     clearTimeout(captionTimer.current);
     captionTimer.current = setTimeout(() => setCaption(null), CAPTION_MS);
