@@ -11,7 +11,7 @@ import { extractYearsOfExperience } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 
 // shown while the API wakes up so the hero never renders half a sentence
-const FALLBACK_ROLE = "Engineering Manager";
+const FALLBACK_ROLE = "Tech Lead & Engineering Manager";
 const FALLBACK_STACK = ["TypeScript", "Next.js", "Serverless", "AWS", "DynamoDB", "MySQL"];
 
 const stackList = new Intl.ListFormat("en", { style: "long", type: "conjunction" });
