@@ -1,7 +1,7 @@
 import ScrollText from "../../components/ScrollText";
 
 const STATEMENT =
-  "I turn tangled requirements into systems that scale, teams that ship, and code a tired dev can still read at 2am.";
+  "Good software should feel a little boring. It just works, it is easy to read, nobody gets paged at 2am, and everyone logs off on time.";
 
 const Manifesto = () => (
   <section id="manifesto" className="relative py-32 sm:py-48">

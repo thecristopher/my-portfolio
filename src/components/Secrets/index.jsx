@@ -126,7 +126,7 @@ const BonfireLit = () => (
   </motion.div>
 );
 
-// a coiled sword in the ashes at the end of the page. light it and the banner rolls in
+// a coiled sword in the ashes after the contact terminal logs out. light it and the banner rolls in
 export const Bonfire = ({ className }) => {
   const [isLit, find, caption] = useSecret("bonfire");
   const [isBannerShown, setIsBannerShown] = useState(false);

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { playSound } from "./sound";
 
 // the little icons hidden around the page. finding one remembers it, so a lit bonfire stays lit
 const STORAGE_KEY = "secrets-found";
@@ -34,6 +35,7 @@ export const useSecret = (id) => {
     const found = [...new Set([...readFound(), id])];
     saveFound(found);
     setIsFound(true);
+    playSound(id);
     setCaption(`${message} ${found.length}/${SECRET_IDS.length} secrets found.`);
     clearTimeout(captionTimer.current);
     captionTimer.current = setTimeout(() => setCaption(null), CAPTION_MS);
