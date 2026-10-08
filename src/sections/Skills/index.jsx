@@ -45,7 +45,7 @@ const HealthHeading = ({ children }) => (
   </p>
 );
 
-// columns fill top to bottom so the list reads in relevance order, and 5/5 tools go green like a passing healthcheck
+// columns fill top to bottom so the list reads in relevance order, and maxed tools go green like a passing healthcheck
 const RatedReport = ({ tools, isBuffed }) => (
   <ul className="gap-x-12 md:columns-2">
     {tools.map((tool, index) => (
@@ -90,13 +90,6 @@ const StackHealth = ({ mainStack, skillLevels }) => {
         {ratedTools.length > 0 && (
           <div className="flex flex-col gap-4">
             <HealthHeading>stack ~</HealthHeading>
-            <p className="text-faint">
-              - INFO self rated out of {MAX_LEVEL}, by relevance · <span className="text-accent">●</span> main stack ·{" "}
-              <span className="text-string">
-                {MAX_LEVEL}/{MAX_LEVEL}
-              </span>{" "}
-              all green
-            </p>
             <AnimatePresence>
               {isBuffed && (
                 <motion.p

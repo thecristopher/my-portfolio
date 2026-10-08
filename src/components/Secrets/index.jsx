@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useAnimationControls, useReducedMotion } from "framer-motion";
 import { useSecret } from "../../lib/secrets";
 import { MAGIC_BLUE, MAGIC_PINK, castMagic } from "../../lib/magic";
@@ -10,33 +10,60 @@ const GOLD = "#e8c35a";
 const UMBRELLA_RED = "#d62828";
 const POKEBALL_RED = "#e3350d";
 
-// the caption pops up right next to the icon, so phones see it without the statusline
-const SecretButton = ({ label, onClick, caption, captionClassName = "left-0", className = "", children }) => (
-  <span className={`relative inline-block ${className}`}>
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className="grid size-8 place-items-center rounded-md text-faint/60 transition-colors hover:text-faint"
-    >
-      {children}
-    </button>
-    <AnimatePresence>
-      {caption && (
-        <motion.span
-          role="status"
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 4 }}
-          transition={{ duration: 0.35, ease: easeOutExpo }}
-          className={`absolute bottom-full z-30 mb-2 w-max max-w-[16rem] rounded-lg border border-line-strong bg-panel px-3 py-2 text-left font-mono text-[11px] leading-relaxed text-muted shadow-lg ${captionClassName}`}
-        >
-          {caption}
-        </motion.span>
-      )}
-    </AnimatePresence>
-  </span>
-);
+const VIEWPORT_GUTTER = 16;
+
+// the caption pops up right next to the icon, so phones see it without the statusline.
+// once it mounts it nudges itself sideways if it would spill past either edge of the screen
+const SecretButton = ({ label, onClick, caption, captionClassName = "left-0", className = "", children }) => {
+  const captionRef = useRef(null);
+  const [nudge, setNudge] = useState(0);
+
+  useLayoutEffect(() => {
+    const element = captionRef.current;
+    if (!element) {
+      setNudge(0);
+      return;
+    }
+    const rect = element.getBoundingClientRect();
+    const left = rect.left - nudge;
+    const right = rect.right - nudge;
+    const viewportWidth = document.documentElement.clientWidth;
+    if (right > viewportWidth - VIEWPORT_GUTTER) setNudge(Math.max(VIEWPORT_GUTTER - left, viewportWidth - VIEWPORT_GUTTER - right));
+    else if (left < VIEWPORT_GUTTER) setNudge(VIEWPORT_GUTTER - left);
+    else setNudge(0);
+    // only re-measure when a new caption shows up, nudge is read just to undo the previous one
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [caption]);
+
+  return (
+    <span className={`relative inline-block ${className}`}>
+      <button
+        type="button"
+        aria-label={label}
+        onClick={onClick}
+        className="grid size-8 place-items-center rounded-md text-faint/60 transition-colors hover:text-faint"
+      >
+        {children}
+      </button>
+      <AnimatePresence>
+        {caption && (
+          <motion.span
+            ref={captionRef}
+            role="status"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.35, ease: easeOutExpo }}
+            style={{ marginLeft: nudge }}
+            className={`absolute bottom-full z-30 mb-2 w-max max-w-[min(16rem,calc(100vw-2rem))] rounded-lg border border-line-strong bg-panel px-3 py-2 text-left font-mono text-[11px] leading-relaxed whitespace-normal text-muted shadow-lg ${captionClassName}`}
+          >
+            {caption}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </span>
+  );
+};
 
 // three triangles that drop into place once found
 const TRIFORCE_PIECES = ["M8 1 L12 8 L4 8 Z", "M4 8 L8 15 L0 15 Z", "M12 8 L16 15 L8 15 Z"];
@@ -119,9 +146,9 @@ const BonfireLit = () => (
     className="pointer-events-none fixed inset-x-0 top-1/2 z-50 -translate-y-1/2"
     aria-hidden="true"
   >
-    <div className="bg-gradient-to-r from-transparent via-black/80 to-transparent py-8 text-center">
+    <div className="bg-gradient-to-r from-transparent via-black/80 to-transparent px-4 py-8 text-center">
       <p
-        className="font-serif text-[clamp(2rem,7vw,4.5rem)] tracking-[0.2em] uppercase"
+        className="font-serif text-[clamp(1.5rem,7vw,4.5rem)] tracking-[0.2em] uppercase"
         style={{ color: GOLD, textShadow: `0 0 30px ${GOLD}66` }}
       >
         Bonfire Lit
