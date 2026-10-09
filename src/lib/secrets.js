@@ -1,13 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { playSound } from "./sound";
 
-// the little icons hidden around the page. finding one remembers it, so a lit bonfire stays lit
+// the little icons hidden around the page. finding one remembers it, so a discovered grace stays lit
 const STORAGE_KEY = "secrets-found";
-export const SECRET_IDS = ["triforce", "umbrella", "bonfire", "magician", "pokeball"];
+export const SECRET_IDS = ["triforce", "umbrella", "grace", "magician", "pokeball"];
+
+// the grace used to be a Dark Souls bonfire, anyone who lit it keeps the credit
+const RENAMED = { bonfire: "grace" };
+
+export const migrateFound = (found) => [...new Set(found.map((id) => RENAMED[id] ?? id))];
 
 const readFound = () => {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? [];
+    return migrateFound(JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []);
   } catch {
     return [];
   }

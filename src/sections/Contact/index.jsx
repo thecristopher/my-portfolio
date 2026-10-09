@@ -4,7 +4,7 @@ import { ArrowUpRight, Check, Copy } from "lucide-react";
 import TextReveal from "../../components/TextReveal";
 import TerminalWindow from "../../components/TerminalWindow";
 import TypeLine from "../../components/TypeLine";
-import { Bonfire } from "../../components/Secrets";
+import { Grace } from "../../components/Secrets";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetContactQuery } from "../../api/contactApi";
 import { socialIconMap } from "../../lib/socialIconMap";
@@ -108,9 +108,9 @@ const ContactTerminal = ({ contact }) => {
             <p>logout</p>
             <p className="flex items-center gap-1">
               <span>
-                <span className="text-accent">#</span> rest here any time, stranger.
+                <span className="text-accent">#</span> touch grace any time, Tarnished.
               </span>
-              <Bonfire className="-my-1.5" />
+              <Grace className="-my-1.5" />
             </p>
           </motion.div>
         )}
