@@ -130,10 +130,14 @@ const Skills = () => {
 
         {about && (
           <div>
-            <StackHealth mainStack={about.main_stack ?? []} skillLevels={about.skill_levels} />
-            <div className="mt-3 flex justify-end">
-              <Magician />
+            {/* the hat sits above the report, so once she flies past every buffed bar is right below it */}
+            <div className="mb-3 flex items-center justify-end gap-1">
+              <p className="font-mono text-xs text-faint">
+                <span className="text-accent">$</span> nvim ~/skills.lua
+              </p>
+              <Magician className="-my-2" />
             </div>
+            <StackHealth mainStack={about.main_stack ?? []} skillLevels={about.skill_levels} />
           </div>
         )}
       </div>

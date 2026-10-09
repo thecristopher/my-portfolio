@@ -24,7 +24,7 @@ describe("SOUNDS", () => {
 
 describe("playSound", () => {
   it("stays quiet when the browser has no Web Audio", () => {
-    expect(() => playSound("bonfire")).not.toThrow();
+    expect(() => playSound("grace")).not.toThrow();
   });
 
   it("ignores a sound it does not know", () => {

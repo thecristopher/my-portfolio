@@ -8,6 +8,7 @@ import CountUp from "../../components/CountUp";
 import PixelAvatar from "../../components/PixelAvatar";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { useGetProjectsQuery } from "../../api/projectsApi";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { extractYearsOfExperience } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 
@@ -15,7 +16,7 @@ import { easeOutExpo } from "../../lib/motion";
 const FALLBACK_ROLE = "Tech Lead & Engineering Manager";
 const FALLBACK_YEARS = "9+";
 
-// the portrait finishes wiping in around two seconds, the sprite hops in right after
+// the portrait finishes wiping in around two seconds, the sprite drops in right after
 const AVATAR_ENTERS_AT_S = 1.9;
 
 const riseIn = (delay) => ({
@@ -44,7 +45,11 @@ const Hero = () => {
   const contentOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
   const contentBlur = useTransform(scrollYProgress, [0, 0.7], [0, 10]);
   const contentFilter = useMotionTemplate`blur(${contentBlur}px)`;
-  const portraitY = useTransform(scrollYProgress, [0, 1], [0, 140]);
+  // on phones the portrait is the last thing in the hero, so sliding it down would shove the frame and the
+  // pixel me standing on it past the section's clipped bottom edge. the drift only runs side by side
+  const isSideBySide = useMediaQuery("(min-width: 1024px)");
+  const portraitDrift = useTransform(scrollYProgress, [0, 1], [0, 140]);
+  const portraitY = isSideBySide ? portraitDrift : 0;
   const portraitScale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
 
   const years = extractYearsOfExperience(about?.description);
@@ -134,14 +139,13 @@ const Hero = () => {
             </p>
           </motion.div>
           {/* the pixel me stands on the frame's bottom edge, looking up at the real one. exact 2x keeps every pixel square */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: AVATAR_ENTERS_AT_S, ease: easeOutExpo }}
-            className="absolute -bottom-1.5 left-5 z-10"
-          >
-            <PixelAvatar className="h-[126px]" firstWaveAfterMs={(AVATAR_ENTERS_AT_S + 0.6) * 1000} />
-          </motion.div>
+          <div className="absolute -bottom-1.5 left-5 z-10">
+            <PixelAvatar
+              className="h-[126px]"
+              entersAfterMs={AVATAR_ENTERS_AT_S * 1000}
+              firstWaveAfterMs={(AVATAR_ENTERS_AT_S + 1) * 1000}
+            />
+          </div>
           <div className="absolute -inset-px -z-10 rounded-3xl bg-gradient-to-br from-accent/50 via-transparent to-signal/50 blur-sm" aria-hidden="true" />
         </motion.figure>
       </div>

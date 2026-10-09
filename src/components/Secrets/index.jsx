@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useAnimationControls, useReducedMotion } from "framer-motion";
 import { useSecret } from "../../lib/secrets";
 import { MAGIC_BLUE, MAGIC_PINK, castMagic } from "../../lib/magic";
@@ -77,7 +78,7 @@ export const Triforce = ({ className }) => {
       caption={caption}
       captionClassName="right-0"
       className={className}
-      onClick={() => find("♪ Da na na naaa! Courage to lead, wisdom to plan, power to ship.")}
+      onClick={() => find("♪ Da na na naaa! You found the Triforce. It's dangerous to go alone, take this.")}
     >
       <svg viewBox="0 0 16 16" className="size-3.5" aria-hidden="true">
         {TRIFORCE_PIECES.map((path, index) => (
@@ -96,10 +97,12 @@ export const Triforce = ({ className }) => {
   );
 };
 
-// the octagon of alternating wedges, grey until someone pokes it
+// the octagon of alternating wedges, grey until someone pokes it. turned an eighth of a wedge
+// so a red one points straight up and the top edge sits flat, like the logo on every RE box
+const WEDGE_TURN = -Math.PI / 8;
 const UMBRELLA_WEDGES = Array.from({ length: 8 }, (_, index) => {
-  const angle = (index * Math.PI) / 4;
-  const next = ((index + 1) * Math.PI) / 4;
+  const angle = WEDGE_TURN + (index * Math.PI) / 4;
+  const next = WEDGE_TURN + ((index + 1) * Math.PI) / 4;
   const point = (a) => `${(8 + 7.5 * Math.sin(a)).toFixed(2)} ${(8 - 7.5 * Math.cos(a)).toFixed(2)}`;
   return { path: `M8 8 L${point(angle)} L${point(next)} Z`, isRed: index % 2 === 0 };
 });
@@ -113,7 +116,7 @@ export const Umbrella = ({ className }) => {
       caption={caption}
       captionClassName="left-1/2 -translate-x-1/2 md:right-0 md:left-auto md:translate-x-0"
       className={className}
-      onClick={() => find("Umbrella Corporation. Our business is life itself.")}
+      onClick={() => find("Ink ribbon used, your game was saved. That was close, you were almost a Jill sandwich!")}
     >
       <motion.svg
         viewBox="0 0 16 16"
@@ -137,7 +140,10 @@ export const Umbrella = ({ className }) => {
   );
 };
 
-const BonfireLit = () => (
+const GRACE_GOLD = "#f5d77a";
+
+// the gold banner Elden Ring rolls across the screen the first time you touch a grace
+const GraceDiscovered = () => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
@@ -146,52 +152,86 @@ const BonfireLit = () => (
     className="pointer-events-none fixed inset-x-0 top-1/2 z-50 -translate-y-1/2"
     aria-hidden="true"
   >
-    <div className="bg-gradient-to-r from-transparent via-black/80 to-transparent px-4 py-8 text-center">
-      <p
-        className="font-serif text-[clamp(1.5rem,7vw,4.5rem)] tracking-[0.2em] uppercase"
-        style={{ color: GOLD, textShadow: `0 0 30px ${GOLD}66` }}
+    <div className="bg-gradient-to-r from-transparent via-black/85 to-transparent px-4 py-8 text-center">
+      <motion.span
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ duration: 1.4, ease: easeOutExpo }}
+        className="mx-auto mb-4 block h-px max-w-xl bg-gradient-to-r from-transparent via-[#f5d77a]/70 to-transparent"
+      />
+      <motion.p
+        initial={{ letterSpacing: "0.45em", opacity: 0 }}
+        animate={{ letterSpacing: "0.2em", opacity: 1 }}
+        transition={{ duration: 1.8, ease: easeOutExpo }}
+        className="font-serif text-[clamp(1.25rem,5.5vw,3.75rem)] uppercase"
+        style={{ color: GRACE_GOLD, textShadow: `0 0 28px ${GRACE_GOLD}88` }}
       >
-        Bonfire Lit
-      </p>
+        Lost Grace Discovered
+      </motion.p>
+      <motion.span
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ duration: 1.4, ease: easeOutExpo }}
+        className="mx-auto mt-4 block h-px max-w-xl bg-gradient-to-r from-transparent via-[#f5d77a]/70 to-transparent"
+      />
     </div>
   </motion.div>
 );
 
-// a coiled sword in the ashes after the contact terminal logs out. light it and the banner rolls in
-export const Bonfire = ({ className }) => {
-  const [isLit, find, caption] = useSecret("bonfire");
+// specks of gold that drift up off a lit grace
+const GRACE_MOTES = [
+  { x: 5, delay: 0 },
+  { x: 11, delay: 0.7 },
+  { x: 8, delay: 1.3 },
+];
+
+// the Elden Ring sigil sits quiet after the contact terminal logs out. touch it and it lights up like a site of grace
+export const Grace = ({ className }) => {
+  const [isLit, find, caption] = useSecret("grace");
   const [isBannerShown, setIsBannerShown] = useState(false);
   const bannerTimer = useRef(null);
 
-  const light = () => {
-    find(isLit ? "You rest at the bonfire. Your progress is safe here." : "Bonfire lit. Your progress is safe here.");
+  useEffect(() => () => clearTimeout(bannerTimer.current), []);
+
+  const touch = () => {
+    find(isLit ? "You rest at the site of grace. Try finger, but hole." : "Lost grace discovered. Arise now, ye Tarnished.");
     setIsBannerShown(true);
     clearTimeout(bannerTimer.current);
-    bannerTimer.current = setTimeout(() => setIsBannerShown(false), 2600);
+    bannerTimer.current = setTimeout(() => setIsBannerShown(false), 3000);
   };
+
+  const ink = isLit ? GRACE_GOLD : "currentColor";
 
   return (
     <>
-      <SecretButton label="A sword resting in ashes" caption={caption} className={className} onClick={light}>
-        <svg viewBox="0 0 16 16" className="size-4" aria-hidden="true">
-          <AnimatePresence>
-            {isLit && (
-              <motion.path
-                d="M8 3 C10.5 6 11.5 8.5 10.5 11 C10 12 9 12.5 8 12.5 C7 12.5 6 12 5.5 11 C4.5 8.5 5.5 6 8 3 Z"
-                fill="#f08a24"
-                initial={{ scaleY: 0, opacity: 0 }}
-                animate={{ scaleY: [1, 0.9, 1.05, 1], opacity: 0.9 }}
-                transition={{ scaleY: { duration: 1.4, repeat: Infinity }, opacity: { duration: 0.4 } }}
-                style={{ transformOrigin: "8px 12.5px" }}
+      <SecretButton label="A faded golden sigil" caption={caption} className={className} onClick={touch}>
+        <svg
+          viewBox="0 0 16 16"
+          className="size-4 overflow-visible"
+          aria-hidden="true"
+          style={isLit ? { filter: `drop-shadow(0 0 3px ${GRACE_GOLD})` } : undefined}
+        >
+          <path d="M8 1 V15" stroke={ink} strokeWidth="1" strokeLinecap="round" />
+          <circle cx="8" cy="5" r="2.6" fill="none" stroke={ink} strokeWidth="0.9" />
+          <path d="M3.2 6.5 A4.8 4.8 0 0 0 12.8 6.5" fill="none" stroke={ink} strokeWidth="0.9" />
+          <path d="M5 11.5 A3 3 0 0 1 11 11.5" fill="none" stroke={ink} strokeWidth="0.9" />
+          {isLit &&
+            GRACE_MOTES.map(({ x, delay }) => (
+              <motion.circle
+                key={x}
+                cx={x}
+                cy="14"
+                r="0.7"
+                fill={GRACE_GOLD}
+                initial={{ y: 0, opacity: 0 }}
+                animate={{ y: [0, -12], opacity: [0, 1, 0] }}
+                transition={{ duration: 2, delay, repeat: Infinity, ease: "easeOut" }}
               />
-            )}
-          </AnimatePresence>
-          <path d="M8 1 V12" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-          <path d="M6 3.5 H10" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-          <path d="M3 14.5 C5 12.5 11 12.5 13 14.5 Z" fill="currentColor" />
+            ))}
         </svg>
       </SecretButton>
-      <AnimatePresence>{isBannerShown && <BonfireLit />}</AnimatePresence>
+      {/* the sigil lives inside a line of terminal text, so the full screen banner renders up at the body instead */}
+      {createPortal(<AnimatePresence>{isBannerShown && <GraceDiscovered />}</AnimatePresence>, document.body)}
     </>
   );
 };
@@ -257,7 +297,7 @@ const MagicianFlyby = () => {
   );
 };
 
-// a little wizard hat under the skills. tap it and a magician flies in and buffs every stat on the page
+// a little wizard hat on top of the skills. tap it and a magician flies in and buffs every stat on the page
 export const Magician = ({ className }) => {
   const [isFound, find, caption] = useSecret("magician");
   const [isFlying, setIsFlying] = useState(false);
@@ -273,7 +313,7 @@ export const Magician = ({ className }) => {
   );
 
   const summon = () => {
-    find("Dark Magician Girl cast a buff on your skills! Pixel art by TeykioArts.");
+    find("Dark Magician Girl is summoned in attack position! Dark Burning Magic! Pixel art by TeykioArts.");
     setIsFlying(true);
     clearTimeout(flightTimer.current);
     clearTimeout(castTimer.current);
@@ -311,7 +351,7 @@ export const Pokeball = ({ className }) => {
       rotate: [0, -22, 18, 0, -22, 18, 0, -22, 18, 0],
       transition: { duration: 0.9, times: [0, 0.06, 0.18, 0.3, 0.4, 0.52, 0.64, 0.74, 0.86, 1] },
     });
-    find("Gotcha! Cristopher was caught. His nature is Hardy.", { withSound: false });
+    find("Gotcha! Cristopher was caught! New Pokédex data will be added.", { withSound: false });
     isWobbling.current = false;
   };
 
