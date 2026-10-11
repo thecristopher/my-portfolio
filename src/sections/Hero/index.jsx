@@ -57,8 +57,10 @@ const Hero = () => {
   return (
     <section ref={sectionRef} id="home" className="relative flex min-h-svh items-center overflow-hidden pt-28 pb-16">
       <div className="blueprint pointer-events-none absolute inset-0" aria-hidden="true" />
-      <div className="pointer-events-none absolute -left-40 top-1/3 size-[36rem] rounded-full bg-accent/10 blur-[140px]" aria-hidden="true" />
-      <div className="pointer-events-none absolute -right-40 top-1/4 size-[36rem] rounded-full bg-signal/10 blur-[140px]" aria-hidden="true" />
+      {/* the glows are gradients, not blurred circles. Safari crops a blur where a moving layer like the sprite sits
+          on top of it, which left a hard edged box behind him */}
+      <div className="pointer-events-none absolute -left-72 top-[calc(100%/3-8rem)] size-[52rem] bg-radial from-accent/10 to-transparent to-70%" aria-hidden="true" />
+      <div className="pointer-events-none absolute -right-72 top-[calc(25%-8rem)] size-[52rem] bg-radial from-signal/10 to-transparent to-70%" aria-hidden="true" />
 
       <div className="relative mx-auto grid w-full max-w-6xl gap-14 px-4 sm:px-6 lg:grid-cols-12 lg:items-center lg:gap-8">
         <motion.div style={{ y: contentY, opacity: contentOpacity, filter: contentFilter }} className="flex flex-col gap-8 lg:col-span-7">
