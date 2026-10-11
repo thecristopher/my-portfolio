@@ -24,7 +24,7 @@ const CapabilityCard = ({ skill, index }) => {
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 1, delay: (index % 3) * 0.1, ease: easeOutExpo }}
     >
-      <SpotlightCard className="group flex h-full flex-col gap-6 overflow-hidden rounded-2xl border border-line bg-panel p-7 transition-colors duration-500 hover:border-line-strong sm:p-8">
+      <SpotlightCard className="group flex h-full flex-col gap-6 rounded-2xl border border-line bg-panel p-7 transition-colors duration-500 hover:border-line-strong sm:p-8">
         <div className="flex items-center justify-between">
           <span className="grid size-11 place-items-center rounded-xl border border-line bg-ink text-muted transition-all duration-500 group-hover:border-accent/40 group-hover:text-accent">
             {Icon && <Icon size={20} aria-hidden="true" />}

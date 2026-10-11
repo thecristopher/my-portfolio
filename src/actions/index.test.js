@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   cleanTechName,
+  collectStack,
+  homeTime,
+  revealCircle,
+  wrapRange,
   extractYearsOfExperience,
   formatIndex,
   hostnameFromUrl,
@@ -367,5 +371,41 @@ describe("idleMoveDelay", () => {
 
   it("waits the maximum on a full roll", () => {
     expect(idleMoveDelay(1)).toBe(11000);
+  });
+});
+
+describe("collectStack", () => {
+  it("puts the main stack first and lists each tool once", () => {
+    const projects = [{ technologies: ["React", "Docker (optional)"] }, { technologies: ["PHP", "React"] }];
+    expect(collectStack(projects, ["TypeScript", "React"])).toEqual(["TypeScript", "React", "Docker", "PHP"]);
+  });
+
+  it("copes with nothing loaded yet", () => {
+    expect(collectStack()).toEqual([]);
+  });
+});
+
+describe("wrapRange", () => {
+  it("leaves values inside the range alone", () => {
+    expect(wrapRange(-50, 0, -20)).toBe(-20);
+  });
+
+  it("loops values that run off either end", () => {
+    expect(wrapRange(-50, 0, -60)).toBe(-10);
+    expect(wrapRange(-50, 0, 10)).toBe(-40);
+  });
+});
+
+describe("revealCircle", () => {
+  it("grows far enough to reach the farthest corner", () => {
+    expect(revealCircle({ x: 0, y: 0 }, { width: 300, height: 400 }).radius).toBe(500);
+    expect(revealCircle({ x: 300, y: 400 }, { width: 300, height: 400 }).radius).toBe(500);
+  });
+});
+
+describe("homeTime", () => {
+  it("reads the clock in Rosarito, not wherever the visitor is", () => {
+    expect(homeTime(new Date("2026-07-01T19:05:00Z"))).toBe("12:05 PM PDT");
+    expect(homeTime(new Date("2026-01-15T19:05:00Z"))).toBe("11:05 AM PST");
   });
 });
