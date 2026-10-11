@@ -5,6 +5,7 @@ import TextReveal from "../../components/TextReveal";
 import TypeLine from "../../components/TypeLine";
 import CountUp from "../../components/CountUp";
 import PixelAvatar from "../../components/PixelAvatar";
+import Magnetic from "../../components/Magnetic";
 import { Airbender } from "../../components/Secrets";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { useGetProjectsQuery } from "../../api/projectsApi";
@@ -34,6 +35,15 @@ const Stat = ({ value, label, delay }) => (
   </div>
 );
 
+// moves the lit patch of the grid under the cursor through css vars, so react never re-renders for it
+const trackGrid = (event) => {
+  if (event.pointerType !== "mouse") return;
+  const section = event.currentTarget;
+  const bounds = section.getBoundingClientRect();
+  section.style.setProperty("--grid-x", `${event.clientX - bounds.left}px`);
+  section.style.setProperty("--grid-y", `${event.clientY - bounds.top}px`);
+};
+
 const Hero = () => {
   const sectionRef = useRef(null);
   const [isBooted, setIsBooted] = useState(false);
@@ -55,8 +65,14 @@ const Hero = () => {
   const role = about?.role ?? FALLBACK_ROLE;
 
   return (
-    <section ref={sectionRef} id="home" className="relative flex min-h-svh items-center overflow-hidden pt-28 pb-16">
+    <section
+      ref={sectionRef}
+      id="home"
+      onPointerMove={trackGrid}
+      className="hero relative flex min-h-svh items-center overflow-hidden pt-28 pb-16"
+    >
       <div className="blueprint pointer-events-none absolute inset-0" aria-hidden="true" />
+      <div className="blueprint-glow pointer-events-none absolute inset-0" aria-hidden="true" />
       {/* the glows are gradients, not blurred circles. Safari crops a blur where a moving layer like the sprite sits
           on top of it, which left a hard edged box behind him */}
       <div className="pointer-events-none absolute -left-72 top-[calc(100%/3-8rem)] size-[52rem] bg-radial from-accent/10 to-transparent to-70%" aria-hidden="true" />
@@ -93,20 +109,24 @@ const Hero = () => {
           </motion.p>
 
           <motion.div {...riseIn(1.15)} className="flex flex-wrap gap-3">
-            <a
-              href="#work"
-              className="group inline-flex items-center gap-2 rounded-full bg-fg px-6 py-3.5 text-sm font-medium text-ink transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
-            >
-              See the work
-              <ArrowDownRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5" />
-            </a>
-            <a
-              href="#contact"
-              className="group inline-flex items-center gap-2 rounded-full border border-line-strong bg-ink/40 px-6 py-3.5 text-sm font-medium backdrop-blur transition-colors duration-300 hover:border-faint"
-            >
-              Get in touch
-              <ArrowUpRight size={16} className="text-muted transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-fg" />
-            </a>
+            <Magnetic>
+              <a
+                href="#work"
+                className="group inline-flex items-center gap-2 rounded-full bg-fg px-6 py-3.5 text-sm font-medium text-ink transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
+              >
+                See the work
+                <ArrowDownRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5" />
+              </a>
+            </Magnetic>
+            <Magnetic>
+              <a
+                href="#contact"
+                className="group inline-flex items-center gap-2 rounded-full border border-line-strong bg-ink/40 px-6 py-3.5 text-sm font-medium backdrop-blur transition-colors duration-300 hover:border-faint"
+              >
+                Get in touch
+                <ArrowUpRight size={16} className="text-muted transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-fg" />
+              </a>
+            </Magnetic>
           </motion.div>
 
           <motion.dl {...riseIn(1.3)} className="grid max-w-lg grid-cols-3 gap-4 pt-6">

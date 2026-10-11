@@ -6,7 +6,8 @@ Live at [cristophercervantes.com](https://cristophercervantes.com). The content 
 
 ## What's in it
 
-- **Hero** with the pixel avatar. He drops in, bounces on his toes in a fighting stance, blinks, glances around, waves hello, hops when you scroll and throws a jab when you poke him.
+- **Hero** with the pixel avatar, a blueprint grid that lights up under your cursor and buttons that lean toward it. He drops in, bounces on his toes in a fighting stance, blinks, glances around, waves hello, hops when you scroll and throws a jab when you poke him.
+- **Manifesto**, followed by an endless ribbon of every tool I've shipped with. It speeds up, flips and leans with your scroll.
 - **About** with the bio, a portrait and a `profile.json` that types itself out.
 - **Work**, a stack of cards for every place I've shipped software.
 - **Side quests**, my public GitHub repos pulled live from the GitHub API. Repos without a description show the first paragraph of their README instead.
@@ -22,11 +23,11 @@ Live at [cristophercervantes.com](https://cristophercervantes.com). The content 
 | `gg` / `G` | Jump to top / bottom |
 | `:` or `⌘K` | Open the command line |
 
-From the command line you can jump to any section, copy my email, or switch between four colorschemes (`kanagawa`, `catppuccin`, `rose-pine`, `ember`). The statusline at the bottom shows the current mode, buffer and scroll position, and the gutter on the left shows relative line numbers like `relativenumber` would.
+From the command line you can jump to any section, copy my email, or switch between four colorschemes (`kanagawa`, `catppuccin`, `rose-pine`, `ember`). In browsers with View Transitions, the new colorscheme spreads out in a circle from wherever you clicked. The statusline at the bottom shows the current mode, buffer and scroll position, and the gutter on the left shows relative line numbers like `relativenumber` would.
 
 ### Secrets
 
-There are 8 of them hidden around the page, each with its own full screen moment and a little synth jingle generated on the fly (no audio files shipped). The page remembers which ones you found. Some commands are hidden too, if you know what to type. I'm not saying where any of them are.
+There are 8 of them hidden around the page, each with its own full screen moment and a little synth jingle generated on the fly (no audio files shipped). The page remembers which ones you found, and each one leaves behind a tooltip that mashes its franchise up with my career, plus a row of pips in every secret's color so you can see how many are left. Some commands are hidden too, if you know what to type. I'm not saying where any of them are.
 
 ## Stack
 

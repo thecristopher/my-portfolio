@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useAnimationControls, useReducedMotion } from "framer-motion";
-import { useSecret } from "../../lib/secrets";
+import { SECRETS, SECRET_IDS, readFound, secretTooltip, useSecret } from "../../lib/secrets";
 import { MAGIC_BLUE, MAGIC_PINK, castMagic } from "../../lib/magic";
 import { playSound } from "../../lib/sound";
 import { easeOutExpo } from "../../lib/motion";
@@ -22,11 +22,36 @@ const WATER_SLASH_MS = 900;
 const GOTCHA_MS = 3000;
 const GRACE_BANNER_MS = 3000;
 
-// the effect does the storytelling, so the pill next to the icon only keeps score.
+// one pip per secret on the page, lit in that secret's own color once found, so the score reads at a glance
+const SecretPips = ({ found, current }) => (
+  <span className="flex items-center gap-1" aria-hidden="true">
+    {SECRET_IDS.map((id) => {
+      const isLit = found.includes(id);
+      return (
+        <motion.span
+          key={id}
+          initial={false}
+          animate={id === current ? { scale: [0.4, 1.5, 1] } : { scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.25, ease: easeOutExpo }}
+          className={`size-1.5 rounded-full ${isLit ? "" : "bg-line-strong"}`}
+          style={isLit ? { background: SECRETS[id].color, boxShadow: `0 0 6px ${SECRETS[id].color}` } : undefined}
+        />
+      );
+    })}
+  </span>
+);
+
+// the effect does the storytelling, the pill next to the icon mixes the franchise with me and keeps score.
+// it pops up once the effect clears, and again on hover for anything already found.
 // once it mounts it nudges itself sideways if it would spill past either edge of the screen
-const SecretButton = ({ label, onClick, caption, captionClassName = "left-0", className = "", children }) => {
+const SecretButton = ({ id, isFound, label, onClick, caption, captionClassName = "left-0", className = "", children }) => {
   const captionRef = useRef(null);
   const [nudge, setNudge] = useState(0);
+  const [isPeeking, setIsPeeking] = useState(false);
+
+  const peek = isFound && isPeeking ? secretTooltip(id, readFound()) : null;
+  const tooltip = caption ?? peek;
+  const isShown = Boolean(tooltip);
 
   useLayoutEffect(() => {
     const element = captionRef.current;
@@ -41,12 +66,18 @@ const SecretButton = ({ label, onClick, caption, captionClassName = "left-0", cl
     if (right > viewportWidth - VIEWPORT_GUTTER) setNudge(Math.max(VIEWPORT_GUTTER - left, viewportWidth - VIEWPORT_GUTTER - right));
     else if (left < VIEWPORT_GUTTER) setNudge(VIEWPORT_GUTTER - left);
     else setNudge(0);
-    // only re-measure when a new caption shows up, nudge is read just to undo the previous one
+    // only re-measure when the pill shows up, nudge is read just to undo the previous one
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [caption]);
+  }, [isShown, caption]);
 
   return (
-    <span className={`relative inline-block ${className}`}>
+    <span
+      className={`relative inline-block ${className}`}
+      onPointerEnter={() => setIsPeeking(true)}
+      onPointerLeave={() => setIsPeeking(false)}
+      onFocus={() => setIsPeeking(true)}
+      onBlur={() => setIsPeeking(false)}
+    >
       <button
         type="button"
         aria-label={label}
@@ -56,18 +87,24 @@ const SecretButton = ({ label, onClick, caption, captionClassName = "left-0", cl
         {children}
       </button>
       <AnimatePresence>
-        {caption && (
+        {tooltip && (
           <motion.span
             ref={captionRef}
-            role="status"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
+            role={caption ? "status" : undefined}
+            initial={{ opacity: 0, y: 6, scale: 0.96, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: 4, scale: 0.98 }}
             transition={{ duration: 0.35, ease: easeOutExpo }}
-            style={{ marginLeft: nudge }}
-            className={`absolute bottom-full z-30 mb-2 w-max rounded-full border border-line-strong bg-panel px-2.5 py-1 font-mono text-[11px] whitespace-nowrap text-muted shadow-lg ${captionClassName}`}
+            style={{ marginLeft: nudge, "--secret": SECRETS[id].color }}
+            className={`secret-tooltip pointer-events-none absolute bottom-full z-30 mb-2 flex w-max max-w-[min(20rem,calc(100vw-2rem))] flex-col gap-2 rounded-xl border border-line-strong bg-panel/90 px-3 py-2.5 text-left font-mono text-[11px] text-muted shadow-[0_18px_40px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl ${captionClassName}`}
           >
-            <span className="text-accent">✦</span> {caption}
+            <span className="leading-snug text-pretty whitespace-normal text-fg">
+              <span style={{ color: SECRETS[id].color }}>✦</span> {tooltip.quip}
+            </span>
+            <span className="flex items-center justify-between gap-4 border-t border-line pt-2 whitespace-nowrap">
+              <SecretPips found={tooltip.found} current={caption ? id : null} />
+              <span className="tabular-nums text-faint">{tooltip.count}</span>
+            </span>
           </motion.span>
         )}
       </AnimatePresence>
@@ -164,7 +201,7 @@ export const Triforce = ({ className }) => {
   return (
     <>
       <SecretButton
-        label="A small golden relic"
+        id="triforce" isFound={isFound} label="A small golden relic"
         caption={caption}
         captionClassName="right-0"
         className={className}
@@ -242,7 +279,7 @@ export const Umbrella = ({ className }) => {
   return (
     <>
       <SecretButton
-        label="A corporate logo"
+        id="umbrella" isFound={isFound} label="A corporate logo"
         caption={caption}
         captionClassName="left-1/2 -translate-x-1/2 md:right-0 md:left-auto md:translate-x-0"
         className={className}
@@ -342,7 +379,7 @@ export const Alchemy = ({ className }) => {
 
   return (
     <>
-      <SecretButton label="A chalk circle" caption={caption} className={className} onClick={transmute}>
+      <SecretButton id="alchemy" isFound={isFound} label="A chalk circle" caption={caption} className={className} onClick={transmute}>
         <svg
           viewBox="0 0 16 16"
           className="size-4"
@@ -405,7 +442,7 @@ export const Airbender = ({ className }) => {
 
   return (
     <>
-      <SecretButton label="A spiral of wind" caption={caption} captionClassName="left-1/2 -translate-x-1/2" className={className} onClick={bend}>
+      <SecretButton id="airbender" isFound={isFound} label="A spiral of wind" caption={caption} captionClassName="left-1/2 -translate-x-1/2" className={className} onClick={bend}>
         <motion.svg
           viewBox="0 0 16 16"
           className="size-4"
@@ -482,7 +519,7 @@ export const Hanafuda = ({ className }) => {
   return (
     <>
       <SecretButton
-        label="A small card earring"
+        id="hanafuda" isFound={isFound} label="A small card earring"
         caption={caption}
         captionClassName="left-1/2 -translate-x-1/2 md:right-0 md:left-auto md:translate-x-0"
         className={className}
@@ -572,7 +609,7 @@ export const Grace = ({ className }) => {
 
   return (
     <>
-      <SecretButton label="A faded golden sigil" caption={caption} className={className} onClick={touch}>
+      <SecretButton id="grace" isFound={isLit} label="A faded golden sigil" caption={caption} className={className} onClick={touch}>
         <svg
           viewBox="0 0 16 16"
           className="size-4 overflow-visible"
@@ -691,7 +728,7 @@ export const Magician = ({ className }) => {
 
   return (
     <>
-      <SecretButton label="A pointy wizard hat" caption={caption} captionClassName="right-0" className={className} onClick={summon}>
+      <SecretButton id="magician" isFound={isFound} label="A pointy wizard hat" caption={caption} captionClassName="right-0" className={className} onClick={summon}>
         <svg viewBox="0 0 16 16" className="size-4" aria-hidden="true">
           <path d="M9 1 L4 13 H13 Z" fill={isFound ? MAGIC_BLUE : "currentColor"} />
           <path d="M2 13 H14 V14.5 H2 Z" fill={isFound ? MAGIC_PINK : "currentColor"} />
@@ -788,7 +825,7 @@ export const Pokeball = ({ className }) => {
 
   return (
     <>
-      <SecretButton label="A red and white ball" caption={caption} className={className} onClick={throwBall}>
+      <SecretButton id="pokeball" isFound={isFound} label="A red and white ball" caption={caption} className={className} onClick={throwBall}>
         <motion.svg viewBox="0 0 16 16" className="size-3.5" aria-hidden="true" animate={wobbleControls} style={{ originY: 1 }}>
           <path d="M1 8 A7 7 0 0 1 15 8 Z" fill={isFound ? POKEBALL_RED : "currentColor"} />
           <path d="M1 8 A7 7 0 0 0 15 8 Z" fill={isFound ? "#f4f1ea" : "transparent"} />
