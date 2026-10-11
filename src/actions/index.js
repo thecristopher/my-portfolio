@@ -147,40 +147,6 @@ export const crouchLegs = (pixels = [], kneeRow) =>
     return pixel.y < kneeRow ? [{ ...pixel, y: pixel.y + 1 }] : [pixel];
   });
 
-// forks and archived repos aren't really mine anymore, the rest go by stars, then by what I touched last
-export const pickPersonalRepos = (repos = []) =>
-  repos
-    .filter((repo) => !repo.fork && !repo.archived)
-    .sort((a, b) => b.stargazers_count - a.stargazers_count || b.pushed_at.localeCompare(a.pushed_at));
-
-const PITCH_MAX_CHARS = 220;
-// headings, badges, html, tables, lists and quotes aren't a pitch, so a paragraph has to start with plain text
-const isProse = (line) => /^[A-Za-z0-9*_`"'(]/.test(line) && !/^\[!\[/.test(line);
-
-const stripMarkdown = (text) =>
-  text
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/[*_`]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-// the first real paragraph of a README, for repos that never got a GitHub description
-export const readmePitch = (markdown = "") => {
-  let isInCode = false;
-  const paragraph = [];
-  for (const rawLine of markdown.split("\n")) {
-    const line = rawLine.trim();
-    if (line.startsWith("```")) isInCode = !isInCode;
-    else if (isInCode) continue;
-    else if (paragraph.length > 0 && !line) break;
-    else if (paragraph.length > 0 || isProse(line)) paragraph.push(line);
-  }
-  const pitch = stripMarkdown(paragraph.join(" "));
-  if (pitch.length <= PITCH_MAX_CHARS) return pitch;
-  return `${pitch.slice(0, pitch.lastIndexOf(" ", PITCH_MAX_CHARS))}…`;
-};
-
 // walks up to the last index and back down without repeating the ends: 3 frames play as 0 1 2 1
 export const pingPong = (count) => {
   const forward = [...Array(count).keys()];

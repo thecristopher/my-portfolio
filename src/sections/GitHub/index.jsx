@@ -4,8 +4,7 @@ import SectionHeader from "../../components/SectionHeader";
 import SpotlightCard from "../../components/SpotlightCard";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { Triforce } from "../../components/Secrets";
-import { GITHUB_USER, useGetReadmeQuery, useGetReposQuery } from "../../api/githubApi";
-import { pickPersonalRepos, readmePitch } from "../../actions";
+import { GITHUB_USER, useGetReposQuery } from "../../api/githubApi";
 import { easeOutExpo } from "../../lib/motion";
 
 // the same dots GitHub paints next to each language
@@ -23,64 +22,53 @@ const LANGUAGE_COLORS = {
 const formatPushed = (pushedAt) =>
   new Date(pushedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
-// GitHub's description wins, otherwise the README's opening paragraph does the pitching
-const useRepoPitch = (repo) => {
-  const { data: readme } = useGetReadmeQuery(repo.name, { skip: Boolean(repo.description) });
-  return repo.description || readmePitch(readme) || "Still writing the README for this one.";
-};
-
-const RepoCard = ({ repo, index }) => {
-  const pitch = useRepoPitch(repo);
-
-  return (
-    <motion.a
-      href={repo.html_url}
-      target="_blank"
-      rel="noreferrer"
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{ duration: 0.8, delay: index * 0.08, ease: easeOutExpo }}
-      className="group block h-full"
-    >
-      <SpotlightCard className="flex h-full flex-col gap-5 rounded-2xl border border-line bg-panel/60 p-6 transition-colors group-hover:border-line-strong">
-        <div className="flex items-start justify-between gap-4">
-          <h3 className="font-mono text-lg text-fg">
-            <span className="hidden text-faint sm:inline">{GITHUB_USER}/</span>
-            {repo.name}
-          </h3>
-          <ArrowUpRight
-            size={16}
-            className="shrink-0 text-faint transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
-          />
-        </div>
-        <p className="grow leading-relaxed text-muted text-pretty">
-          {pitch}
-        </p>
-        <p className="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs text-faint">
-          {repo.language && (
-            <span className="flex items-center gap-1.5">
-              <span className="size-2.5 rounded-full" style={{ background: LANGUAGE_COLORS[repo.language] ?? "currentColor" }} />
-              {repo.language}
-            </span>
-          )}
-          <span className="flex items-center gap-1">
-            <Star size={12} /> {repo.stargazers_count}
+const RepoCard = ({ repo, index }) => (
+  <motion.a
+    href={repo.url}
+    target="_blank"
+    rel="noreferrer"
+    initial={{ opacity: 0, y: 24 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.3 }}
+    transition={{ duration: 0.8, delay: index * 0.08, ease: easeOutExpo }}
+    className="group block h-full"
+  >
+    <SpotlightCard className="flex h-full flex-col gap-5 rounded-2xl border border-line bg-panel/60 p-6 transition-colors group-hover:border-line-strong">
+      <div className="flex items-start justify-between gap-4">
+        <h3 className="font-mono text-lg text-fg">
+          <span className="hidden text-faint sm:inline">{GITHUB_USER}/</span>
+          {repo.name}
+        </h3>
+        <ArrowUpRight
+          size={16}
+          className="shrink-0 text-faint transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
+        />
+      </div>
+      <p className="grow leading-relaxed text-muted text-pretty">
+        {repo.pitch}
+      </p>
+      <p className="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs text-faint">
+        {repo.language && (
+          <span className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full" style={{ background: LANGUAGE_COLORS[repo.language] ?? "currentColor" }} />
+            {repo.language}
           </span>
-          <span className="flex items-center gap-1">
-            <GitFork size={12} /> {repo.forks_count}
-          </span>
-          <span>pushed {formatPushed(repo.pushed_at)}</span>
-        </p>
-      </SpotlightCard>
-    </motion.a>
-  );
-};
+        )}
+        <span className="flex items-center gap-1">
+          <Star size={12} /> {repo.stars}
+        </span>
+        <span className="flex items-center gap-1">
+          <GitFork size={12} /> {repo.forks}
+        </span>
+        <span>pushed {formatPushed(repo.pushed_at)}</span>
+      </p>
+    </SpotlightCard>
+  </motion.a>
+);
 
 // the side quests: whatever I build after hours, pulled live from my public GitHub
 const GitHub = () => {
-  const { data = [], isLoading, isError } = useGetReposQuery();
-  const repos = pickPersonalRepos(data);
+  const { data: repos = [], isLoading, isError } = useGetReposQuery();
 
   return (
     <section id="github" className="relative py-24 sm:py-36">
@@ -103,7 +91,7 @@ const GitHub = () => {
 
         <div className="grid gap-5 md:grid-cols-2">
           {repos.map((repo, index) => (
-            <RepoCard key={repo.id} repo={repo} index={index} />
+            <RepoCard key={repo.name} repo={repo} index={index} />
           ))}
         </div>
 
