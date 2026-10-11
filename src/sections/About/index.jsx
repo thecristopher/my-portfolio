@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import portrait from "../../assets/images/portrait.jpg";
 import SectionHeader from "../../components/SectionHeader";
 import Reveal from "../../components/Reveal";
 import TerminalWindow from "../../components/TerminalWindow";
 import TypeLine from "../../components/TypeLine";
-import { Triforce } from "../../components/Secrets";
+import { Hanafuda } from "../../components/Secrets";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { useGetProjectsQuery } from "../../api/projectsApi";
@@ -66,6 +67,49 @@ const ProfileJson = ({ role, years, mainStack, editor, engagements }) => {
   );
 };
 
+// the real me, wiping in the first time the section scrolls into view. the frame watches the scroll instead of
+// the clipped photo, because a fully clipped element never counts as visible and the wipe would never start
+const PORTRAIT_WIPE = {
+  hidden: { clipPath: "inset(100% 0% 0% 0% round 24px)" },
+  shown: { clipPath: "inset(0% 0% 0% 0% round 24px)", transition: { duration: 1.6, ease: easeOutExpo } },
+};
+const PORTRAIT_ZOOM = {
+  hidden: { scale: 1.35 },
+  shown: { scale: 1, transition: { duration: 2.2, ease: easeOutExpo } },
+};
+const PORTRAIT_GLOW = {
+  hidden: { opacity: 0 },
+  shown: { opacity: 1, transition: { duration: 1, delay: 0.6 } },
+};
+
+const Portrait = () => (
+  <motion.figure
+    initial="hidden"
+    whileInView="shown"
+    viewport={{ once: true, amount: 0.3 }}
+    className="relative mx-auto w-full max-w-sm lg:max-w-none"
+  >
+    <motion.div variants={PORTRAIT_WIPE} className="relative overflow-hidden rounded-3xl bg-panel">
+      <motion.img
+        src={portrait}
+        alt="Portrait of Cristopher Cervantes"
+        variants={PORTRAIT_ZOOM}
+        className="aspect-[4/5] w-full object-cover object-center"
+      />
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
+      <figcaption className="absolute right-5 bottom-5 flex gap-2 font-mono text-[11px] text-muted">
+        <span className="text-accent">fig.01</span>
+        <span>portrait.jpg</span>
+      </figcaption>
+    </motion.div>
+    <motion.div
+      variants={PORTRAIT_GLOW}
+      className="absolute -inset-px -z-10 rounded-3xl bg-gradient-to-br from-accent/50 via-transparent to-signal/50 blur-sm"
+      aria-hidden="true"
+    />
+  </motion.figure>
+);
+
 const About = () => {
   const { data: about, isLoading, isError } = useGetAboutQuery();
   const { data: projects = [] } = useGetProjectsQuery();
@@ -79,6 +123,12 @@ const About = () => {
         <SectionHeader index="02" label="about.md" title="From the editor to the org chart." />
 
         <div className="grid gap-14 lg:grid-cols-12">
+          <div className="lg:col-span-5">
+            <div className="lg:sticky lg:top-28">
+              <Portrait />
+            </div>
+          </div>
+
           <div className="flex flex-col gap-6 lg:col-span-7">
             {isLoading && <SkeletonLines lines={6} />}
             {isError && <LoadError what="the bio" />}
@@ -92,10 +142,8 @@ const About = () => {
                 <p className="leading-relaxed text-muted text-pretty">{paragraph}</p>
               </Reveal>
             ))}
-          </div>
 
-          <Reveal delay={0.15} className="lg:col-span-5">
-            <div className="lg:sticky lg:top-28">
+            <Reveal delay={0.15} className="mt-6">
               <ProfileJson
                 role={about?.role}
                 years={years}
@@ -104,10 +152,10 @@ const About = () => {
                 engagements={projects.length}
               />
               <div className="mt-3 flex justify-end">
-                <Triforce />
+                <Hanafuda />
               </div>
-            </div>
-          </Reveal>
+            </Reveal>
+          </div>
         </div>
       </div>
     </section>

@@ -119,6 +119,55 @@ export const SOUNDS = {
     ],
     noises: [[0, 0.9, { filter: "bandpass", frequency: 400, sweepTo: 2400, volume: 0.08 }]],
   },
+  // Fullmetal Alchemist: hands clap together, the circle crackles with blue lightning, and the transmutation hums up
+  alchemy: {
+    wave: "sine",
+    volume: 0.06,
+    notes: [
+      [-28, 0.12, 1.1, { wave: "sawtooth", slideTo: -16, volume: 0.04 }],
+      [7, 0.3, 0.9, { attack: 0.3 }],
+      [14, 0.42, 0.9, { attack: 0.3, volume: 0.04 }],
+      [19, 0.54, 0.9, { attack: 0.3, volume: 0.03 }],
+    ],
+    noises: [
+      [0, 0.05, { filter: "bandpass", frequency: 1400, volume: 0.6 }],
+      [0.18, 0.04, { filter: "highpass", frequency: 4000, volume: 0.3 }],
+      [0.31, 0.03, { filter: "highpass", frequency: 5000, volume: 0.25 }],
+      [0.4, 0.05, { filter: "highpass", frequency: 3500, volume: 0.3 }],
+      [0.55, 0.03, { filter: "highpass", frequency: 4500, volume: 0.2 }],
+    ],
+  },
+  // Avatar: a gong for the Avatar State, wind rushing past, and an airy pentatonic run on a flute
+  airbender: {
+    wave: "triangle",
+    volume: 0.07,
+    notes: [
+      [-33, 0, 2, { wave: "sine", volume: 0.2 }],
+      [-21, 0, 1.6, { wave: "sine", volume: 0.05 }],
+      [10, 0.5, 0.18, { attack: 0.05 }],
+      [12, 0.66, 0.18, { attack: 0.05 }],
+      [15, 0.82, 0.18, { attack: 0.05 }],
+      [17, 0.98, 0.18, { attack: 0.05 }],
+      [22, 1.14, 0.7, { attack: 0.08 }],
+    ],
+    noises: [[0.2, 1.2, { filter: "bandpass", frequency: 300, sweepTo: 2200, volume: 0.18 }]],
+  },
+  // Demon Slayer: the blade leaves the sheath, a wave of water follows it, and a koto plucks a hirajoshi line
+  hanafuda: {
+    wave: "triangle",
+    volume: 0.1,
+    notes: [
+      [3, 0.45, 0.4],
+      [5, 0.55, 0.4],
+      [6, 0.65, 0.4],
+      [10, 0.75, 0.4],
+      [11, 0.85, 0.9],
+    ],
+    noises: [
+      [0, 0.18, { filter: "highpass", frequency: 3000, sweepTo: 9000, volume: 0.35 }],
+      [0.12, 0.5, { filter: "bandpass", frequency: 2500, sweepTo: 400, volume: 0.25 }],
+    ],
+  },
 };
 
 const playNote = (context, sound, [semitones, start, length, tweaks = {}]) => {

@@ -24,7 +24,7 @@ export const AVATAR_PALETTE = {
   q: "#8a95a5", // sneaker shade
 };
 
-export const AVATAR_ROWS = [
+const DRAWN_ROWS = [
   "...............................KK..........",
   "............KKKKKKKKKKKKKKKKKKKHHK.........",
   "...........KaHHHHHHHHHHHHHHaaHHHK..........",
@@ -90,46 +90,115 @@ export const AVATAR_ROWS = [
   ".....KKKKKKKKK...............KKKKKKKKKK....",
 ];
 
+// a few spare columns on the right so the waving hand has room to swing out past his shoulder
+const SPRITE_WIDTH = 50;
+export const AVATAR_ROWS = DRAWN_ROWS.map((row) => row.padEnd(SPRITE_WIDTH, "."));
+
 // the forearm and fist that throw the jab when someone pokes the sprite
 export const PUNCH_ARM = { minX: 33, minY: 19, maxY: 37 };
 
 // mid blink the eyes fill with lens glass and the lid row goes dark
 export const BLINK_SWAPS = { Y: "L", E: "L", y: "e" };
 
-// the raised fist opens into this hand to say hi, dots keep whatever is underneath
-export const WAVE_HAND = {
-  left: 31,
-  top: 12,
-  rows: [
-    "......KK....",
-    "...KKKSSKKK.",
-    "..KSSKSSKSSK",
-    "..KSSKSSKSSK",
-    "..KSsKSsKSsK",
-    "..KSSSSSSSsK",
-    "KKKSSSSSSSsK",
-    "KSSSSSSSSSsK",
-    "KSSSSSSSSSsK",
-    ".KKSSSSSSssK",
-    "...KSSSSSssK",
-    "....KSSSSssK",
-    ".....KSSSssK",
-    ".....KSSSssK",
-    ".....KSSSssK",
-    ".....KsSSssK",
-    "......KsSSsK",
+// the wave: the whole arm is redrawn for it. it leaves the shoulder in a short sleeve, bends at the elbow out to
+// the side at chest height, and the forearm swings from there while the open hand stays upright, like a real hello.
+// every frame draws the arm whole, so nothing can come apart between them
+export const WAVE_FRAMES = {
+  left: 30,
+  top: 7,
+  frames: [
+    [
+      "...........KK.......",
+      "........KKKSsK......",
+      ".......KSsKSsKKK....",
+      ".......KSsKSsKSsK...",
+      ".......KSsKSsKSsK...",
+      ".......KSsKSsKSsK...",
+      "......KKSSSSSSSsK...",
+      ".....SsKSSSSSSSsK...",
+      ".....SsKSSSSSSSsK...",
+      ".....SSSSSSSSSSsK...",
+      ".....KSSSSSSSSSsK...",
+      "......KSSSSSSSSsK...",
+      ".K....KSSSSSSSSsK...",
+      "TTKKK..KKSSSSsKK....",
+      "ttTTTKK..KSSSSsK....",
+      "tttttTTK.KSSSSsK....",
+      ".ttttttKKKSSSSsK....",
+      "ttttttuSsKSSSSsK....",
+      ".tttttuSSKSSSSsK....",
+      "uuuuuuuSSKSSSSsK....",
+      ".KKKKKSSSKSSSSsK....",
+      ".K....KKSSSSSSsK....",
+      ".K......KKSSSSsK....",
+      ".K........KSSSsK....",
+      "...........KKKK.....",
+    ],
+    [
+      ".............KK.....",
+      "..........KKKSsK....",
+      ".........KSsKSsKKK..",
+      ".........KSsKSsKSsK.",
+      ".........KSsKSsKSsK.",
+      ".........KSsKSsKSsK.",
+      ".......KKKSSSSSSSsK.",
+      "......KSsKSSSSSSSsK.",
+      "......KSsKSSSSSSSsK.",
+      "......KSSSSSSSSSSsK.",
+      ".......KSSSSSSSSSsK.",
+      "........KSSSSSSSSsK.",
+      ".K......KSSSSSSSSsK.",
+      "TTKKK....KKSSSSsKK..",
+      "ttTTTKK...KSSSSsK...",
+      "tttttTTK..KSSSSsK...",
+      ".ttttttKKKSSSSsK....",
+      "ttttttuSsKSSSSsK....",
+      ".tttttuSSKSSSSsK....",
+      "uuuuuuuSSKSSSSsK....",
+      ".KKKKKSSSKSSSSsK....",
+      ".K....KKSSSSSSsK....",
+      ".K......KKSSSSsK....",
+      ".K........KSSSsK....",
+      "...........KKKK.....",
+    ],
+    [
+      "..............KK....",
+      "...........KKKSsK...",
+      "..........KSsKSsKKK.",
+      "..........KSsKSsKSsK",
+      "..........KSsKSsKSsK",
+      "..........KSsKSsKSsK",
+      "........KKKSSSSSSSsK",
+      ".......KSsKSSSSSSSsK",
+      ".......KSsKSSSSSSSsK",
+      ".......KSSSSSSSSSSsK",
+      "........KSSSSSSSSSsK",
+      ".........KSSSSSSSSsK",
+      ".K.......KSSSSSSSSsK",
+      "TTKKK.....KKSSSSsKK.",
+      "ttTTTKK....KSSSSsK..",
+      "tttttTTK..KSSSSsK...",
+      ".ttttttKK.KSSSSsK...",
+      "ttttttuSsKKSSSSsK...",
+      ".tttttuSSsKSSSSsK...",
+      "uuuuuuuSSKSSSSsK....",
+      ".KKKKKSSSKSSSSsK....",
+      ".K....KKSSSSSSsK....",
+      ".K......KKSSSSsK....",
+      ".K........KSSSsK....",
+      "...........KKKK.....",
+    ],
   ],
 };
 
-// the fist gets wiped before the open hand goes on, otherwise knuckles poke out around it
-export const FIST = { minX: 33, maxX: 42, minY: 19, maxY: 28 };
+// the guard arm, fist and the sleeve it hangs in get wiped before a wave frame goes on
+export const WAVE_ERASE = [{ minX: 31, maxX: SPRITE_WIDTH - 1, minY: 19, maxY: 38 }];
 
-// how many rows of the hand are fingers, they swing a pixel further than the palm so the wave tilts
-export const WAVE_FINGER_ROWS = 6;
-
-// layers that move on their own so the idle feels alive: head lags the chest, feet stay planted
+// layers that move on their own so the idle feels alive: feet stay planted while the knees bend
 export const HEAD_UNTIL_ROW = 25;
 export const LEGS_FROM_ROW = 39;
+// this thigh row is a near copy of the one above it, so folding it away during the bounce is invisible
+export const KNEE_ROW = 50;
 
 // happy face for the wave: eyes squint into arcs behind the lenses, grin with teeth, a little blush
 export const SMILE = {

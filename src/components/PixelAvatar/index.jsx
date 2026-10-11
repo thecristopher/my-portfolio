@@ -4,16 +4,16 @@ import {
   AVATAR_PALETTE,
   AVATAR_ROWS,
   BLINK_SWAPS,
-  FIST,
   GUARD_ARM,
   HEAD_UNTIL_ROW,
+  KNEE_ROW,
   LEGS_FROM_ROW,
   PUNCH_ARM,
   SMILE,
-  WAVE_FINGER_ROWS,
-  WAVE_HAND,
+  WAVE_ERASE,
+  WAVE_FRAMES,
 } from "../../lib/avatarSprite";
-import { idleMoveDelay, isInRegion, overlaySprite, pickIdleMove, spriteToPixels } from "../../actions";
+import { crouchLegs, idleMoveDelay, isInRegion, overlaySprite, pickIdleMove, pingPong, spriteToPixels } from "../../actions";
 import { playSound } from "../../lib/sound";
 
 const WIDTH = AVATAR_ROWS[0].length;
@@ -21,20 +21,18 @@ const HEIGHT = AVATAR_ROWS.length;
 const JAB_REACH = 4;
 const GUARD_DROP = 2;
 const TEE_COLORS = [AVATAR_PALETTE.T, AVATAR_PALETTE.t, AVATAR_PALETTE.u];
-const WAVE_ROWS = overlaySprite(overlaySprite(AVATAR_ROWS, WAVE_HAND, FIST), SMILE);
+const NOTHING = { left: 0, top: 0, rows: [] };
+const GUARDLESS_ROWS = WAVE_ERASE.reduce((rows, region) => overlaySprite(rows, NOTHING, region), overlaySprite(AVATAR_ROWS, SMILE));
+const waveRows = (armRows) => overlaySprite(GUARDLESS_ROWS, { left: WAVE_FRAMES.left, top: WAVE_FRAMES.top, rows: armRows });
 
 const isArm = (pixel) => isInRegion(pixel, PUNCH_ARM) && !TEE_COLORS.includes(pixel.color);
 const isGuard = (pixel) => isInRegion(pixel, GUARD_ARM);
-const isHand = ({ x, y }) => WAVE_HAND.rows[y - WAVE_HAND.top]?.[x - WAVE_HAND.left] > ".";
-const isFinger = (pixel) => isHand(pixel) && pixel.y < WAVE_HAND.top + WAVE_FINGER_ROWS;
 
 // each moving part gets its own layer so it can move without dragging the rest of the sprite along
 const buildLayers = (pixels, isWaving) => {
-  const layers = { legs: [], head: [], chest: [], arm: [], guard: [], palm: [], fingers: [] };
+  const layers = { legs: [], head: [], chest: [], arm: [], guard: [] };
   for (const pixel of pixels) {
     if (pixel.y >= LEGS_FROM_ROW) layers.legs.push(pixel);
-    else if (isWaving && isFinger(pixel)) layers.fingers.push(pixel);
-    else if (isWaving && isHand(pixel)) layers.palm.push(pixel);
     else if (!isWaving && isArm(pixel)) layers.arm.push(pixel);
     else if (isGuard(pixel)) layers.guard.push(pixel);
     else if (pixel.y <= HEAD_UNTIL_ROW) layers.head.push(pixel);
@@ -44,14 +42,15 @@ const buildLayers = (pixels, isWaving) => {
   layers.neck = layers.head.filter((pixel) => pixel.y === HEAD_UNTIL_ROW);
   layers.waist = layers.chest.filter((pixel) => pixel.y === LEGS_FROM_ROW - 1);
   layers.shoulder = layers.guard.filter((pixel) => pixel.y <= GUARD_ARM.minY + GUARD_DROP - 1);
+  layers.crouchedLegs = crouchLegs(layers.legs, KNEE_ROW);
   return layers;
 };
 
 const FRAMES = {
   idle: buildLayers(spriteToPixels(AVATAR_ROWS, AVATAR_PALETTE), false),
   idleBlink: buildLayers(spriteToPixels(AVATAR_ROWS, AVATAR_PALETTE, BLINK_SWAPS), false),
-  // happy squinting eyes are already closed, so the wave doesn't need its own blink frame
-  wave: buildLayers(spriteToPixels(WAVE_ROWS, AVATAR_PALETTE), true),
+  // happy squinting eyes are already closed, so the wave doesn't need its own blink frames
+  wave: WAVE_FRAMES.frames.map((armRows) => buildLayers(spriteToPixels(waveRows(armRows), AVATAR_PALETTE), true)),
 };
 
 // mid jab the arm's inner edge stretches across the gap, like smear frames in a fighting game
@@ -76,7 +75,7 @@ const HOP_COOLDOWN_MS = 1400;
 // steps instead of easing so every move snaps a whole pixel, like a real sprite
 const snapToPixel = (progress) => Math.round(progress);
 // Scott Pilgrim never stands still, he bounces on his toes in a fighting stance a couple times a second
-const breathe = { y: [0, 1, 0], transition: { duration: 0.6, repeat: Infinity, ease: snapToPixel } };
+const BOUNCE_STEP_MS = 300;
 
 // a jump with squash on takeoff, stretch in the air and a squash on landing, the cartoon way
 const HOP = {
@@ -96,7 +95,9 @@ const DROP_IN = {
   transition: { duration: 0.75, times: [0, 0.3, 0.58, 0.75, 1], ease: ["easeIn", "easeIn", "easeOut", "easeOut"] },
 };
 const DROP_LANDS_AT_MS = 430;
-const WAVE_SWING = { x: [0, -1, 0, 1, 0, -1, 0, 1, 0], transition: { duration: 1.5, ease: "linear" } };
+// out to the side and back, over and over, the hand never jumps from one end straight to the other
+const WAVE_SEQUENCE = pingPong(WAVE_FRAMES.frames.length);
+const WAVE_FRAME_MS = 110;
 const POSE_SHIFT = { duration: 0.15, ease: snapToPixel };
 
 const useBlink = (isEnabled) => {
@@ -116,6 +117,37 @@ const useBlink = (isEnabled) => {
   }, [isEnabled]);
 
   return isBlinking;
+};
+
+// one clock drives the whole bounce so the knees, torso, head and hands always land on the same frame
+const useBounce = (isEnabled) => {
+  const [isCrouched, setIsCrouched] = useState(false);
+
+  useEffect(() => {
+    if (!isEnabled) return;
+    const bounceTimer = setInterval(() => setIsCrouched((crouched) => !crouched), BOUNCE_STEP_MS);
+    return () => {
+      clearInterval(bounceTimer);
+      setIsCrouched(false);
+    };
+  }, [isEnabled]);
+
+  return isCrouched;
+};
+
+const useWaveFrame = (isWaving, isEnabled) => {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    if (!isWaving || !isEnabled) return;
+    const waveTimer = setInterval(() => setStep((current) => current + 1), WAVE_FRAME_MS);
+    return () => {
+      clearInterval(waveTimer);
+      setStep(0);
+    };
+  }, [isWaving, isEnabled]);
+
+  return WAVE_SEQUENCE[step % WAVE_SEQUENCE.length];
 };
 
 // waves hello right after showing up, then keeps himself busy glancing around and waving at random
@@ -200,7 +232,7 @@ const Dust = ({ side }) => (
   <motion.svg
     viewBox="0 0 6 4"
     shapeRendering="crispEdges"
-    className="pointer-events-none absolute -bottom-0.5 left-[38%] h-2 w-3"
+    className="pointer-events-none absolute -bottom-0.5 left-[33%] h-2 w-3"
     initial={{ x: 0, opacity: 0.9, scale: 0.6 }}
     animate={{ x: side * 26, y: -4, opacity: 0, scale: 1.3 }}
     transition={{ duration: 0.5, ease: "easeOut" }}
@@ -215,7 +247,7 @@ const HitSpark = ({ delay }) => (
   <motion.svg
     viewBox="0 0 9 9"
     shapeRendering="crispEdges"
-    className="pointer-events-none absolute top-[28%] left-[94%] size-7"
+    className="pointer-events-none absolute top-[28%] left-[81%] size-7"
     initial={{ scale: 0, opacity: 0 }}
     animate={{ scale: [0, 1.3, 0.6], opacity: [1, 1, 0], rotate: [0, 20] }}
     transition={{ duration: 0.18, delay, ease: "easeOut" }}
@@ -232,7 +264,7 @@ const SpeechBubble = () => (
     animate={{ opacity: 1, y: 0, scale: 1 }}
     exit={{ opacity: 0, y: -4 }}
     transition={{ duration: 0.25 }}
-    className="pointer-events-none absolute -top-7 left-[70%] rounded-md border-2 border-ink bg-fg px-2 py-0.5 font-mono text-[11px] font-bold text-ink"
+    className="pointer-events-none absolute -top-7 left-[60%] rounded-md border-2 border-ink bg-fg px-2 py-0.5 font-mono text-[11px] font-bold text-ink"
     aria-hidden="true"
   >
     hola!
@@ -297,8 +329,11 @@ const PixelAvatar = ({ className = "", entersAfterMs = 0, firstWaveAfterMs = FIR
 
   const isWaving = move === "wave";
   const isLooking = move === "look";
-  const frame = isWaving ? FRAMES.wave : isBlinking ? FRAMES.idleBlink : FRAMES.idle;
-  const animateIf = (animation) => (prefersReducedMotion ? undefined : animation);
+  const waveFrame = useWaveFrame(isWaving, !prefersReducedMotion);
+  const frame = isWaving ? FRAMES.wave[waveFrame] : isBlinking ? FRAMES.idleBlink : FRAMES.idle;
+  // he stands up straight to say hi, so the bounce only runs in his fighting stance
+  const isCrouched = useBounce(!prefersReducedMotion && !isWaving);
+  const bob = isCrouched ? 1 : 0;
 
   useEffect(
     () => () => {
@@ -354,10 +389,10 @@ const PixelAvatar = ({ className = "", entersAfterMs = 0, firstWaveAfterMs = FIR
           transition={{ duration: 0.18, ease: "linear" }}
         >
           <PixelLayer pixels={frame.waist} />
-          <PixelLayer pixels={frame.legs} />
+          <PixelLayer pixels={isCrouched ? frame.crouchedLegs : frame.legs} />
           {/* standing up straight to say hi lifts everything above the belt a pixel */}
           <motion.g animate={{ y: isWaving ? -1 : 0 }} transition={POSE_SHIFT}>
-            <motion.g animate={animateIf(breathe)}>
+            <g transform={`translate(0 ${bob})`}>
               <motion.g animate={chestControls}>
                 {isPunching &&
                   ARM_SMEAR.map(({ x, y, color }) => (
@@ -374,19 +409,8 @@ const PixelAvatar = ({ className = "", entersAfterMs = 0, firstWaveAfterMs = FIR
               <motion.g animate={armControls}>
                 <PixelLayer pixels={frame.arm} />
               </motion.g>
-            </motion.g>
-            {/* the head trails the chest by a beat, that little lag is what makes the breathing feel real */}
-            <motion.g animate={animateIf({ ...breathe, transition: { ...breathe.transition, delay: 0.12 } })}>
               <PixelLayer pixels={frame.head} />
-            </motion.g>
-            <motion.g animate={animateIf(breathe)}>
-              <motion.g key={`palm-${isWaving}`} animate={isWaving ? animateIf(WAVE_SWING) : undefined}>
-                <PixelLayer pixels={frame.palm} />
-                <motion.g key={`fingers-${isWaving}`} animate={isWaving ? animateIf(WAVE_SWING) : undefined}>
-                  <PixelLayer pixels={frame.fingers} />
-                </motion.g>
-              </motion.g>
-            </motion.g>
+            </g>
           </motion.g>
         </motion.svg>
         <AnimatePresence>{isWaving && <SpeechBubble />}</AnimatePresence>

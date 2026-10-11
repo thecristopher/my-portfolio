@@ -136,7 +136,7 @@ const Contact = () => {
       <div className="relative mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
         <div className="flex flex-col gap-6">
           <p className="font-mono text-xs tracking-[0.15em] text-muted">
-            <span className="text-accent">05</span> <span className="text-faint">/</span> contact.sh
+            <span className="text-accent">06</span> <span className="text-faint">/</span> contact.sh
           </p>
           <h2 className="text-[clamp(2.75rem,9vw,7.5rem)] leading-[0.92] font-medium tracking-[-0.05em]">
             <TextReveal text="Let's build" className="block" />
