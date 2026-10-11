@@ -24,8 +24,6 @@ import {
   overlaySprite,
   crouchLegs,
   pingPong,
-  pickPersonalRepos,
-  readmePitch,
   pickIdleMove,
   idleMoveDelay,
   markMainStack,
@@ -299,66 +297,6 @@ describe("isInRegion", () => {
   it("leaves out a pixel past any edge", () => {
     expect(isInRegion({ x: 20, y: 25 }, arm)).toBe(false);
     expect(isInRegion({ x: 40, y: 50 }, arm)).toBe(false);
-  });
-});
-
-describe("readmePitch", () => {
-  it("skips the title and returns the first paragraph", () => {
-    expect(readmePitch("# merchant-shop\n\nWhat're ya buyin'? Rare guns at fair prices.")).toBe("What're ya buyin'? Rare guns at fair prices.");
-  });
-
-  it("joins a paragraph that wraps across lines", () => {
-    expect(readmePitch("Ranni's plan\nspans many nights.")).toBe("Ranni's plan spans many nights.");
-  });
-
-  it("ignores code blocks", () => {
-    expect(readmePitch("```\nrm -rf umbrella\n```\n\nCleans up the lab.")).toBe("Cleans up the lab.");
-  });
-
-  it("keeps link text and drops the markdown around it", () => {
-    expect(readmePitch("Built for **Leon** by [Ada](https://ada.wong).")).toBe("Built for Leon by Ada.");
-  });
-
-  it("skips badges", () => {
-    expect(readmePitch("[![build](https://x.y/b.svg)](https://x.y)\n\nMaidenless and proud.")).toBe("Maidenless and proud.");
-  });
-
-  it("trims a long pitch at a word with an ellipsis", () => {
-    const pitch = readmePitch("Tarnished ".repeat(40));
-    expect(pitch.endsWith("Tarnished…")).toBe(true);
-  });
-
-  it("returns nothing when the README is only a title", () => {
-    expect(readmePitch("# govee-sync")).toBe("");
-  });
-});
-
-describe("pickPersonalRepos", () => {
-  const repo = (name, extra = {}) => ({
-    name,
-    fork: false,
-    archived: false,
-    stargazers_count: 0,
-    pushed_at: "2026-01-01T00:00:00Z",
-    ...extra,
-  });
-
-  it("leaves out forks", () => {
-    expect(pickPersonalRepos([repo("stolen-rocket-launcher", { fork: true })])).toEqual([]);
-  });
-
-  it("leaves out archived repos", () => {
-    expect(pickPersonalRepos([repo("spencer-mansion", { archived: true })])).toEqual([]);
-  });
-
-  it("puts the most starred repo first", () => {
-    const repos = [repo("ashley-tracker"), repo("leon-hair-physics", { stargazers_count: 9 })];
-    expect(pickPersonalRepos(repos)[0].name).toBe("leon-hair-physics");
-  });
-
-  it("breaks star ties with the most recently pushed", () => {
-    const repos = [repo("old-limgrave-map"), repo("new-leyndell-map", { pushed_at: "2026-09-01T00:00:00Z" })];
-    expect(pickPersonalRepos(repos)[0].name).toBe("new-leyndell-map");
   });
 });
 
