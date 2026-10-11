@@ -9,6 +9,7 @@ import Hero from "./sections/Hero";
 import Manifesto from "./sections/Manifesto";
 import About from "./sections/About";
 import Work from "./sections/Work";
+import GitHub from "./sections/GitHub";
 import Skills from "./sections/Skills";
 import Contact from "./sections/Contact";
 import { startSmoothScroll } from "./lib/smoothScroll";
@@ -63,6 +64,7 @@ const App = () => {
         <Manifesto />
         <About />
         <Work />
+        <GitHub />
         <Skills />
         <Contact />
       </main>

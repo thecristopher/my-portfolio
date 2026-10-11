@@ -1,11 +1,11 @@
 import { useRef, useState } from "react";
 import { motion, useMotionTemplate, useScroll, useTransform } from "framer-motion";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
-import portrait from "../../assets/images/portrait.jpg";
 import TextReveal from "../../components/TextReveal";
 import TypeLine from "../../components/TypeLine";
 import CountUp from "../../components/CountUp";
 import PixelAvatar from "../../components/PixelAvatar";
+import { Airbender } from "../../components/Secrets";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
@@ -16,8 +16,8 @@ import { easeOutExpo } from "../../lib/motion";
 const FALLBACK_ROLE = "Tech Lead & Engineering Manager";
 const FALLBACK_YEARS = "9+";
 
-// the portrait finishes wiping in around two seconds, the sprite drops in right after
-const AVATAR_ENTERS_AT_S = 1.9;
+// the sprite drops in once the name has landed, so he doesn't steal its moment
+const AVATAR_ENTERS_AT_S = 1.2;
 
 const riseIn = (delay) => ({
   initial: { opacity: 0, y: 24, filter: "blur(8px)" },
@@ -45,12 +45,11 @@ const Hero = () => {
   const contentOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
   const contentBlur = useTransform(scrollYProgress, [0, 0.7], [0, 10]);
   const contentFilter = useMotionTemplate`blur(${contentBlur}px)`;
-  // on phones the portrait is the last thing in the hero, so sliding it down would shove the frame and the
-  // pixel me standing on it past the section's clipped bottom edge. the drift only runs side by side
+  // on phones the sprite is the last thing in the hero, so sliding him down would shove him past the
+  // section's clipped bottom edge. the drift only runs side by side
   const isSideBySide = useMediaQuery("(min-width: 1024px)");
-  const portraitDrift = useTransform(scrollYProgress, [0, 1], [0, 140]);
-  const portraitY = isSideBySide ? portraitDrift : 0;
-  const portraitScale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
+  const avatarDrift = useTransform(scrollYProgress, [0, 1], [0, 140]);
+  const avatarY = isSideBySide ? avatarDrift : 0;
 
   const years = extractYearsOfExperience(about?.description);
   const role = about?.role ?? FALLBACK_ROLE;
@@ -115,38 +114,27 @@ const Hero = () => {
           </motion.dl>
         </motion.div>
 
-        <motion.figure style={{ y: portraitY }} className="relative mx-auto w-full max-w-sm lg:col-span-5 lg:max-w-none">
-          <motion.div
-            initial={{ clipPath: "inset(100% 0% 0% 0% round 24px)" }}
-            animate={{ clipPath: "inset(0% 0% 0% 0% round 24px)" }}
-            transition={{ duration: 1.6, delay: 0.4, ease: easeOutExpo }}
-            className="relative overflow-hidden rounded-3xl bg-panel"
-          >
-            <motion.div style={{ scale: portraitScale }}>
-              <motion.img
-                src={portrait}
-                alt="Portrait of Cristopher Cervantes"
-                initial={{ scale: 1.35 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 2.2, delay: 0.4, ease: easeOutExpo }}
-                className="aspect-[4/5] w-full object-cover object-center"
-              />
-            </motion.div>
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
-            <p className="absolute right-5 bottom-5 flex gap-2 font-mono text-[11px] text-muted">
-              <span className="text-accent">fig.01</span>
-              <span>portrait.jpg</span>
-            </p>
-          </motion.div>
-          {/* the pixel me stands on the frame's bottom edge, looking up at the real one. exact 2x keeps every pixel square */}
-          <div className="absolute -bottom-1.5 left-5 z-10">
+        <motion.figure style={{ y: avatarY }} className="relative mx-auto flex flex-col items-center gap-6 lg:col-span-5">
+          <div className="relative">
+            {/* exact multiples of the 63 row sprite keep every pixel square */}
             <PixelAvatar
-              className="h-[126px]"
+              className="h-[189px] sm:h-[252px]"
               entersAfterMs={AVATAR_ENTERS_AT_S * 1000}
               firstWaveAfterMs={(AVATAR_ENTERS_AT_S + 1) * 1000}
             />
+            {/* a soft floor shadow so he's standing somewhere instead of floating in the grid */}
+            <div className="absolute -bottom-1 left-1/2 -z-10 h-3 w-3/4 -translate-x-1/2 rounded-[50%] bg-fg/10 blur-[3px]" aria-hidden="true" />
           </div>
-          <div className="absolute -inset-px -z-10 rounded-3xl bg-gradient-to-br from-accent/50 via-transparent to-signal/50 blur-sm" aria-hidden="true" />
+          <motion.figcaption
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: AVATAR_ENTERS_AT_S + 0.8, duration: 0.6 }}
+            className="flex items-center gap-2 font-mono text-[11px] text-muted"
+          >
+            <span className="text-accent">player_1</span>
+            <span>poke him</span>
+            <Airbender className="-my-2" />
+          </motion.figcaption>
         </motion.figure>
       </div>
 

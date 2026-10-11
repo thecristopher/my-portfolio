@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AVATAR_PALETTE, AVATAR_ROWS, BLINK_SWAPS, SMILE, WAVE_HAND } from "./avatarSprite";
+import { AVATAR_PALETTE, AVATAR_ROWS, BLINK_SWAPS, SMILE, WAVE_FRAMES } from "./avatarSprite";
 
 describe("avatar sprite", () => {
   it("keeps every row the same width so nothing shears sideways", () => {
@@ -18,14 +18,21 @@ describe("avatar sprite", () => {
   });
 });
 
-describe("wave hand", () => {
-  it("fits inside the sprite", () => {
-    expect(WAVE_HAND.left + WAVE_HAND.rows[0].length).toBeLessThanOrEqual(AVATAR_ROWS[0].length);
-    expect(WAVE_HAND.top + WAVE_HAND.rows.length).toBeLessThanOrEqual(AVATAR_ROWS.length);
+describe("wave frames", () => {
+  it("fit inside the sprite", () => {
+    for (const rows of WAVE_FRAMES.frames) {
+      expect(WAVE_FRAMES.left + rows[0].length).toBeLessThanOrEqual(AVATAR_ROWS[0].length);
+      expect(WAVE_FRAMES.top + rows.length).toBeLessThanOrEqual(AVATAR_ROWS.length);
+    }
   });
 
-  it("only uses palette colors", () => {
-    const used = new Set(WAVE_HAND.rows.join(""));
+  it("are all the same size so the hand never jumps between them", () => {
+    const sizes = new Set(WAVE_FRAMES.frames.map((rows) => `${rows.length}x${rows[0].length}`));
+    expect(sizes.size).toBe(1);
+  });
+
+  it("only use palette colors", () => {
+    const used = new Set(WAVE_FRAMES.frames.flat().join(""));
     used.delete(".");
     for (const char of used) expect(AVATAR_PALETTE).toHaveProperty(char);
   });
