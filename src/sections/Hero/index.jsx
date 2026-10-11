@@ -122,8 +122,8 @@ const Hero = () => {
               entersAfterMs={AVATAR_ENTERS_AT_S * 1000}
               firstWaveAfterMs={(AVATAR_ENTERS_AT_S + 1) * 1000}
             />
-            {/* a soft floor shadow so he's standing somewhere instead of floating in the grid */}
-            <div className="absolute -bottom-1 left-1/2 -z-10 h-3 w-3/4 -translate-x-1/2 rounded-[50%] bg-fg/10 blur-[3px]" aria-hidden="true" />
+            {/* a soft floor shadow so he's standing somewhere. a gradient, because Safari paints a blurred div solid black */}
+            <div className="absolute inset-x-[12.5%] -bottom-1 -z-10 h-3 bg-[radial-gradient(closest-side,var(--color-fg),transparent)] opacity-10" aria-hidden="true" />
           </div>
           <motion.figcaption
             initial={{ opacity: 0 }}
