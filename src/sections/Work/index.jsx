@@ -1,6 +1,6 @@
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { useRef, useState } from "react";
+import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
+import { ArrowUpRight, ChevronDown } from "lucide-react";
 import SectionHeader from "../../components/SectionHeader";
 import TerminalWindow from "../../components/TerminalWindow";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
@@ -8,7 +8,8 @@ import { Umbrella } from "../../components/Secrets";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { techIconMap } from "../../lib/techIconMap";
-import { cleanTechName, formatIndex, hostnameFromUrl, slugify, stackScale } from "../../actions";
+import { cleanTechName, formatIndex, hostnameFromUrl, slugify, splitFeatured, stackScale } from "../../actions";
+import { easeOutExpo } from "../../lib/motion";
 
 const StackList = ({ technologies }) => (
   <ul className="flex flex-col gap-1.5">
@@ -22,6 +23,67 @@ const StackList = ({ technologies }) => (
       );
     })}
   </ul>
+);
+
+// the short pitch always shows, the full story waits behind a toggle so the section skims fast
+const MoreDetail = ({ id, text }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        aria-controls={id}
+        onClick={() => setIsOpen((open) => !open)}
+        className="group flex w-fit items-center gap-1.5 font-mono text-xs text-muted transition-colors hover:text-accent"
+      >
+        <span className="text-accent">$</span> {isOpen ? "less" : "cat details.md"}
+        <ChevronDown size={13} className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            id={id}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.5, ease: easeOutExpo }}
+            className="overflow-hidden"
+          >
+            <p className="leading-relaxed text-muted text-pretty">{text}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const EarlierRoles = ({ projects, offset }) => (
+  <TerminalWindow title="~/work/earlier">
+    <ul className="flex flex-col divide-y divide-line">
+      {projects.map((project, index) => (
+        <li key={project.title} className="flex flex-col gap-2 py-5 first:pt-0 last:pb-0 sm:flex-row sm:items-baseline sm:gap-6">
+          <span className="font-mono text-xs text-accent">{formatIndex(offset + index)}</span>
+          <div className="flex grow flex-col gap-1">
+            <a
+              href={project.url}
+              target="_blank"
+              rel="noreferrer"
+              className="group flex w-fit items-center gap-1.5 text-lg font-medium tracking-tight transition-colors hover:text-accent"
+            >
+              {project.title}
+              <ArrowUpRight size={14} className="text-faint transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </a>
+            <p className="text-sm leading-relaxed text-muted text-pretty">{project.description}</p>
+          </div>
+          <p className="font-mono text-[11px] text-faint sm:shrink-0 sm:whitespace-nowrap">
+            {project.technologies.map(cleanTechName).join(" · ")}
+          </p>
+        </li>
+      ))}
+    </ul>
+  </TerminalWindow>
 );
 
 const ProjectCard = ({ project, index, total, progress, isStacking }) => {
@@ -41,7 +103,9 @@ const ProjectCard = ({ project, index, total, progress, isStacking }) => {
                 <h3 className="text-[clamp(1.75rem,3.5vw,2.75rem)] leading-tight font-medium tracking-[-0.03em]">{project.title}</h3>
               </div>
               <p className="text-lg leading-relaxed text-pretty">{project.description}</p>
-              <p className="leading-relaxed text-muted text-pretty">{project.detailed_description}</p>
+              {project.detailed_description && (
+                <MoreDetail id={`work-${slugify(project.title)}-details`} text={project.detailed_description} />
+              )}
             </div>
 
             <div className="flex flex-col justify-between gap-8 border-t border-line bg-ink/30 p-6 font-mono text-xs md:border-t-0 md:border-l sm:p-8">
@@ -70,6 +134,7 @@ const ProjectCard = ({ project, index, total, progress, isStacking }) => {
 const Work = () => {
   const stackRef = useRef(null);
   const { data: projects = [], isLoading, isError } = useGetProjectsQuery();
+  const { featured, earlier } = splitFeatured(projects);
   const isStacking = useMediaQuery("(min-width: 768px)");
   const { scrollYProgress } = useScroll({ target: stackRef, offset: ["start start", "end end"] });
 
@@ -81,7 +146,7 @@ const Work = () => {
           {projects.length > 0 && (
             <div className="flex items-center gap-1">
               <p className="font-mono text-xs text-faint">
-                <span className="text-accent">$</span> ls ~/work | wc -l <span className="text-fg">→ {projects.length}</span>
+                <span className="text-accent">$</span> ls -t ~/work <span className="text-fg">→ newest first</span>
               </p>
               <Umbrella className="-my-2" />
             </div>
@@ -92,17 +157,19 @@ const Work = () => {
         {isError && <LoadError what="projects" />}
 
         <div ref={stackRef} className="flex flex-col gap-8 md:gap-[18vh]">
-          {projects.map((project, index) => (
+          {featured.map((project, index) => (
             <ProjectCard
               key={project.title}
               project={project}
               index={index}
-              total={projects.length}
+              total={featured.length}
               progress={scrollYProgress}
               isStacking={isStacking}
             />
           ))}
         </div>
+
+        {earlier.length > 0 && <EarlierRoles projects={earlier} offset={featured.length} />}
       </div>
     </section>
   );

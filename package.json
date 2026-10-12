@@ -33,6 +33,9 @@
     "globals": "^16.0.0",
     "tailwindcss": "^4.1.7",
     "vite": "^6.3.5",
-    "vitest": "^3"
+    "vitest": "^4.1.11"
+  },
+  "resolutions": {
+    "**/vite": "^6.4.4"
   }
 }

@@ -12,7 +12,6 @@ import { easeOutExpo } from "../../lib/motion";
 import { formatIndex, isMaxLevel, markMainStack } from "../../actions";
 
 const MAX_LEVEL = 5;
-const BUFF_LASTS_MS = 3400;
 const BUFFED_BAR = { backgroundImage: `linear-gradient(to right, ${MAGIC_PINK}, ${MAGIC_BLUE})`, boxShadow: `0 0 8px ${MAGIC_PINK}` };
 
 const CapabilityCard = ({ skill, index }) => {
@@ -79,7 +78,7 @@ const RatedReport = ({ tools, isBuffed }) => (
 // laid out like nvim's :checkhealth so the current stack reads as "all green"
 const StackHealth = ({ mainStack, skillLevels }) => {
   const ratedTools = markMainStack(skillLevels, mainStack);
-  const isBuffed = useMagicBuff(BUFF_LASTS_MS);
+  const isBuffed = useMagicBuff();
 
   return (
     <TerminalWindow title="~/skills · nvim">
@@ -98,7 +97,7 @@ const StackHealth = ({ mainStack, skillLevels }) => {
                   exit={{ opacity: 0 }}
                   style={{ color: MAGIC_PINK }}
                 >
-                  - OK buff applied by Dark Magician Girl, every stat is glowing
+                  - OK buff applied by Dark Magician Girl. Permanent, I believe in the heart of the cards
                 </motion.p>
               )}
             </AnimatePresence>

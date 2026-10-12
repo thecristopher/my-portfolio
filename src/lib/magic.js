@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { readFound } from "./secrets";
 
 // Dark Magician Girl's spell travels as a window event, so the skills section can react without knowing about her
 export const MAGIC_CAST_EVENT = "magician:cast";
@@ -12,22 +13,14 @@ export const onMagicCast = (handler, target = globalThis.window) => {
   return () => target?.removeEventListener(MAGIC_CAST_EVENT, handler);
 };
 
-// true for a few seconds every time the spell lands
-export const useMagicBuff = (durationMs) => {
-  const [isBuffed, setIsBuffed] = useState(false);
-  const buffTimer = useRef(null);
+// once she has cast, the buff never wears off: believe in the heart of the cards
+export const hasBeenBuffed = (found = []) => found.includes("magician");
 
-  useEffect(() => {
-    const stopListening = onMagicCast(() => {
-      setIsBuffed(true);
-      clearTimeout(buffTimer.current);
-      buffTimer.current = setTimeout(() => setIsBuffed(false), durationMs);
-    });
-    return () => {
-      stopListening();
-      clearTimeout(buffTimer.current);
-    };
-  }, [durationMs]);
+// true from the first cast on, and from the first render for anyone who already summoned her on an earlier visit
+export const useMagicBuff = () => {
+  const [isBuffed, setIsBuffed] = useState(() => hasBeenBuffed(readFound()));
+
+  useEffect(() => onMagicCast(() => setIsBuffed(true)), []);
 
   return isBuffed;
 };
