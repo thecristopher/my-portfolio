@@ -99,8 +99,11 @@ const CertBadge = ({ cert, index }) => {
             <path d={HEXAGON} fill="currentColor" fillOpacity="0.1" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" />
             <path d="M50 12 L84 31 L84 69 L50 88 L16 69 L16 31 Z" fill="none" stroke="currentColor" strokeOpacity="0.35" strokeWidth="1" />
           </svg>
-          <FaAws size={26} className="relative -mt-1" aria-hidden="true" />
-          <span className="absolute bottom-3.5 font-mono text-[7px] tracking-[0.2em] uppercase">{cert.level}</span>
+          <FaAws size={26} className="relative -mt-4" aria-hidden="true" />
+          {/* a band across the badge like the real ones, wide enough that "foundational" never spills past the edges */}
+          <span className="absolute inset-x-0 bottom-[22px] rounded-[3px] bg-current py-0.5 text-center font-mono text-[7px] leading-none font-semibold tracking-[0.12em] uppercase">
+            <span className="text-ink">{cert.level}</span>
+          </span>
         </div>
 
         <div className="flex min-w-0 flex-col gap-1.5">

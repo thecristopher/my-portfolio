@@ -10,13 +10,10 @@ import { Airbender } from "../../components/Secrets";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
-import { extractYearsOfExperience } from "../../actions";
+import { extractYearsOfExperience, timesCertified } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 
-// shown while the API wakes up so the hero never renders half a sentence
-const FALLBACK_ROLE = "Tech Lead & Engineering Manager";
-// the products I manage engineering for today, see the PSL Group card under work
-const PRODUCTS_IN_PROD = 4;
+const WHOAMI = ["tech lead", "engineering manager", "full stack", "aws certified"];
 const PRINT_KEYS = /Mac|iPhone|iPad/.test(globalThis.navigator?.userAgent ?? "") ? "⌘P" : "Ctrl+P";
 
 // the sprite drops in once the name has landed, so he doesn't steal its moment
@@ -46,7 +43,7 @@ const trackGrid = (event) => {
   section.style.setProperty("--grid-y", `${event.clientY - bounds.top}px`);
 };
 
-const Hero = ({ onOpenTldr }) => {
+const Hero = () => {
   const sectionRef = useRef(null);
   const [isBooted, setIsBooted] = useState(false);
   const { data: about } = useGetAboutQuery();
@@ -64,7 +61,7 @@ const Hero = ({ onOpenTldr }) => {
   const avatarY = isSideBySide ? avatarDrift : 0;
 
   const years = extractYearsOfExperience(about?.description);
-  const role = about?.role ?? FALLBACK_ROLE;
+  const certified = timesCertified(about?.certifications);
 
   return (
     <section
@@ -88,13 +85,14 @@ const Hero = ({ onOpenTldr }) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: isBooted ? 1 : 0 }}
               transition={{ duration: 0.4 }}
-              className="font-mono text-fg"
+              className="flex flex-wrap font-mono text-fg"
             >
-              {role.toLowerCase()}
-              <span className="hidden sm:inline">
-                <span className="text-faint"> · </span>
-                <span className="text-accent">full stack</span>
-              </span>
+              {WHOAMI.map((title, index) => (
+                <span key={title} className={index === WHOAMI.length - 1 ? "text-accent" : undefined}>
+                  {index > 0 && <span className="px-2 text-faint">·</span>}
+                  {title}
+                </span>
+              ))}
             </motion.p>
           </div>
 
@@ -104,8 +102,10 @@ const Hero = ({ onOpenTldr }) => {
           </h1>
 
           <motion.p {...riseIn(1)} className="max-w-xl text-lg leading-relaxed text-muted text-pretty sm:text-xl">
-            Hey! I'm based in <span className="text-fg">Rosarito, Mexico</span>. I lead an engineering team and still
-            write plenty of the code, lately with <span className="text-fg">TypeScript, AWS and LLMs</span>.
+            Hey there! I'm a <span className="text-fg">full stack developer</span> from{" "}
+            <span className="text-fg">Rosarito, Mexico</span>, with {years ?? "9+"} years of building software for every kind of
+            market, from small local companies all the way to global corporations. These days I lead engineering
+            teams and still write plenty of the code, lately with <span className="text-fg">TypeScript, AWS and LLMs</span>.
           </motion.p>
 
           <motion.div {...riseIn(1.15)} className="flex flex-wrap gap-3">
@@ -129,19 +129,13 @@ const Hero = ({ onOpenTldr }) => {
             </Magnetic>
           </motion.div>
 
-          <motion.p {...riseIn(1.2)} className="-mt-3 font-mono text-xs text-faint">
-            in a hurry?{" "}
-            <button type="button" onClick={onOpenTldr} className="text-accent underline-offset-4 hover:underline">
-              read the tl;dr
-            </button>
-            <span className="hidden sm:inline">
-              {" "}or press <kbd className="rounded border border-line px-1 text-muted">{PRINT_KEYS}</kbd> for a resume
-            </span>
+          <motion.p {...riseIn(1.2)} className="-mt-3 hidden font-mono text-xs text-faint sm:block">
+            need a copy? press <kbd className="rounded border border-line px-1 text-muted">{PRINT_KEYS}</kbd> for a resume
           </motion.p>
 
           <motion.dl {...riseIn(1.3)} className="grid max-w-lg grid-cols-3 gap-4 pt-6">
-            {years && <Stat value={years} label="Years shipping" delay={1.4} />}
-            <Stat value={PRODUCTS_IN_PROD} label="Products I run" delay={1.5} />
+            {years && <Stat value={years} label="Years coding" delay={1.4} />}
+            {certified && <Stat value={certified} label="AWS Certified" delay={1.5} />}
             {projects.length > 0 && <Stat value={projects.length} label="Companies" delay={1.6} />}
           </motion.dl>
         </motion.div>
@@ -150,7 +144,7 @@ const Hero = ({ onOpenTldr }) => {
           <div className="relative">
             {/* exact multiples of the 63 row sprite keep every pixel square */}
             <PixelAvatar
-              className="h-[189px] sm:h-[252px]"
+              className="h-[189px] sm:h-[252px] lg:h-[378px]"
               entersAfterMs={AVATAR_ENTERS_AT_S * 1000}
               firstWaveAfterMs={(AVATAR_ENTERS_AT_S + 1) * 1000}
             />

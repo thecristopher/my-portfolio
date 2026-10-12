@@ -28,7 +28,7 @@ const BufferTab = ({ sectionId, number, isActive }) => (
   </li>
 );
 
-const Navbar = ({ onOpenCmdline, onOpenTldr }) => {
+const Navbar = ({ onOpenCmdline }) => {
   const { data: links = [] } = useGetNavBarQuery();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -71,14 +71,6 @@ const Navbar = ({ onOpenCmdline, onOpenTldr }) => {
         </ul>
 
         <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onOpenTldr}
-            className="flex items-center rounded-full border border-accent/40 bg-accent/10 px-3.5 py-1.5 font-mono text-xs text-accent transition-colors hover:bg-accent/20"
-            aria-label="Open the short version of this portfolio"
-          >
-            tl;dr
-          </button>
           <button
             type="button"
             onClick={onOpenCmdline}
