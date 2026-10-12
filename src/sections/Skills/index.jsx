@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import SectionHeader from "../../components/SectionHeader";
 import SpotlightCard from "../../components/SpotlightCard";
 import TerminalWindow from "../../components/TerminalWindow";
@@ -14,25 +14,63 @@ import { formatIndex, isMaxLevel, markMainStack } from "../../actions";
 const MAX_LEVEL = 5;
 const BUFFED_BAR = { backgroundImage: `linear-gradient(to right, ${MAGIC_PINK}, ${MAGIC_BLUE})`, boxShadow: `0 0 8px ${MAGIC_PINK}` };
 
-const CapabilityCard = ({ skill, index }) => {
+const BUFF_ATK = 500;
+
+// what a card turns into once she buffs the page: a duel monster with its stats and effect, +500 ATK included
+const DuelStats = ({ skill }) => (
+  <motion.div
+    initial={{ opacity: 0, height: 0 }}
+    animate={{ opacity: 1, height: "auto" }}
+    transition={{ duration: 0.6, delay: 0.3, ease: easeOutExpo }}
+    className="overflow-hidden"
+  >
+    <div className="flex flex-col gap-3 border-t pt-4 font-mono text-[11px]" style={{ borderColor: `${MAGIC_PINK}55` }}>
+      <p className="text-faint">[Spellcaster / Effect]</p>
+      <p className="leading-relaxed text-pretty text-muted">{skill.effect}</p>
+      <p className="flex justify-end gap-4 text-fg">
+        <span>
+          ATK/{skill.attack + BUFF_ATK} <span style={{ color: MAGIC_PINK }}>+{BUFF_ATK}</span>
+        </span>
+        <span>DEF/{skill.defense}</span>
+      </p>
+    </div>
+  </motion.div>
+);
+
+const CapabilityCard = ({ skill, index, isBuffed }) => {
   const Icon = iconMap[skill.icon];
+  const isDuelMonster = isBuffed && Boolean(skill.effect);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 1, delay: (index % 3) * 0.1, ease: easeOutExpo }}
+      style={{ perspective: 1200 }}
     >
-      <SpotlightCard className="group flex h-full flex-col gap-6 rounded-2xl border border-line bg-panel p-7 transition-colors duration-500 hover:border-line-strong sm:p-8">
-        <div className="flex items-center justify-between">
-          <span className="grid size-11 place-items-center rounded-xl border border-line bg-ink text-muted transition-all duration-500 group-hover:border-accent/40 group-hover:text-accent">
-            {Icon && <Icon size={20} aria-hidden="true" />}
-          </span>
-          <span className="font-mono text-[11px] text-faint">{formatIndex(index)}</span>
-        </div>
-        <h3 className="text-xl font-medium tracking-tight">{skill.title}</h3>
-        <p className="text-sm leading-relaxed text-muted text-pretty">{skill.description}</p>
-      </SpotlightCard>
+      {/* a returning visitor's cards are already monsters, so only a fresh cast plays the flip */}
+      <motion.div
+        initial={false}
+        animate={{ rotateY: isDuelMonster ? 360 : 0 }}
+        transition={{ duration: 0.9, delay: (index % 3) * 0.12, ease: easeOutExpo }}
+        className="h-full"
+      >
+        <SpotlightCard
+          className="group flex h-full flex-col gap-6 rounded-2xl border border-line bg-panel p-7 transition-[border-color,box-shadow] duration-500 hover:border-line-strong sm:p-8"
+          style={isDuelMonster ? { borderColor: `${MAGIC_PINK}88`, boxShadow: `0 0 24px ${MAGIC_PINK}22` } : undefined}
+        >
+          <div className="flex items-center justify-between">
+            <span className="grid size-11 place-items-center rounded-xl border border-line bg-ink text-muted transition-all duration-500 group-hover:border-accent/40 group-hover:text-accent">
+              {Icon && <Icon size={20} aria-hidden="true" />}
+            </span>
+            <span className="font-mono text-[11px] text-faint">{formatIndex(index)}</span>
+          </div>
+          <h3 className="text-xl font-medium tracking-tight">{skill.title}</h3>
+          <p className="text-sm leading-relaxed text-muted text-pretty">{skill.description}</p>
+          {isDuelMonster && <DuelStats skill={skill} />}
+        </SpotlightCard>
+      </motion.div>
     </motion.div>
   );
 };
@@ -76,9 +114,8 @@ const RatedReport = ({ tools, isBuffed }) => (
 );
 
 // laid out like nvim's :checkhealth so the current stack reads as "all green"
-const StackHealth = ({ mainStack, skillLevels }) => {
+const StackHealth = ({ mainStack, skillLevels, isBuffed }) => {
   const ratedTools = markMainStack(skillLevels, mainStack);
-  const isBuffed = useMagicBuff();
 
   return (
     <TerminalWindow title="~/skills · nvim">
@@ -89,18 +126,6 @@ const StackHealth = ({ mainStack, skillLevels }) => {
         {ratedTools.length > 0 && (
           <div className="flex flex-col gap-4">
             <HealthHeading>stack ~</HealthHeading>
-            <AnimatePresence>
-              {isBuffed && (
-                <motion.p
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0 }}
-                  style={{ color: MAGIC_PINK }}
-                >
-                  - OK buff applied by Dark Magician Girl. Permanent, I believe in the heart of the cards
-                </motion.p>
-              )}
-            </AnimatePresence>
             <RatedReport tools={ratedTools} isBuffed={isBuffed} />
           </div>
         )}
@@ -112,6 +137,7 @@ const StackHealth = ({ mainStack, skillLevels }) => {
 const Skills = () => {
   const { data: skills = [], isLoading, isError } = useGetSkillsQuery();
   const { data: about } = useGetAboutQuery();
+  const isBuffed = useMagicBuff();
 
   return (
     <section id="skills" className="relative py-24 sm:py-36">
@@ -123,7 +149,7 @@ const Skills = () => {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {skills.map((skill, index) => (
-            <CapabilityCard key={skill.title} skill={skill} index={index} />
+            <CapabilityCard key={skill.title} skill={skill} index={index} isBuffed={isBuffed} />
           ))}
         </div>
 
@@ -136,7 +162,7 @@ const Skills = () => {
               </p>
               <Magician className="-my-2" />
             </div>
-            <StackHealth mainStack={about.main_stack ?? []} skillLevels={about.skill_levels} />
+            <StackHealth mainStack={about.main_stack ?? []} skillLevels={about.skill_levels} isBuffed={isBuffed} />
           </div>
         )}
       </div>

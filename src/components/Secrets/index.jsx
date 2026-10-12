@@ -702,7 +702,7 @@ const MagicianFlyby = () => {
   );
 };
 
-// a little wizard hat on top of the skills. tap it and a magician flies in and buffs every stat on the page
+// a little wizard hat on top of the skills. tap it and a magician flies in and turns every skill into a duel monster for good
 export const Magician = ({ className }) => {
   const [isFound, find, caption] = useSecret("magician");
   const [isFlying, setIsFlying] = useState(false);
