@@ -11,6 +11,7 @@ import Hero from "./sections/Hero";
 import Manifesto from "./sections/Manifesto";
 import About from "./sections/About";
 import Work from "./sections/Work";
+import Education from "./sections/Education";
 import GitHub from "./sections/GitHub";
 import Skills from "./sections/Skills";
 import Contact from "./sections/Contact";
@@ -69,6 +70,7 @@ const App = () => {
         <Manifesto />
         <About />
         <Work />
+        <Education />
         <GitHub />
         <Skills />
         <Contact />

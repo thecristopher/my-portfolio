@@ -7,7 +7,7 @@ import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useGetContactQuery } from "../../api/contactApi";
 import { socialIconMap } from "../../lib/socialIconMap";
 import { extractYearsOfExperience, hostnameFromUrl, splitFeatured } from "../../actions";
-import { CERTIFICATIONS, FULL_NAME, HOME, TIMEZONE } from "../../lib/profile";
+import { FULL_NAME, HOME, TIMEZONE } from "../../lib/profile";
 import { pauseSmoothScroll, resumeSmoothScroll } from "../../lib/smoothScroll";
 import { echo } from "../../lib/echo";
 import { easeOutExpo } from "../../lib/motion";
@@ -167,14 +167,28 @@ const Readme = ({ onClose }) => {
                   </section>
                 )}
 
-                <section className="flex flex-col gap-3">
-                  <Heading>certified</Heading>
-                  <ul className="flex flex-col gap-1 text-sm text-muted">
-                    {CERTIFICATIONS.map((cert) => (
-                      <li key={cert}>{cert}</li>
+                {about?.certifications?.length > 0 && (
+                  <section className="flex flex-col gap-3">
+                    <Heading>certified</Heading>
+                    <ul className="flex flex-col gap-1 text-sm text-muted">
+                      {about.certifications.map((cert) => (
+                        <li key={cert.name}>{cert.name}</li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
+                {about?.education?.length > 0 && (
+                  <section className="flex flex-col gap-3">
+                    <Heading>education</Heading>
+                    {about.education.map((school) => (
+                      <div key={school.school} className="flex flex-col gap-0.5 text-sm">
+                        <p className="text-fg">{school.degree}</p>
+                        <p className="text-muted">{school.school}</p>
+                      </div>
                     ))}
-                  </ul>
-                </section>
+                  </section>
+                )}
 
                 {contact && (
                   <section className="flex flex-col gap-3">

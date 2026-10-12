@@ -3,7 +3,7 @@ import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useGetContactQuery } from "../../api/contactApi";
 import { useGetSkillsQuery } from "../../api/skillsApi";
 import { cleanTechName, hostnameFromUrl, splitParagraphs } from "../../actions";
-import { CERTIFICATIONS, FULL_NAME, HOME, TIMEZONE } from "../../lib/profile";
+import { FULL_NAME, HOME, TIMEZONE } from "../../lib/profile";
 
 const ResumeHeading = ({ children }) => (
   <h2 className="mb-2 border-b border-neutral-300 pb-1 text-[9pt] font-semibold tracking-[0.15em] text-neutral-500 uppercase">
@@ -70,7 +70,7 @@ const Resume = () => {
       {skills.length > 0 && (
         <section className="mb-3 break-inside-avoid">
           <ResumeHeading>How I work</ResumeHeading>
-          <ul className="grid grid-cols-2 gap-x-6 gap-y-1 text-[8.5pt]">
+          <ul className="grid grid-cols-2 gap-x-6 gap-y-1 text-[8pt] leading-[1.3]">
             {skills.map((skill) => (
               <li key={skill.title}>
                 <span className="font-semibold">{skill.title}.</span> <span className="text-neutral-700">{skill.description}</span>
@@ -80,20 +80,36 @@ const Resume = () => {
         </section>
       )}
 
-      <section className="grid grid-cols-[2fr_1fr] gap-6 break-inside-avoid">
-        {about && (
+      {about && (
+        <section className="mb-3 break-inside-avoid">
+          <ResumeHeading>Stack</ResumeHeading>
+          <p>
+            <span className="font-semibold">{about.main_stack.join(", ")}</span>
+            {otherTools.length > 0 && <span className="text-neutral-700">. Also {otherTools.join(", ")}</span>}
+          </p>
+        </section>
+      )}
+
+      <section className="grid grid-cols-[3fr_2fr] gap-6 break-inside-avoid">
+        {about?.education?.length > 0 && (
           <div>
-            <ResumeHeading>Stack</ResumeHeading>
-            <p>
-              <span className="font-semibold">{about.main_stack.join(", ")}</span>
-            </p>
-            {otherTools.length > 0 && <p className="mt-0.5 text-neutral-700">Also: {otherTools.join(", ")}</p>}
+            <ResumeHeading>Education</ResumeHeading>
+            {about.education.map((school) => (
+              <div key={school.school}>
+                <p className="font-semibold">{school.degree}</p>
+                <p>
+                  {school.school}, {school.location}
+                  {school.end_year && <span className="text-neutral-500"> · {school.end_year}</span>}
+                </p>
+                <p className="text-neutral-500">{school.original_name}</p>
+              </div>
+            ))}
           </div>
         )}
         <div>
           <ResumeHeading>Certified</ResumeHeading>
-          {CERTIFICATIONS.map((cert) => (
-            <p key={cert}>{cert}</p>
+          {(about?.certifications ?? []).map((cert) => (
+            <p key={cert.name}>{cert.name}</p>
           ))}
         </div>
       </section>

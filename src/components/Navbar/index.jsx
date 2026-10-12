@@ -50,7 +50,7 @@ const Navbar = ({ onOpenCmdline, onOpenTldr }) => {
       <nav
         className={`mx-auto flex h-14 items-center justify-between gap-4 rounded-full border px-2 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isScrolled
-            ? "max-w-3xl border-line-strong bg-panel/70 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+            ? "max-w-4xl border-line-strong bg-panel/70 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] backdrop-blur-xl"
             : "max-w-6xl border-transparent bg-transparent"
         }`}
       >

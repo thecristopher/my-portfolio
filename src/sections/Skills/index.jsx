@@ -142,7 +142,7 @@ const Skills = () => {
   return (
     <section id="skills" className="relative py-24 sm:py-36">
       <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
-        <SectionHeader index="05" label="skills.lua" title="How I lead, and the tools I reach for." />
+        <SectionHeader index="06" label="skills.lua" title="How I lead, and the tools I reach for." />
 
         {isLoading && <SkeletonLines lines={4} />}
         {isError && <LoadError what="skills" />}

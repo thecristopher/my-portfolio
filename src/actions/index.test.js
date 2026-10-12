@@ -188,6 +188,11 @@ describe("bufferNameFor", () => {
     expect(bufferNameFor("github")).toBe("repos.yml");
   });
 
+  it("opens education as toml, and the statusline knows the filetype", () => {
+    expect(bufferNameFor("education")).toBe("education.toml");
+    expect(fileTypeFor("education.toml")).toBe("toml");
+  });
+
   it("falls back to markdown for anything new", () => {
     expect(bufferNameFor("leyndell")).toBe("leyndell.md");
   });

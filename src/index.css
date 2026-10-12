@@ -220,7 +220,7 @@ body::after {
 /* printing the site prints the resume sheet and nothing else */
 @media print {
   @page {
-    margin: 12mm 14mm;
+    margin: 10mm 13mm;
   }
 
   html,
