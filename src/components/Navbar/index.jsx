@@ -28,7 +28,7 @@ const BufferTab = ({ sectionId, number, isActive }) => (
   </li>
 );
 
-const Navbar = ({ onOpenCmdline }) => {
+const Navbar = ({ onOpenCmdline, onOpenTldr }) => {
   const { data: links = [] } = useGetNavBarQuery();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -50,7 +50,7 @@ const Navbar = ({ onOpenCmdline }) => {
       <nav
         className={`mx-auto flex h-14 items-center justify-between gap-4 rounded-full border px-2 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isScrolled
-            ? "max-w-3xl border-line-strong bg-panel/70 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+            ? "max-w-4xl border-line-strong bg-panel/70 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] backdrop-blur-xl"
             : "max-w-6xl border-transparent bg-transparent"
         }`}
       >
@@ -71,6 +71,14 @@ const Navbar = ({ onOpenCmdline }) => {
         </ul>
 
         <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onOpenTldr}
+            className="flex items-center rounded-full border border-accent/40 bg-accent/10 px-3.5 py-1.5 font-mono text-xs text-accent transition-colors hover:bg-accent/20"
+            aria-label="Open the short version of this portfolio"
+          >
+            tl;dr
+          </button>
           <button
             type="button"
             onClick={onOpenCmdline}

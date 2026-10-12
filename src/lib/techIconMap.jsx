@@ -2,6 +2,7 @@ import { AiOutlineDotNet } from "react-icons/ai";
 import { FaAws, FaDocker, FaNodeJs, FaPhp, FaPython, FaReact } from "react-icons/fa";
 import {
   SiClaude,
+  SiGithubactions,
   SiJavascript,
   SiKubernetes,
   SiMysql,
@@ -13,7 +14,7 @@ import {
   SiTerraform,
   SiTypescript,
 } from "react-icons/si";
-import { TbBrandCSharp, TbDatabase, TbSql } from "react-icons/tb";
+import { TbBrandCSharp, TbDatabase, TbLambda, TbSql } from "react-icons/tb";
 import { VscAzure } from "react-icons/vsc";
 
 export const techIconMap = {
@@ -36,6 +37,9 @@ export const techIconMap = {
   Serverless: SiServerless,
   // Simple Icons dropped the DynamoDB logo, so it gets the generic database glyph
   DynamoDB: TbDatabase,
+  Aurora: TbDatabase,
+  Lambda: TbLambda,
+  "GitHub Actions": SiGithubactions,
   JavaScript: SiJavascript,
   Bedrock: FaAws,
   LLMs: SiClaude,

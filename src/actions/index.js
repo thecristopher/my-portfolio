@@ -74,6 +74,7 @@ const BUFFER_NAMES = {
   home: "index.tsx",
   about: "about.md",
   work: "work.json",
+  education: "education.toml",
   github: "repos.yml",
   skills: "skills.lua",
   contact: "contact.sh",
@@ -99,7 +100,7 @@ export const gutterLines = (currentLine, count) => {
   });
 };
 
-const FILE_TYPES = { tsx: "typescriptreact", md: "markdown", json: "json", lua: "lua", sh: "sh", yml: "yaml" };
+const FILE_TYPES = { tsx: "typescriptreact", md: "markdown", json: "json", lua: "lua", sh: "sh", yml: "yaml", toml: "toml" };
 
 // what nvim would print as the filetype in the statusline
 export const fileTypeFor = (bufferName = "") => FILE_TYPES[bufferName.split(".").pop()] ?? "text";

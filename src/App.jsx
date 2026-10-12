@@ -3,12 +3,15 @@ import { MotionConfig, motion, useScroll, useSpring } from "framer-motion";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import CommandMenu from "./components/CommandMenu";
+import Tldr from "./components/Tldr";
+import Resume from "./components/Resume";
 import Statusline from "./components/Statusline";
 import LineGutter from "./components/LineGutter";
 import Hero from "./sections/Hero";
 import Manifesto from "./sections/Manifesto";
 import About from "./sections/About";
 import Work from "./sections/Work";
+import Education from "./sections/Education";
 import GitHub from "./sections/GitHub";
 import Skills from "./sections/Skills";
 import Contact from "./sections/Contact";
@@ -27,15 +30,18 @@ const ScrollProgress = () => {
 
 const App = () => {
   const [isCmdlineOpen, setIsCmdlineOpen] = useState(false);
+  const [isTldrOpen, setIsTldrOpen] = useState(false);
   const { colorscheme, applyColorscheme } = useColorscheme();
   const { data: links = [] } = useGetNavBarQuery();
   const activeSectionId = useActiveSection(links.map((link) => sectionIdFromUrl(link.url)));
 
   const openCmdline = useCallback(() => setIsCmdlineOpen(true), []);
   const closeCmdline = useCallback(() => setIsCmdlineOpen(false), []);
+  const openTldr = useCallback(() => setIsTldrOpen(true), []);
+  const closeTldr = useCallback(() => setIsTldrOpen(false), []);
 
   useEffect(() => startSmoothScroll(), []);
-  useVimKeys({ onOpenCmdline: openCmdline, isPaused: isCmdlineOpen });
+  useVimKeys({ onOpenCmdline: openCmdline, isPaused: isCmdlineOpen || isTldrOpen });
 
   useEffect(() => {
     const toggleOnShortcut = (event) => {
@@ -58,12 +64,13 @@ const App = () => {
       </a>
       <ScrollProgress />
       <LineGutter />
-      <Navbar onOpenCmdline={openCmdline} />
+      <Navbar onOpenCmdline={openCmdline} onOpenTldr={openTldr} />
       <main>
-        <Hero />
+        <Hero onOpenTldr={openTldr} />
         <Manifesto />
         <About />
         <Work />
+        <Education />
         <GitHub />
         <Skills />
         <Contact />
@@ -79,7 +86,10 @@ const App = () => {
         onClose={closeCmdline}
         colorscheme={colorscheme}
         onSetColorscheme={applyColorscheme}
+        onOpenTldr={openTldr}
       />
+      <Tldr isOpen={isTldrOpen} onClose={closeTldr} />
+      <Resume />
     </MotionConfig>
   );
 };

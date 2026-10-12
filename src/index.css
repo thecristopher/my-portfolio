@@ -216,3 +216,19 @@ body::after {
     transform: none;
   }
 }
+
+/* printing the site prints the resume sheet and nothing else */
+@media print {
+  @page {
+    margin: 10mm 13mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  #root > :not(.print-resume) {
+    display: none !important;
+  }
+}

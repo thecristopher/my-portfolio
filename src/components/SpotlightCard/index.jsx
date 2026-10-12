@@ -19,8 +19,8 @@ const settle = (event) => {
   event.currentTarget.style.setProperty("--tilt-y", "0deg");
 };
 
-const SpotlightCard = ({ children, className = "" }) => (
-  <div onPointerMove={trackCursor} onPointerLeave={settle} className={`spotlight ${className}`}>
+const SpotlightCard = ({ children, className = "", style }) => (
+  <div onPointerMove={trackCursor} onPointerLeave={settle} className={`spotlight ${className}`} style={style}>
     {children}
   </div>
 );

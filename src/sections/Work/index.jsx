@@ -11,14 +11,15 @@ import { techIconMap } from "../../lib/techIconMap";
 import { cleanTechName, formatIndex, hostnameFromUrl, slugify, splitFeatured, stackScale } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 
+// long stacks split into two columns so the side panel never outgrows the story next to it
 const StackList = ({ technologies }) => (
-  <ul className="flex flex-col gap-1.5">
+  <ul className={`grid gap-x-4 gap-y-1.5 ${technologies.length > 8 ? "grid-cols-2" : "grid-cols-1"}`}>
     {technologies.map((tech) => {
       const Icon = techIconMap[tech];
       return (
-        <li key={tech} className="flex items-center gap-2.5 text-muted">
+        <li key={tech} className="flex min-w-0 items-center gap-2 text-muted">
           <span className="grid w-4 place-items-center text-faint">{Icon ? <Icon size={12} /> : "·"}</span>
-          {cleanTechName(tech)}
+          <span className="truncate">{cleanTechName(tech)}</span>
         </li>
       );
     })}
@@ -96,7 +97,7 @@ const ProjectCard = ({ project, index, total, progress, isStacking }) => {
     <div className={isStacking ? "sticky" : ""} style={isStacking ? { top: `${96 + index * 20}px` } : undefined}>
       <motion.div style={isStacking ? { scale } : undefined} className="relative origin-top">
         <TerminalWindow title={`~/work/${formatIndex(index)}-${slugify(project.title)}`} bodyClassName="p-0">
-          <div className="grid md:grid-cols-[1fr_15rem]">
+          <div className="grid md:grid-cols-[1fr_20.5rem]">
             <div className="flex flex-col gap-6 p-6 sm:p-10">
               <div className="flex items-baseline gap-4">
                 <span className="font-mono text-sm text-accent">{formatIndex(index)}</span>

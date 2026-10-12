@@ -10,6 +10,7 @@ import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { splitParagraphs } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
+import { TIMEZONE } from "../../lib/profile";
 
 const JsonString = ({ children }) => <span className="text-string">"{children}"</span>;
 
@@ -41,7 +42,7 @@ const JsonLine = ({ name, children, isLast = false, index }) => (
 );
 
 // only what the rest of the page doesn't already say: role, years and stack live in the hero, work and skills
-const ProfileJson = ({ editor }) => {
+const ProfileJson = ({ editor, certifications }) => {
   const [isPrinted, setIsPrinted] = useState(false);
 
   return (
@@ -51,8 +52,8 @@ const ProfileJson = ({ editor }) => {
         {isPrinted && (
           <div className="overflow-x-auto">
             <span className="text-faint">{"{"}</span>
-            <JsonLine index={0} name="certified"><JsonList items={["AWS Cloud Practitioner", "AWS Developer Associate"]} /></JsonLine>
-            <JsonLine index={1} name="timezone"><JsonString>Pacific Time</JsonString></JsonLine>
+            {certifications.length > 0 && <JsonLine index={0} name="certified"><JsonList items={certifications} /></JsonLine>}
+            <JsonLine index={1} name="timezone"><JsonString>{TIMEZONE}</JsonString></JsonLine>
             {editor && <JsonLine index={3} name="editor" isLast><JsonString>{editor}</JsonString></JsonLine>}
             <span className="text-faint">{"}"}</span>
           </div>
@@ -136,7 +137,7 @@ const About = () => {
             ))}
 
             <Reveal delay={0.15} className="mt-6">
-              <ProfileJson editor={about?.editor ?? "Neovim"} />
+              <ProfileJson editor={about?.editor ?? "Neovim"} certifications={(about?.certifications ?? []).map((cert) => cert.name)} />
               <div className="mt-3 flex justify-end">
                 <Hanafuda />
               </div>

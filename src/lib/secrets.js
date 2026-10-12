@@ -9,7 +9,7 @@ export const SECRETS = {
   triforce: { color: "#e8c35a", quip: "It's dangerous to ship alone. Take these side quests." },
   umbrella: { color: "#d62828", quip: "Career progress saved. No ink ribbon required." },
   grace: { color: "#f5d77a", quip: "Grace touched. Respawn point set to my inbox." },
-  magician: { color: "#ff91be", quip: "Dark Magician Girl cast +500 ATK on every skill. For good." },
+  magician: { color: "#ff91be", quip: "Every skill is a duel monster now, +500 ATK. I believe in the heart of the cards." },
   pokeball: { color: "#e3350d", quip: "Gotcha! Cristopher joined your party. Type: Full Stack." },
   alchemy: { color: "#6ec3ff", quip: "Equivalent exchange: hard problems in, readable code out." },
   airbender: { color: "#f5a524", quip: "Mastered all four stacks: frontend, backend, cloud and people." },

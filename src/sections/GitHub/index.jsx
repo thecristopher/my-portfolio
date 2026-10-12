@@ -74,7 +74,7 @@ const GitHub = () => {
     <section id="github" className="relative py-24 sm:py-36">
       <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <SectionHeader index="04" label="repos.yml" title="Side quests, shipped after hours." />
+          <SectionHeader index="05" label="repos.yml" title="Side quests, shipped after hours." />
           {repos.length > 0 && (
             <div className="flex shrink-0 items-center gap-1">
               <p className="font-mono text-xs whitespace-nowrap text-faint">
