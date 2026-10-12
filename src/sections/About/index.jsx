@@ -41,8 +41,7 @@ const JsonLine = ({ name, children, isLast = false, index }) => (
   </motion.div>
 );
 
-// only what the rest of the page doesn't already say: role, years and stack live in the hero, work and skills
-const ProfileJson = ({ editor, certifications }) => {
+const ProfileJson = ({ editor, certifications, skills }) => {
   const [isPrinted, setIsPrinted] = useState(false);
 
   return (
@@ -53,7 +52,8 @@ const ProfileJson = ({ editor, certifications }) => {
           <div className="overflow-x-auto">
             <span className="text-faint">{"{"}</span>
             {certifications.length > 0 && <JsonLine index={0} name="certified"><JsonList items={certifications} /></JsonLine>}
-            <JsonLine index={1} name="timezone"><JsonString>{TIMEZONE}</JsonString></JsonLine>
+            {skills.length > 0 && <JsonLine index={1} name="skills"><JsonList items={skills} /></JsonLine>}
+            <JsonLine index={2} name="timezone"><JsonString>{TIMEZONE}</JsonString></JsonLine>
             {editor && <JsonLine index={3} name="editor" isLast><JsonString>{editor}</JsonString></JsonLine>}
             <span className="text-faint">{"}"}</span>
           </div>
@@ -137,7 +137,11 @@ const About = () => {
             ))}
 
             <Reveal delay={0.15} className="mt-6">
-              <ProfileJson editor={about?.editor ?? "Neovim"} certifications={(about?.certifications ?? []).map((cert) => cert.name)} />
+              <ProfileJson
+                editor={about?.editor ?? "Neovim"}
+                certifications={(about?.certifications ?? []).map((cert) => cert.name)}
+                skills={(about?.skill_levels ?? []).map((skill) => skill.name)}
+              />
               <div className="mt-3 flex justify-end">
                 <Hanafuda />
               </div>

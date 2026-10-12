@@ -174,6 +174,6 @@ export const revealCircle = ({ x, y }, { width, height }) => ({
   radius: Math.hypot(Math.max(x, width - x), Math.max(y, height - y)),
 });
 
-// the time back home in Rosarito, which shares Tijuana's clock
-export const homeTime = (date = new Date()) =>
-  date.toLocaleTimeString("en-US", { timeZone: "America/Tijuana", hour: "numeric", minute: "2-digit", timeZoneName: "short" });
+
+// the hero stat reads "2x" so it counts up like the others but still says certifications, not companies
+export const timesCertified = (certifications = []) => (certifications.length > 0 ? `${certifications.length}x` : null);

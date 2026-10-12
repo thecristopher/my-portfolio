@@ -8,7 +8,7 @@ import { Umbrella } from "../../components/Secrets";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { techIconMap } from "../../lib/techIconMap";
-import { cleanTechName, formatIndex, hostnameFromUrl, slugify, splitFeatured, stackScale } from "../../actions";
+import { cleanTechName, formatIndex, hostnameFromUrl, slugify, splitFeatured, splitParagraphs, stackScale } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 
 // long stacks split into two columns so the side panel never outgrows the story next to it
@@ -50,9 +50,13 @@ const MoreDetail = ({ id, text }) => {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.5, ease: easeOutExpo }}
-            className="overflow-hidden"
+            className="flex flex-col gap-3 overflow-hidden"
           >
-            <p className="leading-relaxed text-muted text-pretty">{text}</p>
+            {splitParagraphs(text).map((paragraph) => (
+              <p key={paragraph.slice(0, 24)} className="leading-relaxed text-muted text-pretty">
+                {paragraph}
+              </p>
+            ))}
           </motion.div>
         )}
       </AnimatePresence>
@@ -77,6 +81,11 @@ const EarlierRoles = ({ projects, offset }) => (
               <ArrowUpRight size={14} className="text-faint transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             </a>
             <p className="text-sm leading-relaxed text-muted text-pretty">{project.description}</p>
+            {project.detailed_description && (
+              <div className="mt-2 text-sm">
+                <MoreDetail id={`work-${slugify(project.title)}-details`} text={project.detailed_description} />
+              </div>
+            )}
           </div>
           <p className="font-mono text-[11px] text-faint sm:shrink-0 sm:whitespace-nowrap">
             {project.technologies.map(cleanTechName).join(" · ")}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, AtSign, Check, Copy, CornerDownLeft, FileText, HelpCircle, Palette, Printer, Zap } from "lucide-react";
+import { ArrowRight, AtSign, Check, Copy, CornerDownLeft, FileText, HelpCircle, Palette, Printer } from "lucide-react";
 import { useGetNavBarQuery } from "../../api/navBarApi";
 import { useGetContactQuery } from "../../api/contactApi";
 import { THEMES, bufferNameFor, filterCommands, findCommandByAlias, sectionIdFromUrl } from "../../actions";
@@ -8,7 +8,7 @@ import { pauseSmoothScroll, resumeSmoothScroll, scrollToSection } from "../../li
 import { echo } from "../../lib/echo";
 import { easeOutExpo } from "../../lib/motion";
 
-const HELP_TEXT = "j/k scroll · d/u half page · gg/G top/bottom · : commands · in a hurry? :tldr or :resume";
+const HELP_TEXT = "j/k scroll · d/u half page · gg/G top/bottom · : commands · need a copy? :resume";
 
 // only typed exactly, never listed. a few nods to raccoon city
 const SECRET_COMMANDS = [
@@ -22,7 +22,7 @@ const SECRET_COMMANDS = [
   { alias: "merchant", label: "Merchant", run: () => echo("What're ya buyin'? Scroll down, stranger, the good stuff is in contact.sh", "success") },
 ].map((command) => ({ ...command, id: `secret-${command.alias}`, group: "Secrets", icon: HelpCircle, hidden: true }));
 
-const buildCommands = ({ links, contact, colorscheme, onSetColorscheme, onOpenTldr }) => {
+const buildCommands = ({ links, contact, colorscheme, onSetColorscheme }) => {
   const buffers = links.map((link) => {
     const sectionId = sectionIdFromUrl(link.url);
     return {
@@ -71,8 +71,7 @@ const buildCommands = ({ links, contact, colorscheme, onSetColorscheme, onOpenTl
     : [];
 
   const shortcuts = [
-    { id: "tldr", group: "In a hurry", label: "Read the short version", alias: "tldr", keywords: "recruiter summary readme", icon: Zap, run: onOpenTldr },
-    { id: "resume", group: "In a hurry", label: "Save resume as PDF", alias: "resume", keywords: "cv print pdf", icon: Printer, run: () => setTimeout(() => window.print(), 350) },
+    { id: "resume", group: "Resume", label: "Save resume as PDF", alias: "resume", keywords: "cv print pdf", icon: Printer, run: () => setTimeout(() => window.print(), 350) },
   ];
 
   const extras = [
@@ -92,13 +91,13 @@ const buildCommands = ({ links, contact, colorscheme, onSetColorscheme, onOpenTl
   return [...shortcuts, ...buffers, ...reachOut, ...colorschemes, ...extras, ...SECRET_COMMANDS];
 };
 
-const Cmdline = ({ onClose, colorscheme, onSetColorscheme, onOpenTldr }) => {
+const Cmdline = ({ onClose, colorscheme, onSetColorscheme }) => {
   const { data: links = [] } = useGetNavBarQuery();
   const { data: contact } = useGetContactQuery();
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const commands = buildCommands({ links, contact, colorscheme, onSetColorscheme, onOpenTldr });
+  const commands = buildCommands({ links, contact, colorscheme, onSetColorscheme });
   const results = filterCommands(commands, query);
 
   const runCommand = (command) => {
@@ -198,7 +197,7 @@ const Cmdline = ({ onClose, colorscheme, onSetColorscheme, onOpenTldr }) => {
   );
 };
 
-const CommandMenu = ({ isOpen, onClose, colorscheme, onSetColorscheme, onOpenTldr }) => {
+const CommandMenu = ({ isOpen, onClose, colorscheme, onSetColorscheme }) => {
   useEffect(() => {
     if (!isOpen) return;
     pauseSmoothScroll();
@@ -221,7 +220,7 @@ const CommandMenu = ({ isOpen, onClose, colorscheme, onSetColorscheme, onOpenTld
           onClick={onClose}
           className="fixed inset-0 z-50 bg-ink/60 px-4 pt-[16vh] backdrop-blur-sm"
         >
-          <Cmdline onClose={onClose} colorscheme={colorscheme} onSetColorscheme={onSetColorscheme} onOpenTldr={onOpenTldr} />
+          <Cmdline onClose={onClose} colorscheme={colorscheme} onSetColorscheme={onSetColorscheme} />
         </motion.div>
       )}
     </AnimatePresence>

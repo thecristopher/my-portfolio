@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   cleanTechName,
-  homeTime,
   revealCircle,
   extractYearsOfExperience,
   formatIndex,
@@ -11,6 +10,7 @@ import {
   splitParagraphs,
   splitStatValue,
   splitWords,
+  timesCertified,
   stackScale,
   wordRevealRange,
   filterCommands,
@@ -385,13 +385,6 @@ describe("revealCircle", () => {
   });
 });
 
-describe("homeTime", () => {
-  it("reads the clock in Rosarito, not wherever the visitor is", () => {
-    expect(homeTime(new Date("2026-07-01T19:05:00Z"))).toBe("12:05 PM PDT");
-    expect(homeTime(new Date("2026-01-15T19:05:00Z"))).toBe("11:05 AM PST");
-  });
-});
-
 describe("splitFeatured", () => {
   it("keeps featured roles as cards and moves the rest to the earlier list", () => {
     const projects = [{ title: "S.T.A.R.S." }, { title: "R.P.D.", featured: true }, { title: "Umbrella", featured: false }];
@@ -402,5 +395,16 @@ describe("splitFeatured", () => {
 
   it("handles a missing list", () => {
     expect(splitFeatured()).toEqual({ featured: [], earlier: [] });
+  });
+});
+
+describe("timesCertified", () => {
+  it("counts Leon's two certifications as 2x", () => {
+    const leonsCerts = [{ name: "R.P.D. Rookie" }, { name: "D.S.O. Agent" }];
+    expect(timesCertified(leonsCerts)).toBe("2x");
+  });
+
+  it("shows nothing for a Tarnished with no certifications yet", () => {
+    expect(timesCertified([])).toBeNull();
   });
 });
