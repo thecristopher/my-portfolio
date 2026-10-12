@@ -17,6 +17,7 @@ import { easeOutExpo } from "../../lib/motion";
 const FALLBACK_ROLE = "Tech Lead & Engineering Manager";
 // the products I manage engineering for today, see the PSL Group card under work
 const PRODUCTS_IN_PROD = 4;
+const PRINT_KEYS = /Mac|iPhone|iPad/.test(globalThis.navigator?.userAgent ?? "") ? "⌘P" : "Ctrl+P";
 
 // the sprite drops in once the name has landed, so he doesn't steal its moment
 const AVATAR_ENTERS_AT_S = 1.2;
@@ -45,7 +46,7 @@ const trackGrid = (event) => {
   section.style.setProperty("--grid-y", `${event.clientY - bounds.top}px`);
 };
 
-const Hero = () => {
+const Hero = ({ onOpenTldr }) => {
   const sectionRef = useRef(null);
   const [isBooted, setIsBooted] = useState(false);
   const { data: about } = useGetAboutQuery();
@@ -127,6 +128,16 @@ const Hero = () => {
               </a>
             </Magnetic>
           </motion.div>
+
+          <motion.p {...riseIn(1.2)} className="-mt-3 font-mono text-xs text-faint">
+            in a hurry?{" "}
+            <button type="button" onClick={onOpenTldr} className="text-accent underline-offset-4 hover:underline">
+              read the tl;dr
+            </button>
+            <span className="hidden sm:inline">
+              {" "}or press <kbd className="rounded border border-line px-1 text-muted">{PRINT_KEYS}</kbd> for a resume
+            </span>
+          </motion.p>
 
           <motion.dl {...riseIn(1.3)} className="grid max-w-lg grid-cols-3 gap-4 pt-6">
             {years && <Stat value={years} label="Years shipping" delay={1.4} />}

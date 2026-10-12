@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, AtSign, Check, Copy, CornerDownLeft, FileText, HelpCircle, Palette } from "lucide-react";
+import { ArrowRight, AtSign, Check, Copy, CornerDownLeft, FileText, HelpCircle, Palette, Printer, Zap } from "lucide-react";
 import { useGetNavBarQuery } from "../../api/navBarApi";
 import { useGetContactQuery } from "../../api/contactApi";
 import { THEMES, bufferNameFor, filterCommands, findCommandByAlias, sectionIdFromUrl } from "../../actions";
@@ -8,7 +8,7 @@ import { pauseSmoothScroll, resumeSmoothScroll, scrollToSection } from "../../li
 import { echo } from "../../lib/echo";
 import { easeOutExpo } from "../../lib/motion";
 
-const HELP_TEXT = "j/k scroll · d/u half page · gg/G top/bottom · : commands · try :colorscheme or :q";
+const HELP_TEXT = "j/k scroll · d/u half page · gg/G top/bottom · : commands · in a hurry? :tldr or :resume";
 
 // only typed exactly, never listed. a few nods to raccoon city
 const SECRET_COMMANDS = [
@@ -22,7 +22,7 @@ const SECRET_COMMANDS = [
   { alias: "merchant", label: "Merchant", run: () => echo("What're ya buyin'? Scroll down, stranger, the good stuff is in contact.sh", "success") },
 ].map((command) => ({ ...command, id: `secret-${command.alias}`, group: "Secrets", icon: HelpCircle, hidden: true }));
 
-const buildCommands = ({ links, contact, colorscheme, onSetColorscheme }) => {
+const buildCommands = ({ links, contact, colorscheme, onSetColorscheme, onOpenTldr }) => {
   const buffers = links.map((link) => {
     const sectionId = sectionIdFromUrl(link.url);
     return {
@@ -70,6 +70,11 @@ const buildCommands = ({ links, contact, colorscheme, onSetColorscheme }) => {
       ]
     : [];
 
+  const shortcuts = [
+    { id: "tldr", group: "In a hurry", label: "Read the short version", alias: "tldr", keywords: "recruiter summary readme", icon: Zap, run: onOpenTldr },
+    { id: "resume", group: "In a hurry", label: "Save resume as PDF", alias: "resume", keywords: "cv print pdf", icon: Printer, run: () => setTimeout(() => window.print(), 350) },
+  ];
+
   const extras = [
     { id: "help", group: "Extras", label: "Show keybindings", alias: "help", icon: HelpCircle, run: () => echo(HELP_TEXT) },
   ];
@@ -84,16 +89,16 @@ const buildCommands = ({ links, contact, colorscheme, onSetColorscheme }) => {
     run: () => onSetColorscheme(theme),
   }));
 
-  return [...buffers, ...reachOut, ...colorschemes, ...extras, ...SECRET_COMMANDS];
+  return [...shortcuts, ...buffers, ...reachOut, ...colorschemes, ...extras, ...SECRET_COMMANDS];
 };
 
-const Cmdline = ({ onClose, colorscheme, onSetColorscheme }) => {
+const Cmdline = ({ onClose, colorscheme, onSetColorscheme, onOpenTldr }) => {
   const { data: links = [] } = useGetNavBarQuery();
   const { data: contact } = useGetContactQuery();
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const commands = buildCommands({ links, contact, colorscheme, onSetColorscheme });
+  const commands = buildCommands({ links, contact, colorscheme, onSetColorscheme, onOpenTldr });
   const results = filterCommands(commands, query);
 
   const runCommand = (command) => {
@@ -193,7 +198,7 @@ const Cmdline = ({ onClose, colorscheme, onSetColorscheme }) => {
   );
 };
 
-const CommandMenu = ({ isOpen, onClose, colorscheme, onSetColorscheme }) => {
+const CommandMenu = ({ isOpen, onClose, colorscheme, onSetColorscheme, onOpenTldr }) => {
   useEffect(() => {
     if (!isOpen) return;
     pauseSmoothScroll();
@@ -216,7 +221,7 @@ const CommandMenu = ({ isOpen, onClose, colorscheme, onSetColorscheme }) => {
           onClick={onClose}
           className="fixed inset-0 z-50 bg-ink/60 px-4 pt-[16vh] backdrop-blur-sm"
         >
-          <Cmdline onClose={onClose} colorscheme={colorscheme} onSetColorscheme={onSetColorscheme} />
+          <Cmdline onClose={onClose} colorscheme={colorscheme} onSetColorscheme={onSetColorscheme} onOpenTldr={onOpenTldr} />
         </motion.div>
       )}
     </AnimatePresence>

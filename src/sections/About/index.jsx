@@ -10,6 +10,7 @@ import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { splitParagraphs } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
+import { CERTIFICATIONS, TIMEZONE } from "../../lib/profile";
 
 const JsonString = ({ children }) => <span className="text-string">"{children}"</span>;
 
@@ -51,8 +52,8 @@ const ProfileJson = ({ editor }) => {
         {isPrinted && (
           <div className="overflow-x-auto">
             <span className="text-faint">{"{"}</span>
-            <JsonLine index={0} name="certified"><JsonList items={["AWS Cloud Practitioner", "AWS Developer Associate"]} /></JsonLine>
-            <JsonLine index={1} name="timezone"><JsonString>Pacific Time</JsonString></JsonLine>
+            <JsonLine index={0} name="certified"><JsonList items={CERTIFICATIONS} /></JsonLine>
+            <JsonLine index={1} name="timezone"><JsonString>{TIMEZONE}</JsonString></JsonLine>
             {editor && <JsonLine index={3} name="editor" isLast><JsonString>{editor}</JsonString></JsonLine>}
             <span className="text-faint">{"}"}</span>
           </div>
