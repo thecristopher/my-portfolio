@@ -31,6 +31,7 @@ import {
   pickIdleMove,
   idleMoveDelay,
   markMainStack,
+  splitFeatured,
 } from "./index";
 
 describe("splitParagraphs", () => {
@@ -407,5 +408,18 @@ describe("homeTime", () => {
   it("reads the clock in Rosarito, not wherever the visitor is", () => {
     expect(homeTime(new Date("2026-07-01T19:05:00Z"))).toBe("12:05 PM PDT");
     expect(homeTime(new Date("2026-01-15T19:05:00Z"))).toBe("11:05 AM PST");
+  });
+});
+
+describe("splitFeatured", () => {
+  it("keeps featured roles as cards and moves the rest to the earlier list", () => {
+    const projects = [{ title: "S.T.A.R.S." }, { title: "R.P.D.", featured: true }, { title: "Umbrella", featured: false }];
+    const { featured, earlier } = splitFeatured(projects);
+    expect(featured.map((project) => project.title)).toEqual(["S.T.A.R.S.", "R.P.D."]);
+    expect(earlier.map((project) => project.title)).toEqual(["Umbrella"]);
+  });
+
+  it("handles a missing list", () => {
+    expect(splitFeatured()).toEqual({ featured: [], earlier: [] });
   });
 });

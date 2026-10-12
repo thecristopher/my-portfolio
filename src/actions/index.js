@@ -165,6 +165,12 @@ export const collectStack = (projects = [], mainStack = []) => [
   ...new Set([...mainStack, ...projects.flatMap((project) => project.technologies ?? [])].map(cleanTechName).filter(Boolean)),
 ];
 
+// recent roles get a full card, older ones a single line. a project without the flag counts as featured
+export const splitFeatured = (projects = []) => ({
+  featured: projects.filter((project) => project.featured !== false),
+  earlier: projects.filter((project) => project.featured === false),
+});
+
 // keeps a looping value inside [min, max), so an endless marquee can keep counting without ever running off
 export const wrapRange = (min, max, value) => {
   const range = max - min;
