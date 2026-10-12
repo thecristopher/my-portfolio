@@ -146,7 +146,7 @@ const Work = () => {
           {projects.length > 0 && (
             <div className="flex items-center gap-1">
               <p className="font-mono text-xs text-faint">
-                <span className="text-accent">$</span> ls ~/work | wc -l <span className="text-fg">→ {projects.length}</span>
+                <span className="text-accent">$</span> ls -t ~/work <span className="text-fg">→ newest first</span>
               </p>
               <Umbrella className="-my-2" />
             </div>

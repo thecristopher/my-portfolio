@@ -8,8 +8,7 @@ import TypeLine from "../../components/TypeLine";
 import { Hanafuda } from "../../components/Secrets";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetAboutQuery } from "../../api/aboutApi";
-import { useGetProjectsQuery } from "../../api/projectsApi";
-import { extractYearsOfExperience, splitParagraphs } from "../../actions";
+import { splitParagraphs } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 
 const JsonString = ({ children }) => <span className="text-string">"{children}"</span>;
@@ -41,7 +40,8 @@ const JsonLine = ({ name, children, isLast = false, index }) => (
   </motion.div>
 );
 
-const ProfileJson = ({ role, years, mainStack, editor, engagements }) => {
+// only what the rest of the page doesn't already say: role, years and stack live in the hero, work and skills
+const ProfileJson = ({ editor }) => {
   const [isPrinted, setIsPrinted] = useState(false);
 
   return (
@@ -51,14 +51,9 @@ const ProfileJson = ({ role, years, mainStack, editor, engagements }) => {
         {isPrinted && (
           <div className="overflow-x-auto">
             <span className="text-faint">{"{"}</span>
-            {role && <JsonLine index={0} name="role"><JsonString>{role}</JsonString></JsonLine>}
-            {years && <JsonLine index={1} name="experience"><JsonString>{years} years</JsonString></JsonLine>}
-            {mainStack.length > 0 && <JsonLine index={2} name="main_stack"><JsonList items={mainStack} /></JsonLine>}
-            {editor && <JsonLine index={3} name="editor"><JsonString>{editor}</JsonString></JsonLine>}
-            <JsonLine index={4} name="certified"><JsonList items={["AWS Cloud Practitioner", "AWS Developer Associate"]} /></JsonLine>
-            <JsonLine index={5} name="engagements" isLast>
-              <span className="text-accent">{engagements}</span>
-            </JsonLine>
+            <JsonLine index={0} name="certified"><JsonList items={["AWS Cloud Practitioner", "AWS Developer Associate"]} /></JsonLine>
+            <JsonLine index={1} name="timezone"><JsonString>Pacific Time</JsonString></JsonLine>
+            {editor && <JsonLine index={3} name="editor" isLast><JsonString>{editor}</JsonString></JsonLine>}
             <span className="text-faint">{"}"}</span>
           </div>
         )}
@@ -112,10 +107,7 @@ const Portrait = () => (
 
 const About = () => {
   const { data: about, isLoading, isError } = useGetAboutQuery();
-  const { data: projects = [] } = useGetProjectsQuery();
-
   const [lead, ...rest] = splitParagraphs(about?.description);
-  const years = extractYearsOfExperience(about?.description);
 
   return (
     <section id="about" className="relative py-24 sm:py-36">
@@ -144,13 +136,7 @@ const About = () => {
             ))}
 
             <Reveal delay={0.15} className="mt-6">
-              <ProfileJson
-                role={about?.role}
-                years={years}
-                mainStack={about?.main_stack ?? []}
-                editor={about?.editor}
-                engagements={projects.length}
-              />
+              <ProfileJson editor={about?.editor ?? "Neovim"} />
               <div className="mt-3 flex justify-end">
                 <Hanafuda />
               </div>

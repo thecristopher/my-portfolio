@@ -160,22 +160,11 @@ export const pickIdleMove = (roll = Math.random()) => (roll < 0.6 ? "look" : "wa
 export const idleMoveDelay = (roll = Math.random(), minMs = 6000, maxMs = 11000) =>
   Math.round(minMs + roll * (maxMs - minMs));
 
-// every tool across every engagement, current stack first, each name once
-export const collectStack = (projects = [], mainStack = []) => [
-  ...new Set([...mainStack, ...projects.flatMap((project) => project.technologies ?? [])].map(cleanTechName).filter(Boolean)),
-];
-
 // recent roles get a full card, older ones a single line. a project without the flag counts as featured
 export const splitFeatured = (projects = []) => ({
   featured: projects.filter((project) => project.featured !== false),
   earlier: projects.filter((project) => project.featured === false),
 });
-
-// keeps a looping value inside [min, max), so an endless marquee can keep counting without ever running off
-export const wrapRange = (min, max, value) => {
-  const range = max - min;
-  return ((((value - min) % range) + range) % range) + min;
-};
 
 // where the theme reveal circle starts, and how big it has to grow to cover the farthest corner from there
 export const revealCircle = ({ x, y }, { width, height }) => ({

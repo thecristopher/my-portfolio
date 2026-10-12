@@ -15,7 +15,8 @@ import { easeOutExpo } from "../../lib/motion";
 
 // shown while the API wakes up so the hero never renders half a sentence
 const FALLBACK_ROLE = "Tech Lead & Engineering Manager";
-const FALLBACK_YEARS = "9+";
+// the products I manage engineering for today, see the PSL Group card under work
+const PRODUCTS_IN_PROD = 4;
 
 // the sprite drops in once the name has landed, so he doesn't steal its moment
 const AVATAR_ENTERS_AT_S = 1.2;
@@ -89,10 +90,9 @@ const Hero = () => {
               className="font-mono text-fg"
             >
               {role.toLowerCase()}
-              <span className="text-faint"> · </span>full stack
               <span className="hidden sm:inline">
                 <span className="text-faint"> · </span>
-                <span className="text-accent">aws certified</span>
+                <span className="text-accent">full stack</span>
               </span>
             </motion.p>
           </div>
@@ -103,9 +103,8 @@ const Hero = () => {
           </h1>
 
           <motion.p {...riseIn(1)} className="max-w-xl text-lg leading-relaxed text-muted text-pretty sm:text-xl">
-            Hey there! I'm a tech lead from <span className="text-fg">Rosarito, Mexico</span>. {years ?? FALLBACK_YEARS}{" "}
-            years in, I went from intern to leading engineering on products in production, and these days I'm
-            building with <span className="text-fg">TypeScript, AWS and LLMs on Bedrock</span>.
+            Hey! I'm based in <span className="text-fg">Rosarito, Mexico</span>. I lead an engineering team and still
+            write plenty of the code, lately with <span className="text-fg">TypeScript, AWS and LLMs</span>.
           </motion.p>
 
           <motion.div {...riseIn(1.15)} className="flex flex-wrap gap-3">
@@ -131,8 +130,8 @@ const Hero = () => {
 
           <motion.dl {...riseIn(1.3)} className="grid max-w-lg grid-cols-3 gap-4 pt-6">
             {years && <Stat value={years} label="Years shipping" delay={1.4} />}
-            {projects.length > 0 && <Stat value={projects.length} label="Engagements" delay={1.5} />}
-            <Stat value="2×" label="AWS certs" delay={1.6} />
+            <Stat value={PRODUCTS_IN_PROD} label="Products I run" delay={1.5} />
+            {projects.length > 0 && <Stat value={projects.length} label="Companies" delay={1.6} />}
           </motion.dl>
         </motion.div>
 
