@@ -58,6 +58,12 @@ The app runs at `http://localhost:5173`, which is the origin the backend allows 
 | `yarn build` | Build for production into `dist/` |
 | `yarn preview` | Serve the production build locally |
 
+## Security
+
+Production builds get a `Content-Security-Policy` meta tag, written by a small plugin in `vite.config.js`. Scripts only load from the site itself, plus the theme script in `index.html`, which is allowed by its exact hash. The hash is recomputed on every build, so that script can be edited freely. Network calls can only reach the site and the origin in `VITE_API_URL`, and fonts only come from Google Fonts. The dev server skips the policy because hot reload injects inline scripts of its own.
+
+If the site ever loads something from a new origin (an image CDN, analytics), add it to the matching directive in that plugin or the browser will block it.
+
 ## Where things live
 
 ```
