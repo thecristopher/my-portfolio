@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   cleanTechName,
+  stepToward,
+  walkBob,
+  walkLegs,
   revealCircle,
   extractYearsOfExperience,
   formatIndex,
@@ -406,5 +409,67 @@ describe("timesCertified", () => {
 
   it("shows nothing for a Tarnished with no certifications yet", () => {
     expect(timesCertified([])).toBeNull();
+  });
+});
+
+describe("walkLegs", () => {
+  const legs = [
+    { x: 2, y: 0, color: "hip" },
+    { x: 2, y: 4, color: "near foot" },
+    { x: 9, y: 4, color: "far foot" },
+  ];
+  const gait = { hipRow: 0, footRow: 4, splitX: 5, stride: 3, lift: 2 };
+  const at = (pixels, color) => pixels.find((pixel) => pixel.color === color);
+
+  it("keeps the hip still while the feet reach the furthest", () => {
+    const stepping = walkLegs(legs, 0.25, gait);
+    expect(at(stepping, "hip")).toMatchObject({ x: 2, y: 0 });
+    expect(at(stepping, "near foot").x).toBe(5);
+    expect(at(stepping, "far foot").x).toBe(6);
+  });
+
+  it("lifts only the foot swinging forward as the legs pass", () => {
+    const passing = walkLegs(legs, 0, gait);
+    expect(at(passing, "near foot").y).toBe(2);
+    expect(at(passing, "far foot").y).toBe(4);
+    const passingBack = walkLegs(legs, 0.5, gait);
+    expect(at(passingBack, "near foot").y).toBe(4);
+    expect(at(passingBack, "far foot").y).toBe(2);
+  });
+
+  it("draws the near leg on top when both feet land on the same pixel", () => {
+    const crossing = [...legs, { x: 8, y: 4, color: "far heel" }];
+    const crossed = walkLegs(crossing, 0.25, gait).filter((pixel) => pixel.x === 5 && pixel.y === 4);
+    expect(crossed).toEqual([{ x: 5, y: 4, color: "near foot" }]);
+  });
+});
+
+describe("walkBob", () => {
+  it("rides a pixel higher while the legs pass and dips back down on the stride", () => {
+    expect(walkBob(0)).toBe(-1);
+    expect(walkBob(0.5)).toBe(-1);
+    expect(walkBob(0.25)).toBe(0);
+  });
+});
+
+describe("stepToward", () => {
+  const pace = { walkSpeed: 100, runSpeed: 300, runFrom: 200, stopWithin: 10, startFrom: 40 };
+
+  it("strolls toward a target that's close", () => {
+    expect(stepToward(0, 100, 0.1, { ...pace, isMoving: true })).toEqual({ x: 10, moved: 10, isMoving: true, isRunning: false });
+  });
+
+  it("breaks into a run when the target is far and heads either way", () => {
+    expect(stepToward(500, 0, 0.1, { ...pace, isMoving: true })).toEqual({ x: 470, moved: -30, isMoving: true, isRunning: true });
+  });
+
+  it("stops short instead of overshooting", () => {
+    expect(stepToward(0, 15, 1, { ...pace, isMoving: true }).x).toBe(5);
+    expect(stepToward(0, 8, 1, { ...pace, isMoving: true }).isMoving).toBe(false);
+  });
+
+  it("waits for the target to move a bit further before setting off again", () => {
+    expect(stepToward(0, 30, 0.1, { ...pace, isMoving: false }).isMoving).toBe(false);
+    expect(stepToward(0, 50, 0.1, { ...pace, isMoving: false }).isMoving).toBe(true);
   });
 });

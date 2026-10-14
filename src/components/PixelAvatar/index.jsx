@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useAnimationControls, useInView, useReducedMotion } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useAnimationControls,
+  useInView,
+  useMotionValue,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+} from "framer-motion";
 import {
   AVATAR_PALETTE,
   AVATAR_ROWS,
@@ -10,10 +19,24 @@ import {
   LEGS_FROM_ROW,
   PUNCH_ARM,
   SMILE,
+  WALK_FRAME_COUNT,
+  WALK_GAIT,
   WAVE_ERASE,
   WAVE_FRAMES,
 } from "../../lib/avatarSprite";
-import { crouchLegs, idleMoveDelay, isInRegion, overlaySprite, pickIdleMove, pingPong, spriteToPixels } from "../../actions";
+import {
+  crouchLegs,
+  idleMoveDelay,
+  isInRegion,
+  overlaySprite,
+  pickIdleMove,
+  pingPong,
+  spriteToPixels,
+  stepToward,
+  walkBob,
+  walkLegs,
+} from "../../actions";
+import { useCompanionEnabled } from "../../lib/companion";
 import { playSound } from "../../lib/sound";
 
 const WIDTH = AVATAR_ROWS[0].length;
@@ -52,6 +75,10 @@ const FRAMES = {
   // happy squinting eyes are already closed, so the wave doesn't need its own blink frames
   wave: WAVE_FRAMES.frames.map((armRows) => buildLayers(spriteToPixels(waveRows(armRows), AVATAR_PALETTE), true)),
 };
+
+// the walk cycle only swaps the legs, everything above the belt rides along and bobs a pixel
+const STRIDE_PHASES = [...Array(WALK_FRAME_COUNT).keys()].map((index) => index / WALK_FRAME_COUNT);
+const STRIDE_FRAMES = STRIDE_PHASES.map((phase) => ({ ...FRAMES.idle, legs: walkLegs(FRAMES.idle.legs, phase, WALK_GAIT) }));
 
 // mid jab the arm's inner edge stretches across the gap, like smear frames in a fighting game
 const ARM_SMEAR = Object.values(
@@ -425,6 +452,214 @@ const PixelAvatar = ({ className = "", entersAfterMs = 0, firstWaveAfterMs = FIR
       </AnimatePresence>
     </button>
   );
+};
+
+// how the little me paces along the statusline, in screen pixels and seconds
+const PACE = { walkSpeed: 110, runSpeed: 240, runFrom: 260, stopWithin: 6, startFrom: 36 };
+// a long gap between frames (a background tab) shouldn't teleport him across the screen
+const MAX_TICK_SECONDS = 0.05;
+// running takes longer strides, so the legs don't spin like a cartoon
+const RUN_STRIDE_SCALE = 1.8;
+// he only comes along once the big me in the hero has scrolled out of view
+const SHOWS_PAST_VIEWPORT = 0.6;
+const COMPANION_WAVES_AFTER_MS = 2500;
+// he keeps a couple of steps to the side of the cursor instead of under it, so he never sits on what you're pointing at
+const TRAIL_SPRITE_PIXELS = 36;
+
+const useIsPastHero = () => {
+  const { scrollY } = useScroll();
+  const [isPastHero, setIsPastHero] = useState(false);
+  useMotionValueEvent(scrollY, "change", (latest) => setIsPastHero(latest > window.innerHeight * SHOWS_PAST_VIEWPORT));
+  return isPastHero;
+};
+
+// a mouse leads him straight to the cursor. on a touch screen there's no cursor, so he walks the bar as you read
+const useWalkTarget = () => {
+  const target = useRef(window.innerWidth / 2);
+
+  useEffect(() => {
+    let hasMouse = false;
+    const followPointer = (event) => {
+      if (event.pointerType !== "mouse") return;
+      hasMouse = true;
+      target.current = event.clientX;
+    };
+    const followScroll = () => {
+      if (hasMouse) return;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      target.current = (window.scrollY / Math.max(1, maxScroll)) * window.innerWidth;
+    };
+    window.addEventListener("pointermove", followPointer, { passive: true });
+    window.addEventListener("scroll", followScroll, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", followPointer);
+      window.removeEventListener("scroll", followScroll);
+    };
+  }, []);
+
+  return target;
+};
+
+const WalkingMe = () => {
+  const spriteRef = useRef(null);
+  const target = useWalkTarget();
+  const x = useMotionValue(target.current);
+  const bodyControls = useAnimationControls();
+  const [stride, setStride] = useState(null);
+  const [facing, setFacing] = useState(1);
+  const [dustBurst, setDustBurst] = useState(0);
+  const [hasLanded, setHasLanded] = useState(false);
+  const isAirborne = useRef(false);
+  const isHovered = useRef(false);
+  const dustTimer = useRef(null);
+  const isWalking = stride !== null;
+  const isBlinking = useBlink(!isWalking);
+  const [move, perform] = useIdleRoutine(hasLanded && !isWalking, COMPANION_WAVES_AFTER_MS);
+  const isWaving = move === "wave";
+  const waveFrame = useWaveFrame(isWaving, true);
+  const isCrouched = useBounce(hasLanded && !isWalking && !isWaving);
+
+  const kickUpDust = useCallback((afterMs) => {
+    clearTimeout(dustTimer.current);
+    dustTimer.current = setTimeout(() => {
+      setDustBurst((burst) => burst + 1);
+      dustTimer.current = setTimeout(() => setDustBurst(0), DUST_LASTS_MS);
+    }, afterMs);
+  }, []);
+
+  useEffect(() => {
+    isAirborne.current = true;
+    kickUpDust(DROP_LANDS_AT_MS);
+    bodyControls.start(DROP_IN).then(() => {
+      isAirborne.current = false;
+      setHasLanded(true);
+    });
+    return () => clearTimeout(dustTimer.current);
+  }, [bodyControls, kickUpDust]);
+
+  const hop = useCallback(async () => {
+    if (isAirborne.current) return;
+    isAirborne.current = true;
+    kickUpDust(HOP_LANDS_AT_MS);
+    await bodyControls.start(HOP);
+    isAirborne.current = false;
+  }, [bodyControls, kickUpDust]);
+
+  useScrollHop(hasLanded, hop);
+
+  // one loop moves him and picks the leg frame from how far he has actually walked, so his feet never skate
+  useEffect(() => {
+    if (!hasLanded) return;
+    let frameRequest;
+    let lastTick = performance.now();
+    let walked = 0;
+    let isMoving = false;
+    let wasRunning = false;
+    let shownStride = null;
+    let shownFacing = 1;
+
+    const tick = (now) => {
+      const seconds = Math.min((now - lastTick) / 1000, MAX_TICK_SECONDS);
+      lastTick = now;
+      const scale = (spriteRef.current?.clientHeight ?? HEIGHT) / HEIGHT;
+      const halfWidth = (WIDTH / 2) * scale;
+      const here = x.get();
+      const side = here < target.current ? -1 : 1;
+      const beside = target.current + side * TRAIL_SPRITE_PIXELS * scale;
+      // someone pointing at him wants to say hi, so he holds still
+      const goal = isHovered.current ? here : Math.min(Math.max(beside, halfWidth), window.innerWidth - halfWidth);
+      const step = stepToward(here, goal, seconds, { ...PACE, isMoving });
+      isMoving = step.isMoving;
+      x.set(step.x);
+      walked += Math.abs(step.moved);
+
+      if (step.isRunning && !wasRunning) kickUpDust(0);
+      wasRunning = step.isRunning;
+
+      const strideLength = 4 * WALK_GAIT.stride * scale * (step.isRunning ? RUN_STRIDE_SCALE : 1);
+      const nextStride = isMoving ? Math.floor(((walked / strideLength) % 1) * WALK_FRAME_COUNT) : null;
+      if (nextStride !== shownStride) setStride((shownStride = nextStride));
+      // he faces where he's headed, and turns to look at the cursor once he's there
+      const toCursor = target.current - step.x;
+      const nextFacing = step.moved ? Math.sign(step.moved) : Math.abs(toCursor) > 2 ? Math.sign(toCursor) : shownFacing;
+      if (nextFacing !== shownFacing) setFacing((shownFacing = nextFacing));
+
+      frameRequest = requestAnimationFrame(tick);
+    };
+
+    frameRequest = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frameRequest);
+  }, [hasLanded, target, x, kickUpDust]);
+
+  const frame = isWalking
+    ? STRIDE_FRAMES[stride]
+    : isWaving
+      ? FRAMES.wave[waveFrame]
+      : isBlinking
+        ? FRAMES.idleBlink
+        : FRAMES.idle;
+  const bob = isWalking ? walkBob(STRIDE_PHASES[stride]) : isCrouched ? 1 : 0;
+  const isLooking = move === "look" && !isWalking;
+
+  const sayHi = (event) => {
+    if (event.pointerType !== "mouse") return;
+    isHovered.current = true;
+    if (!isWaving) perform("wave");
+  };
+
+  return (
+    <motion.div style={{ x }} className="pointer-events-none fixed bottom-7 left-0 z-30" exit={{ opacity: 0, y: -24, transition: { duration: 0.3 } }}>
+      <button
+        type="button"
+        onClick={hop}
+        onPointerEnter={sayHi}
+        onPointerLeave={() => (isHovered.current = false)}
+        aria-label="A tiny Cristopher walking along with you. Poke him to make him jump."
+        className="pointer-events-auto relative block h-[63px] -translate-x-1/2 cursor-pointer touch-manipulation select-none [-webkit-tap-highlight-color:transparent] lg:h-[126px]"
+      >
+        <motion.div initial={{ opacity: 0 }} animate={bodyControls} className="relative h-full origin-bottom">
+          <motion.svg
+            ref={spriteRef}
+            viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+            shapeRendering="crispEdges"
+            className="h-full w-auto overflow-visible"
+            aria-hidden="true"
+            animate={{ scaleX: isLooking ? -facing : facing }}
+            transition={{ duration: 0.12, ease: "linear" }}
+          >
+            <PixelLayer pixels={frame.waist} />
+            <PixelLayer pixels={isCrouched && !isWalking ? frame.crouchedLegs : frame.legs} />
+            <motion.g animate={{ y: isWaving ? -1 : 0 }} transition={POSE_SHIFT}>
+              <g transform={`translate(0 ${bob})`}>
+                <PixelLayer pixels={frame.neck} />
+                <PixelLayer pixels={frame.shoulder} />
+                <PixelLayer pixels={frame.chest} />
+                <motion.g animate={{ y: isWaving ? GUARD_DROP : 0 }} transition={POSE_SHIFT}>
+                  <PixelLayer pixels={frame.guard} />
+                </motion.g>
+                <PixelLayer pixels={frame.arm} />
+                <PixelLayer pixels={frame.head} />
+              </g>
+            </motion.g>
+          </motion.svg>
+          <AnimatePresence>{isWaving && <SpeechBubble />}</AnimatePresence>
+        </motion.div>
+        <AnimatePresence>
+          {dustBurst > 0 && [-1, 1].map((side) => <Dust key={`${dustBurst}-${side}`} side={side} />)}
+        </AnimatePresence>
+      </button>
+    </motion.div>
+  );
+};
+
+// a pocket sized me that drops onto the statusline once the hero scrolls away and walks along with the visitor.
+// :set nocompanion sends him home, and he stays out of the way of anyone who asked for less motion
+export const Companion = () => {
+  const isEnabled = useCompanionEnabled();
+  const isPastHero = useIsPastHero();
+  const prefersReducedMotion = useReducedMotion();
+
+  return <AnimatePresence>{isEnabled && isPastHero && !prefersReducedMotion && <WalkingMe />}</AnimatePresence>;
 };
 
 export default PixelAvatar;

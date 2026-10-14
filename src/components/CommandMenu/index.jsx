@@ -6,6 +6,7 @@ import { useGetContactQuery } from "../../api/contactApi";
 import { THEMES, bufferNameFor, filterCommands, findCommandByAlias, sectionIdFromUrl } from "../../actions";
 import { pauseSmoothScroll, resumeSmoothScroll, scrollToSection } from "../../lib/smoothScroll";
 import { echo } from "../../lib/echo";
+import { setCompanionEnabled } from "../../lib/companion";
 import { easeOutExpo } from "../../lib/motion";
 
 const HELP_TEXT = "j/k scroll · d/u half page · gg/G top/bottom · : commands · need a copy? :resume";
@@ -20,6 +21,22 @@ const SECRET_COMMANDS = [
   { alias: "herb", label: "Herb", run: () => echo("Mixed a green and a red herb. Condition: Fine.", "success") },
   { alias: "stars", label: "S.T.A.R.S.", run: () => echo("S.T.A.R.S. clearance confirmed. The mansion is that way, the portfolio is this way.", "success") },
   { alias: "merchant", label: "Merchant", run: () => echo("What're ya buyin'? Scroll down, stranger, the good stuff is in contact.sh", "success") },
+  {
+    alias: "set nocompanion",
+    label: "Send the little me home",
+    run: () => {
+      setCompanionEnabled(false);
+      echo("He waved goodbye and went home. :set companion brings him back.");
+    },
+  },
+  {
+    alias: "set companion",
+    label: "Bring the little me back",
+    run: () => {
+      setCompanionEnabled(true);
+      echo("He's back on the statusline, ready to walk with you.", "success");
+    },
+  },
 ].map((command) => ({ ...command, id: `secret-${command.alias}`, group: "Secrets", icon: HelpCircle, hidden: true }));
 
 const buildCommands = ({ links, contact, colorscheme, onSetColorscheme }) => {

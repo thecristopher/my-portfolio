@@ -7,6 +7,7 @@ Live at [cristophercervantes.com](https://cristophercervantes.com). The content 
 ## What's in it
 
 - **Hero** with the pixel avatar, a blueprint grid that lights up under your cursor and buttons that lean toward it. He drops in, bounces on his toes in a fighting stance, blinks, glances around, waves hello, hops when you scroll and throws a jab when you poke him.
+- **A pocket sized me** that drops onto the statusline once the hero scrolls away and walks along with you. With a mouse he keeps a couple of steps beside your cursor, breaking into a run when it's far, and turns to look at it when he gets there. On a touch screen he walks the bar as you read. Point at him and he stops to wave, poke him and he jumps. His walk cycle isn't hand drawn: each leg swings from the hip like a pendulum (`walkLegs` in `src/actions`), and the leg frame comes from how far he actually walked, so his feet never skate. `:set nocompanion` sends him home and `:set companion` brings him back. He stays home for anyone who prefers reduced motion.
 - **Manifesto**, followed by an endless ribbon of every tool I've shipped with. It speeds up, flips and leans with your scroll.
 - **About** with the bio, a portrait and a `profile.json` that types itself out.
 - **Work**, a stack of cards for every place I've shipped software.

@@ -220,3 +220,7 @@ export const SMILE = {
 
 // the near arm's guard drops a pixel when he relaxes to say hi
 export const GUARD_ARM = { maxX: 11, minY: 27, maxY: 38 };
+
+// how the legs swing on a walk: they split apart below the crotch at the hip row, and the feet travel the furthest
+export const WALK_GAIT = { hipRow: 42, footRow: 62, splitX: 20, stride: 6, lift: 4 };
+export const WALK_FRAME_COUNT = 8;

@@ -6,6 +6,7 @@ import CommandMenu from "./components/CommandMenu";
 import Resume from "./components/Resume";
 import Statusline from "./components/Statusline";
 import LineGutter from "./components/LineGutter";
+import { Companion } from "./components/PixelAvatar";
 import Hero from "./sections/Hero";
 import Manifesto from "./sections/Manifesto";
 import About from "./sections/About";
@@ -72,6 +73,7 @@ const App = () => {
         <Contact />
       </main>
       <Footer onOpenCmdline={openCmdline} />
+      <Companion />
       <Statusline
         mode={isCmdlineOpen ? "COMMAND" : "NORMAL"}
         colorscheme={colorscheme}

@@ -177,3 +177,36 @@ export const revealCircle = ({ x, y }, { width, height }) => ({
 
 // the hero stat reads "2x" so it counts up like the others but still says certifications, not companies
 export const timesCertified = (certifications = []) => (certifications.length > 0 ? `${certifications.length}x` : null);
+
+// one stride of the walk cycle: each leg swings from the hip like a pendulum, so the feet reach the furthest and the
+// knees barely move. the leg swinging forward lifts its foot off the floor, the planted one pushes back flat.
+// phase runs 0 to 1 around a full stride, pixels on the near side of splitX are the near leg and land on top
+export const walkLegs = (pixels = [], phase, { hipRow, footRow, splitX, stride, lift }) => {
+  const swing = Math.sin(phase * 2 * Math.PI);
+  const forwardSpeed = Math.cos(phase * 2 * Math.PI);
+  const placed = new Map();
+  const farLegFirst = [...pixels].sort((a, b) => (b.x > splitX) - (a.x > splitX));
+  for (const pixel of farLegFirst) {
+    const depth = Math.max(0, pixel.y - hipRow) / (footRow - hipRow);
+    const side = pixel.x <= splitX ? 1 : -1;
+    const x = pixel.x + Math.round(side * swing * stride * depth);
+    const y = pixel.y - Math.round(lift * Math.max(0, side * forwardSpeed) * depth);
+    placed.set(`${x}-${y}`, { ...pixel, x, y });
+  }
+  return [...placed.values()];
+};
+
+// the body rides highest while one leg passes the other and dips when both feet are down, a pixel either way
+export const walkBob = (phase) => (Math.abs(Math.cos(phase * 2 * Math.PI)) > 0.7 ? -1 : 0);
+
+// one tick of chasing a target: a stroll when it's close, a run when it's far, and he stops short instead of
+// overshooting. once stopped he waits for the target to move a bit further before setting off again, so a
+// twitchy cursor doesn't make him shuffle in place
+export const stepToward = (x, target, seconds, { isMoving, walkSpeed, runSpeed, runFrom, stopWithin, startFrom }) => {
+  const distance = target - x;
+  const gap = Math.abs(distance);
+  if (gap <= (isMoving ? stopWithin : startFrom)) return { x, moved: 0, isMoving: false, isRunning: false };
+  const isRunning = gap > runFrom;
+  const moved = Math.sign(distance) * Math.min((isRunning ? runSpeed : walkSpeed) * seconds, gap - stopWithin);
+  return { x: x + moved, moved, isMoving: true, isRunning };
+};
