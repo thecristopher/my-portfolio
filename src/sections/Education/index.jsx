@@ -4,7 +4,7 @@ import { FaAws } from "react-icons/fa";
 import SectionHeader from "../../components/SectionHeader";
 import SpotlightCard from "../../components/SpotlightCard";
 import TerminalWindow from "../../components/TerminalWindow";
-import { Bat, Spider } from "../../components/Secrets";
+import { Airbender, Spider } from "../../components/Secrets";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { hostnameFromUrl } from "../../actions";
@@ -64,7 +64,7 @@ const Diploma = ({ school }) => {
       <div className="flex flex-wrap items-center justify-between gap-4 border-t border-line bg-ink/30 px-6 py-4 font-mono text-xs sm:px-10">
         <div className="flex items-center gap-1 text-muted">
           <TomlLine name="graduated_as">Computer Systems Engineer</TomlLine>
-          <Bat className="-my-2" />
+          <Spider className="-my-2" />
         </div>
         <a
           href={school.url}
@@ -157,7 +157,7 @@ const Education = () => {
                 <p className="font-mono text-xs text-faint">
                   <span className="text-accent">$</span> aws certifications list <span className="text-fg">→ {certifications.length} earned</span>
                 </p>
-                <Spider className="-my-2" />
+                <Airbender className="-my-2" />
               </div>
               {certifications.map((cert, index) => (
                 <CertBadge key={cert.name} cert={cert} index={index} />

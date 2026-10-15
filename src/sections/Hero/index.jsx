@@ -6,7 +6,7 @@ import TypeLine from "../../components/TypeLine";
 import CountUp from "../../components/CountUp";
 import PixelAvatar from "../../components/PixelAvatar";
 import Magnetic from "../../components/Magnetic";
-import { Airbender } from "../../components/Secrets";
+import { Pokeball } from "../../components/Secrets";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
@@ -159,7 +159,7 @@ const Hero = () => {
           >
             <span className="text-accent">player_1</span>
             <span>poke him</span>
-            <Airbender className="-my-2" />
+            <Pokeball className="-my-2" />
           </motion.figcaption>
         </motion.figure>
       </div>

@@ -142,11 +142,7 @@ const Skills = () => {
   return (
     <section id="skills" className="relative py-24 sm:py-36">
       <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
-        {/* the hat opens the section, so she's the first thing you see before any card turns into a duel monster */}
-        <div className="flex items-end justify-between gap-6">
-          <SectionHeader index="06" label="skills.lua" title="How I lead, and the tools I reach for." />
-          <Magician className="-my-2 shrink-0" />
-        </div>
+        <SectionHeader index="06" label="skills.lua" title="How I lead, and the tools I reach for." />
 
         {isLoading && <SkeletonLines lines={4} />}
         {isError && <LoadError what="skills" />}
@@ -159,9 +155,13 @@ const Skills = () => {
 
         {about && (
           <div>
-            <p className="mb-3 text-right font-mono text-xs text-faint">
-              <span className="text-accent">$</span> nvim ~/skills.lua
-            </p>
+            {/* the hat sits on the line that opens the skills, right above the cards she turns into duel monsters */}
+            <div className="mb-3 flex items-center justify-end gap-1">
+              <p className="font-mono text-xs text-faint">
+                <span className="text-accent">$</span> nvim ~/skills.lua
+              </p>
+              <Magician className="-my-2" />
+            </div>
             <StackHealth mainStack={about.main_stack ?? []} skillLevels={about.skill_levels} isBuffed={isBuffed} />
           </div>
         )}

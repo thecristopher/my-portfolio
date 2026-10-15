@@ -4,7 +4,7 @@ import { ArrowUpRight, Check, Copy } from "lucide-react";
 import TextReveal from "../../components/TextReveal";
 import TerminalWindow from "../../components/TerminalWindow";
 import TypeLine from "../../components/TypeLine";
-import { Grace } from "../../components/Secrets";
+import { Triforce, Umbrella } from "../../components/Secrets";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetContactQuery } from "../../api/contactApi";
 import { socialIconMap } from "../../lib/socialIconMap";
@@ -62,7 +62,10 @@ const ContactTerminal = ({ contact }) => {
   return (
     <TerminalWindow title="~/contact · zsh" bodyClassName="p-6 sm:p-10">
       <div className="flex flex-col gap-4 font-mono text-sm">
-        <p className="text-faint"># what're ya buyin', stranger?</p>
+        <p className="flex items-center gap-1 text-faint">
+          <span># what're ya buyin', stranger?</span>
+          <Umbrella className="-my-2" />
+        </p>
         <TypeLine text="echo $EMAIL" delay={0.3} onDone={() => setIsEmailPrinted(true)} />
         {isEmailPrinted && (
           <motion.div {...printedLine(0)} className="flex flex-col gap-4 pb-4">
@@ -108,9 +111,9 @@ const ContactTerminal = ({ contact }) => {
             <p>logout</p>
             <p className="flex items-center gap-1">
               <span>
-                <span className="text-accent">#</span> touch grace any time, Tarnished.
+                <span className="text-accent">#</span> it's dangerous to go alone. take this.
               </span>
-              <Grace className="-my-1.5" />
+              <Triforce className="-my-1.5" />
             </p>
           </motion.div>
         )}

@@ -6,7 +6,7 @@ const STORAGE_KEY = "secrets-found";
 
 // each secret's color for the progress pips, and the line its tooltip says once found: half the franchise, half me
 export const SECRETS = {
-  triforce: { color: "#e8c35a", quip: "It's dangerous to ship alone. Take these side quests." },
+  triforce: { color: "#e8c35a", quip: "It's dangerous to ship alone. Take a tech lead with you." },
   umbrella: { color: "#d62828", quip: "Career progress saved. No ink ribbon required." },
   grace: { color: "#f5d77a", quip: "Grace touched. Respawn point set to my inbox." },
   magician: { color: "#ff91be", quip: "Every skill is a duel monster now, +500 ATK. I believe in the heart of the cards." },
