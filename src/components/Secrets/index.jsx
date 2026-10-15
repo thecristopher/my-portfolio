@@ -46,7 +46,7 @@ const SecretPips = ({ found, current }) => (
 // the effect does the storytelling, the pill next to the icon mixes the franchise with me and keeps score.
 // it pops up once the effect clears, and again on hover for anything already found.
 // once it mounts it nudges itself sideways if it would spill past either edge of the screen
-const SecretButton = ({ id, isFound, label, onClick, caption, captionClassName = "left-0", isCaptionBelow = false, className = "", children }) => {
+const SecretButton = ({ id, isFound, label, onClick, caption, captionClassName = "left-0", className = "", children }) => {
   const captionRef = useRef(null);
   const [nudge, setNudge] = useState(0);
   const [isPeeking, setIsPeeking] = useState(false);
@@ -84,7 +84,7 @@ const SecretButton = ({ id, isFound, label, onClick, caption, captionClassName =
         type="button"
         aria-label={label}
         onClick={onClick}
-        className="grid size-8 place-items-center rounded-md text-faint/40 transition-colors hover:text-faint"
+        className="grid size-8 touch-manipulation place-items-center rounded-md text-faint/40 transition-colors hover:text-faint"
       >
         {children}
       </button>
@@ -93,12 +93,12 @@ const SecretButton = ({ id, isFound, label, onClick, caption, captionClassName =
           <motion.span
             ref={captionRef}
             role={caption ? "status" : undefined}
-            initial={{ opacity: 0, y: isCaptionBelow ? -6 : 6, scale: 0.96, filter: "blur(4px)" }}
+            initial={{ opacity: 0, y: 6, scale: 0.96, filter: "blur(4px)" }}
             animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: isCaptionBelow ? -4 : 4, scale: 0.98 }}
+            exit={{ opacity: 0, y: 4, scale: 0.98 }}
             transition={{ duration: 0.35, ease: easeOutExpo }}
             style={{ marginLeft: nudge, "--secret": SECRETS[id].color }}
-            className={`secret-tooltip pointer-events-none absolute z-30 flex ${isCaptionBelow ? "top-full mt-2" : "bottom-full mb-2"} w-max max-w-[min(20rem,calc(100vw-2rem))] flex-col gap-2 rounded-xl border border-line-strong bg-panel/90 px-3 py-2.5 text-left font-mono text-[11px] text-muted shadow-[0_18px_40px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl ${captionClassName}`}
+            className={`secret-tooltip pointer-events-none absolute bottom-full z-30 mb-2 flex w-max max-w-[min(20rem,calc(100vw-2rem))] flex-col gap-2 rounded-xl border border-line-strong bg-panel/90 px-3 py-2.5 text-left font-mono text-[11px] text-muted shadow-[0_18px_40px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl ${captionClassName}`}
           >
             <span className="leading-snug text-pretty whitespace-normal text-fg">
               <span style={{ color: SECRETS[id].color }}>✦</span> {tooltip.quip}
@@ -283,8 +283,7 @@ export const Umbrella = ({ className }) => {
       <SecretButton
         id="umbrella" isFound={isFound} label="A corporate logo"
         caption={caption}
-        // it sits on the first line of the contact terminal, which clips anything poking out above it
-        isCaptionBelow
+        captionClassName="left-1/2 -translate-x-1/2 md:right-0 md:left-auto md:translate-x-0"
         className={className}
         onClick={saveGame}
       >
@@ -326,13 +325,18 @@ const TransmutationFlash = () => (
     className="pointer-events-none fixed inset-0 z-50 grid place-items-center bg-black/40"
     aria-hidden="true"
   >
+    {/* the glow is a still gradient behind the circle. a glow filter on the turning circle would repaint every
+        frame, and phones can't keep up with that */}
+    <div
+      className="absolute size-[min(95vw,34rem)] rounded-full"
+      style={{ background: `radial-gradient(circle, ${ALCHEMY_BLUE}33 0%, ${ALCHEMY_BLUE}1a 45%, transparent 70%)` }}
+    />
     <motion.svg
       viewBox="0 0 100 100"
-      className="size-[min(80vw,28rem)]"
+      className="relative size-[min(80vw,28rem)]"
       initial={{ rotate: -30 }}
       animate={{ rotate: 0 }}
       transition={{ duration: 2.4, ease: easeOutExpo }}
-      style={{ filter: `drop-shadow(0 0 8px ${ALCHEMY_BLUE})` }}
     >
       {[
         "M50 4 A46 46 0 1 1 49.9 4",
@@ -368,7 +372,7 @@ const TransmutationFlash = () => (
   </motion.div>
 );
 
-// a tiny transmutation circle chalked after the last word of the bio. equivalent exchange: one click, one secret
+// a tiny transmutation circle tucked into the philosophy line. equivalent exchange, like the line says: hard problems in, readable code out
 export const Alchemy = ({ className }) => {
   const [isFound, find, caption] = useSecret("alchemy");
   const [isFlashing, flash] = useFlourish(TRANSMUTATION_MS);
@@ -433,7 +437,7 @@ const ElementGusts = () => (
   </motion.div>
 );
 
-// the air nomad swirl, hiding next to the certifications. mastered every element, or at least every exam
+// the air nomad swirl under profile.json, from the editor to the org chart. every element, every stack
 export const Airbender = ({ className }) => {
   const [isFound, find, caption] = useSecret("airbender");
   const [isBlowing, blow] = useFlourish(GUSTS_MS);
@@ -593,7 +597,7 @@ const GRACE_MOTES = [
   { x: 8, delay: 1.3 },
 ];
 
-// the Elden Ring sigil rests beside the last job on the stack. touch it and it lights up like a site of grace
+// the Elden Ring sigil sits quiet after the contact terminal logs out. touch it and it lights up like a site of grace
 export const Grace = ({ className }) => {
   const [isLit, find, caption] = useSecret("grace");
   const [isBannerShown, setIsBannerShown] = useState(false);
@@ -983,12 +987,17 @@ const WebSwing = () => (
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, ease: easeOutExpo }}
       >
+        <div
+          className="absolute -inset-1/3 rounded-full"
+          style={{ background: `radial-gradient(circle, ${SPIDER_RED}55 0%, transparent 65%)` }}
+        />
         <motion.div
           animate={{ rotate: [0, 7, -5, 3, 0] }}
           transition={{ duration: 1.6, delay: 0.6, ease: "easeInOut" }}
           style={{ originY: 0 }}
+          className="relative"
         >
-          <SpiderFace className="w-full" style={{ filter: `drop-shadow(0 0 14px ${SPIDER_RED}aa)` }} />
+          <SpiderFace className="w-full" />
         </motion.div>
       </motion.div>
       <motion.p
@@ -1095,11 +1104,18 @@ const BatTransition = () => (
     aria-hidden="true"
   >
     <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8, delay: 1 }}
+      className="absolute h-[min(60vw,22rem)] w-[min(100vw,40rem)] rounded-full"
+      style={{ background: `radial-gradient(closest-side, ${BAT_YELLOW}44, transparent)` }}
+    />
+    <motion.div
       initial={{ scale: 0.02, rotate: 0 }}
       animate={{ scale: 1, rotate: 1080 }}
       transition={{ duration: 1.8, ease: [0.3, 0, 0.2, 1] }}
     >
-      <BatEmblem className="w-[min(80vw,30rem)]" style={{ filter: `drop-shadow(0 0 30px ${BAT_YELLOW}88)` }} />
+      <BatEmblem className="w-[min(80vw,30rem)]" />
     </motion.div>
     {BAT_BURSTS.map((burst) => (
       <Burst key={burst.word} {...burst} />
@@ -1107,7 +1123,7 @@ const BatTransition = () => (
   </motion.div>
 );
 
-// a bat watching over the side quests, the ones shipped after hours
+// a bat next to the email, the closest thing to a Bat-Signal. on call at 3 a.m.
 export const Bat = ({ className }) => {
   const [isFound, find, caption] = useSecret("bat");
   const [isSpinning, spin] = useFlourish(BAT_TRANSITION_MS);

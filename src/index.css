@@ -66,6 +66,14 @@
   --color-error: #ff5f57;
 }
 
+/* nothing may ever make the page wider than the screen. iOS Safari zooms the whole page out the moment something
+   pokes past the edge, even for a frame, then inflates the text and never zooms back in. clip, not hidden, so the
+   sticky work cards and portrait keep working */
+html,
+body {
+  overflow-x: clip;
+}
+
 html {
   scroll-padding-top: 6rem;
   background: var(--color-ink);

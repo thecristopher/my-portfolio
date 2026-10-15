@@ -5,7 +5,7 @@ import SectionHeader from "../../components/SectionHeader";
 import Reveal from "../../components/Reveal";
 import TerminalWindow from "../../components/TerminalWindow";
 import TypeLine from "../../components/TypeLine";
-import { Alchemy } from "../../components/Secrets";
+import { Airbender } from "../../components/Secrets";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { splitParagraphs } from "../../actions";
@@ -127,19 +127,12 @@ const About = () => {
             {isError && <LoadError what="the bio" />}
             {lead && (
               <Reveal>
-                <p className="text-xl leading-relaxed text-pretty sm:text-2xl">
-                  {lead}
-                  {rest.length === 0 && <Alchemy className="-my-2 align-middle" />}
-                </p>
+                <p className="text-xl leading-relaxed text-pretty sm:text-2xl">{lead}</p>
               </Reveal>
             )}
             {rest.map((paragraph, index) => (
               <Reveal key={paragraph.slice(0, 24)} delay={index * 0.05}>
-                <p className="leading-relaxed text-muted text-pretty">
-                  {paragraph}
-                  {/* a chalk circle drawn after the last word of the bio */}
-                  {index === rest.length - 1 && <Alchemy className="-my-2 align-middle" />}
-                </p>
+                <p className="leading-relaxed text-muted text-pretty">{paragraph}</p>
               </Reveal>
             ))}
 
@@ -149,6 +142,9 @@ const About = () => {
                 certifications={(about?.certifications ?? []).map((cert) => cert.name)}
                 skills={(about?.skill_levels ?? []).map((skill) => skill.name)}
               />
+              <div className="mt-3 flex justify-end">
+                <Airbender />
+              </div>
             </Reveal>
           </div>
         </div>

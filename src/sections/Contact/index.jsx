@@ -4,7 +4,7 @@ import { ArrowUpRight, Check, Copy } from "lucide-react";
 import TextReveal from "../../components/TextReveal";
 import TerminalWindow from "../../components/TerminalWindow";
 import TypeLine from "../../components/TypeLine";
-import { Triforce, Umbrella } from "../../components/Secrets";
+import { Bat, Grace } from "../../components/Secrets";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetContactQuery } from "../../api/contactApi";
 import { socialIconMap } from "../../lib/socialIconMap";
@@ -62,10 +62,7 @@ const ContactTerminal = ({ contact }) => {
   return (
     <TerminalWindow title="~/contact · zsh" bodyClassName="p-6 sm:p-10">
       <div className="flex flex-col gap-4 font-mono text-sm">
-        <p className="flex items-center gap-1 text-faint">
-          <span># what're ya buyin', stranger?</span>
-          <Umbrella className="-my-2" />
-        </p>
+        <p className="text-faint"># what're ya buyin', stranger?</p>
         <TypeLine text="echo $EMAIL" delay={0.3} onDone={() => setIsEmailPrinted(true)} />
         {isEmailPrinted && (
           <motion.div {...printedLine(0)} className="flex flex-col gap-4 pb-4">
@@ -76,7 +73,11 @@ const ContactTerminal = ({ contact }) => {
               <EmailAddress email={contact.email} />
               <ArrowUpRight className="shrink-0 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
             </a>
-            <CopyEmailButton email={contact.email} />
+            {/* the email is the Bat-Signal, so the bat waits right next to it */}
+            <div className="flex items-center gap-2">
+              <CopyEmailButton email={contact.email} />
+              <Bat />
+            </div>
           </motion.div>
         )}
 
@@ -111,9 +112,9 @@ const ContactTerminal = ({ contact }) => {
             <p>logout</p>
             <p className="flex items-center gap-1">
               <span>
-                <span className="text-accent">#</span> it's dangerous to go alone. take this.
+                <span className="text-accent">#</span> touch grace any time, Tarnished.
               </span>
-              <Triforce className="-my-1.5" />
+              <Grace className="-my-1.5" />
             </p>
           </motion.div>
         )}

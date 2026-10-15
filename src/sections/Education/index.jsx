@@ -4,7 +4,7 @@ import { FaAws } from "react-icons/fa";
 import SectionHeader from "../../components/SectionHeader";
 import SpotlightCard from "../../components/SpotlightCard";
 import TerminalWindow from "../../components/TerminalWindow";
-import { Airbender, Spider } from "../../components/Secrets";
+import { Hanafuda, Spider } from "../../components/Secrets";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { hostnameFromUrl } from "../../actions";
@@ -157,7 +157,7 @@ const Education = () => {
                 <p className="font-mono text-xs text-faint">
                   <span className="text-accent">$</span> aws certifications list <span className="text-fg">→ {certifications.length} earned</span>
                 </p>
-                <Airbender className="-my-2" />
+                <Hanafuda className="-my-2" />
               </div>
               {certifications.map((cert, index) => (
                 <CertBadge key={cert.name} cert={cert} index={index} />
