@@ -14,6 +14,8 @@ export const SECRETS = {
   alchemy: { color: "#6ec3ff", quip: "Equivalent exchange: hard problems in, readable code out." },
   airbender: { color: "#f5a524", quip: "Mastered all four stacks: frontend, backend, cloud and people." },
   hanafuda: { color: "#3fa9f5", quip: "Total Concentration. Deep Work Breathing, First Form." },
+  spider: { color: "#e23636", quip: "With great power comes great responsibility. So I write the tests too." },
+  bat: { color: "#f5c518", quip: "Not the engineer this codebase deserves, but the one it needs on call at 3 a.m." },
 };
 export const SECRET_IDS = Object.keys(SECRETS);
 

@@ -27,7 +27,7 @@ From the command line you can jump to any section, copy my email, or switch betw
 
 ### Secrets
 
-There are 8 of them hidden around the page, each with its own full screen moment and a little synth jingle generated on the fly (no audio files shipped). The page remembers which ones you found, and each one leaves behind a tooltip that mashes its franchise up with my career, plus a row of pips in every secret's color so you can see how many are left. Some commands are hidden too, if you know what to type. I'm not saying where any of them are.
+There are 10 of them hidden around the page, each with its own full screen moment and a little synth jingle generated on the fly (no audio files shipped). The page remembers which ones you found, and each one leaves behind a tooltip that mashes its franchise up with my career, plus a row of pips in every secret's color so you can see how many are left. Some commands are hidden too, if you know what to type. I'm not saying where any of them are.
 
 ## Stack
 
