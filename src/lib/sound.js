@@ -48,15 +48,22 @@ export const SOUNDS = {
       [15, 0.7, 0.55],
     ],
   },
-  // Resident Evil: the save room typewriter clacks out a line, the bell dings, and the dread hums underneath
+  // Resident Evil: the typewriter clacks out a line, the bell dings, then the save room arpeggio from RE2 plays
+  // over a low drone, the one theme in that game that means you're safe for a minute
   umbrella: {
-    wave: "sine",
-    volume: 0.12,
+    wave: "triangle",
+    volume: 0.09,
     notes: [
-      [-33, 0, 1.6, { wave: "sawtooth", volume: 0.035 }],
-      [-32, 0.05, 1.5, { wave: "sawtooth", volume: 0.03 }],
-      [27, 0.78, 0.9, { volume: 0.1 }],
-      [34, 0.78, 0.6, { volume: 0.04 }],
+      [27, 0.62, 0.9, { wave: "sine", volume: 0.1 }],
+      [34, 0.62, 0.6, { wave: "sine", volume: 0.04 }],
+      [-20, 1, 3.6, { wave: "sine", volume: 0.06, attack: 0.6 }],
+      [-8, 1, 0.4],
+      [-1, 1.45, 0.4],
+      [4, 1.9, 0.4],
+      [-1, 2.35, 0.4],
+      [0, 2.8, 0.4],
+      [-3, 3.25, 0.4],
+      [-1, 3.7, 1.2],
     ],
     noises: [
       [0, 0.035, { filter: "bandpass", frequency: 2600, volume: 0.5 }],
@@ -64,7 +71,7 @@ export const SOUNDS = {
       [0.22, 0.035, { filter: "bandpass", frequency: 2400, volume: 0.5 }],
       [0.37, 0.035, { filter: "bandpass", frequency: 2800, volume: 0.45 }],
       [0.46, 0.035, { filter: "bandpass", frequency: 2600, volume: 0.5 }],
-      [0.6, 0.12, { filter: "highpass", frequency: 1500, volume: 0.2 }],
+      [0.5, 0.12, { filter: "highpass", frequency: 1500, volume: 0.2 }],
     ],
   },
   // Yu-Gi-Oh: the card whooshes off the duel disk, the summon swells up, and the magic sparkles out
@@ -82,7 +89,7 @@ export const SOUNDS = {
     ],
     noises: [[0, 0.4, { filter: "bandpass", frequency: 900, sweepTo: 5000, volume: 0.25 }]],
   },
-  // Pokemon: the ball pops open, rattles three times, clicks shut, then the "caught" fanfare plays.
+  // Pokemon: the ball pops open, rattles three times, clicks shut, then the anime theme's opening riff kicks in.
   // timed to the ball's wobble on screen
   pokeball: {
     wave: "square",
@@ -93,12 +100,16 @@ export const SOUNDS = {
       [-8, 0.4, 0.05, { slideTo: -14 }],
       [-8, 0.68, 0.05, { slideTo: -14 }],
       [-20, 0.92, 0.04, { wave: "triangle", volume: 0.25 }],
-      [2, 1.05, 0.11],
-      [2, 1.17, 0.11],
-      [2, 1.29, 0.11],
-      [7, 1.41, 0.45],
-      [-10, 1.05, 0.33, { wave: "triangle", volume: 0.12 }],
-      [-5, 1.41, 0.45, { wave: "triangle", volume: 0.12 }],
+      [-4, 1.05, 0.12],
+      [1, 1.18, 0.12],
+      [3, 1.32, 0.12],
+      [4, 1.45, 0.12],
+      [3, 1.59, 0.12],
+      [4, 1.72, 0.12],
+      [6, 1.85, 0.12],
+      [8, 1.99, 0.9],
+      [-11, 1.05, 0.9, { wave: "triangle", volume: 0.12 }],
+      [-16, 1.99, 0.9, { wave: "triangle", volume: 0.12 }],
     ],
     noises: [[0.92, 0.03, { filter: "highpass", frequency: 3000, volume: 0.25 }]],
   },
@@ -166,6 +177,51 @@ export const SOUNDS = {
     noises: [
       [0, 0.18, { filter: "highpass", frequency: 3000, sweepTo: 9000, volume: 0.35 }],
       [0.12, 0.5, { filter: "bandpass", frequency: 2500, sweepTo: 400, volume: 0.25 }],
+    ],
+  },
+  // Spider-Man: a web shoots out with a thwip, then the 1967 cartoon theme sings
+  // "Spider-Man, Spider-Man, does whatever a spider can"
+  spider: {
+    wave: "square",
+    volume: 0.045,
+    notes: [
+      [3, 0.2, 0.28],
+      [6, 0.5, 0.14],
+      [10, 0.65, 0.5],
+      [9, 1.4, 0.28],
+      [6, 1.7, 0.14],
+      [3, 1.85, 0.5],
+      [3, 2.6, 0.28],
+      [6, 2.9, 0.14],
+      [10, 3.05, 0.28],
+      [11, 3.35, 0.14],
+      [10, 3.5, 0.28],
+      [9, 3.8, 0.28],
+      [6, 4.1, 0.14],
+      [3, 4.25, 0.6],
+      [-21, 0.2, 1.1, { wave: "triangle", volume: 0.12 }],
+      [-21, 2.6, 2.2, { wave: "triangle", volume: 0.12 }],
+    ],
+    noises: [[0, 0.14, { filter: "bandpass", frequency: 1200, sweepTo: 7000, volume: 0.35 }]],
+  },
+  // Batman: the 1966 show's surf guitar walks down and back up, "na na na na na na na na" twice, then "Batman!"
+  // lands with a comic book punch on each syllable
+  bat: {
+    wave: "sawtooth",
+    volume: 0.05,
+    notes: [
+      ...[-16, -16, -17, -17, -18, -18, -17, -17].flatMap((semitones, index) => [
+        [semitones, index * 0.15, 0.13],
+        [semitones, 1.2 + index * 0.15, 0.13],
+      ]),
+      [-1, 2.4, 0.26, { wave: "square", volume: 0.06 }],
+      [-13, 2.4, 0.26],
+      [-1, 2.7, 0.7, { wave: "square", volume: 0.06 }],
+      [-13, 2.7, 0.7],
+    ],
+    noises: [
+      [2.4, 0.12, { filter: "lowpass", frequency: 1600, volume: 0.4 }],
+      [2.7, 0.16, { filter: "lowpass", frequency: 1400, volume: 0.45 }],
     ],
   },
 };

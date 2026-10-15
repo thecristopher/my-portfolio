@@ -15,12 +15,14 @@ const VIEWPORT_GUTTER = 16;
 
 // how long each full screen effect stays up, the secret count pops in once it clears
 const ITEM_GET_MS = 3600;
-const SAVE_ROOM_MS = 3800;
+const SAVE_ROOM_MS = 4400;
 const TRANSMUTATION_MS = 2600;
 const GUSTS_MS = 2200;
 const WATER_SLASH_MS = 900;
 const GOTCHA_MS = 3000;
 const GRACE_BANNER_MS = 3000;
+const WEB_MS = 4600;
+const BAT_TRANSITION_MS = 3600;
 
 // one pip per secret on the page, lit in that secret's own color once found, so the score reads at a glance
 const SecretPips = ({ found, current }) => (
@@ -836,6 +838,251 @@ export const Pokeball = ({ className }) => {
       </SecretButton>
       <Flourish isShown={isCelebrating}>
         <Gotcha />
+      </Flourish>
+    </>
+  );
+};
+
+const SPIDER_RED = "#e23636";
+const BAT_YELLOW = "#f5c518";
+
+// the little spider from the chest of the suit: two body segments and four legs a side
+const SPIDER_LEGS = [
+  "M6.6 6.6 L3.5 3.8 L2.6 1",
+  "M9.4 6.6 L12.5 3.8 L13.4 1",
+  "M6.3 8.2 L2.6 7.2 L1 9",
+  "M9.7 8.2 L13.4 7.2 L15 9",
+  "M6.4 9.8 L3.2 11.6 L2.2 15",
+  "M9.6 9.8 L12.8 11.6 L13.8 15",
+  "M6.9 11.4 L5 13.5 L4.6 15.4",
+  "M9.1 11.4 L11 13.5 L11.4 15.4",
+];
+
+// eight spokes out of the middle and rings that sag between them, the way a real web hangs
+const WEB_SPOKES = Array.from({ length: 8 }, (_, index) => (index * Math.PI) / 4);
+const webPoint = (angle, radius) => [50 + radius * Math.cos(angle), 50 + radius * Math.sin(angle)];
+const WEB_RINGS = [12, 22, 32, 43].map((radius) =>
+  [...WEB_SPOKES, 2 * Math.PI]
+    .map((angle, index) => {
+      const [x, y] = webPoint(angle, radius).map((value) => value.toFixed(1));
+      if (index === 0) return `M${x} ${y}`;
+      const [sagX, sagY] = webPoint(angle - Math.PI / 8, radius * 0.82).map((value) => value.toFixed(1));
+      return `Q${sagX} ${sagY} ${x} ${y}`;
+    })
+    .join(" ")
+);
+
+const SpiderGlyph = ({ fill }) => (
+  <>
+    {SPIDER_LEGS.map((leg) => (
+      <path key={leg} d={leg} fill="none" stroke={fill} strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" />
+    ))}
+    <ellipse cx="8" cy="6.4" rx="1.5" ry="1.7" fill={fill} />
+    <ellipse cx="8" cy="10.2" rx="1.9" ry="2.6" fill={fill} />
+  </>
+);
+
+// a "THWIP!", the spider drops in on its thread, the web spins itself and a comic caption box names the hero
+const WebSwing = () => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.4 }}
+    className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 bg-black/60 px-4"
+    aria-hidden="true"
+  >
+    <div className="relative size-[min(70vw,20rem)]">
+      {/* the thread hangs from above the screen down to the middle of the web, unrolling as the spider drops */}
+      <motion.span
+        initial={{ scaleY: 0 }}
+        animate={{ scaleY: 1 }}
+        transition={{ duration: 0.7, ease: easeOutExpo }}
+        className="absolute bottom-1/2 left-1/2 h-screen w-px origin-top bg-white/80"
+      />
+      <svg viewBox="0 0 100 100" className="size-full overflow-visible">
+        {WEB_SPOKES.map((angle, index) => {
+          const [x, y] = webPoint(angle, 48);
+          return (
+            <motion.path
+              key={angle}
+              d={`M50 50 L${x.toFixed(1)} ${y.toFixed(1)}`}
+              stroke="#f4f1ea"
+              strokeWidth="0.5"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.35, delay: 0.3 + index * 0.04, ease: "easeOut" }}
+            />
+          );
+        })}
+        {WEB_RINGS.map((ring, index) => (
+          <motion.path
+            key={ring}
+            d={ring}
+            fill="none"
+            stroke="#f4f1ea"
+            strokeWidth="0.45"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.5, delay: 0.6 + index * 0.15, ease: "easeInOut" }}
+          />
+        ))}
+      </svg>
+      <motion.svg
+        viewBox="0 0 16 16"
+        className="absolute top-1/2 left-1/2 size-[22%] -translate-x-1/2 -translate-y-1/2"
+        initial={{ y: "-40vh", opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.7, ease: easeOutExpo }}
+        style={{ filter: `drop-shadow(0 0 10px ${SPIDER_RED})` }}
+      >
+        <SpiderGlyph fill={SPIDER_RED} />
+      </motion.svg>
+      <motion.p
+        initial={{ opacity: 0, scale: 0.4, rotate: -18 }}
+        animate={{ opacity: [0, 1, 1, 0], scale: [0.4, 1.1, 1, 1], rotate: -12 }}
+        transition={{ duration: 1.2, times: [0, 0.15, 0.7, 1] }}
+        className="absolute -top-4 -left-2 font-sans text-[clamp(1.5rem,6vw,2.5rem)] font-black tracking-tight text-white italic"
+        style={{ WebkitTextStroke: `1.5px ${SPIDER_RED}` }}
+      >
+        THWIP!
+      </motion.p>
+    </div>
+    <motion.p
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 1.5 }}
+      className="w-full max-w-md -rotate-1 border-2 border-black bg-[#ffe14d] px-5 py-3 text-center font-sans text-sm font-bold tracking-wide text-black uppercase shadow-[4px_4px_0_#000]"
+    >
+      <TypedText text="Your friendly neighborhood developer." startAt={1.7} perLetter={0.035} />
+    </motion.p>
+  </motion.div>
+);
+
+// a spider hanging off the certifications. with great power comes great responsibility
+export const Spider = ({ className }) => {
+  const [isFound, find, caption] = useSecret("spider");
+  const [isSwinging, swing] = useFlourish(WEB_MS);
+
+  const thwip = () => {
+    find({ countAfterMs: WEB_MS });
+    swing();
+  };
+
+  return (
+    <>
+      <SecretButton id="spider" isFound={isFound} label="A tiny spider" caption={caption} className={className} onClick={thwip}>
+        <motion.svg
+          viewBox="0 0 16 16"
+          className="size-4"
+          aria-hidden="true"
+          initial={false}
+          animate={isFound ? { y: [-6, 1, 0] } : { y: 0 }}
+          transition={{ duration: 0.7, ease: easeOutExpo }}
+        >
+          <SpiderGlyph fill={isFound ? SPIDER_RED : "currentColor"} />
+        </motion.svg>
+      </SecretButton>
+      <Flourish isShown={isSwinging}>
+        <WebSwing />
+      </Flourish>
+    </>
+  );
+};
+
+// the bat from the 1966 show's logo, sized for a 100 by 50 box
+const BAT_PATH =
+  "M47 8 L48.6 13.5 L51.4 13.5 L53 8 L54.6 16 C59 16 63 13 64 8 C75 11 88 18 93 30 C87 26 81 27 77 31 C74 26 68 26 65 32 C61 29 54 31 50 41 C46 31 39 29 35 32 C32 26 26 26 23 31 C19 27 13 26 7 30 C12 18 25 11 36 8 C37 13 41 16 45.4 16 Z";
+
+const BatEmblem = ({ className, oval = BAT_YELLOW, bat = "#111111", style }) => (
+  <svg viewBox="0 0 100 50" className={className} style={style} aria-hidden="true">
+    <ellipse cx="50" cy="25" rx="48" ry="23" fill={oval} stroke={bat} strokeWidth="2" />
+    <path d={BAT_PATH} fill={bat} />
+  </svg>
+);
+
+// sixteen points around a center, the jagged balloon every "POW!" in the old show came in
+const BURST_POINTS = Array.from({ length: 32 }, (_, index) => {
+  const angle = (index * Math.PI) / 16;
+  const radius = index % 2 === 0 ? 48 : 32;
+  return `${(50 + radius * Math.cos(angle)).toFixed(1)},${(50 + radius * Math.sin(angle)).toFixed(1)}`;
+}).join(" ");
+
+// each one lands on a syllable of "Bat-man!" in the jingle
+const BAT_BURSTS = [
+  { word: "POW!", at: 2.35, className: "top-[18%] left-[8%]", color: "#e23636", tilt: -14 },
+  { word: "BAM!", at: 2.65, className: "right-[8%] bottom-[18%]", color: "#2f6fdf", tilt: 10 },
+];
+
+const Burst = ({ word, at, className, color, tilt }) => (
+  <motion.div
+    initial={{ scale: 0, rotate: tilt - 30 }}
+    animate={{ scale: [0, 1.25, 1], rotate: tilt }}
+    transition={{ duration: 0.35, delay: at, ease: easeOutExpo }}
+    className={`absolute grid size-[min(34vw,10rem)] place-items-center ${className}`}
+  >
+    <svg viewBox="0 0 100 100" className="absolute inset-0 size-full">
+      <polygon points={BURST_POINTS} fill={BAT_YELLOW} stroke="#111111" strokeWidth="2.5" strokeLinejoin="round" />
+    </svg>
+    <span className="relative font-sans text-[clamp(1.25rem,5vw,2.5rem)] font-black italic" style={{ color, WebkitTextStroke: "1.5px #111" }}>
+      {word}
+    </span>
+  </motion.div>
+);
+
+// the 1966 scene change: the bat logo spins out of nowhere to fill the screen, then the fight words land on the beat
+const BatTransition = () => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.3 }}
+    className="pointer-events-none fixed inset-0 z-50 grid place-items-center overflow-hidden bg-[radial-gradient(circle,#1d2a5c_0%,#05060d_75%)]"
+    aria-hidden="true"
+  >
+    <motion.div
+      initial={{ scale: 0.02, rotate: 0 }}
+      animate={{ scale: 1, rotate: 1080 }}
+      transition={{ duration: 1.8, ease: [0.3, 0, 0.2, 1] }}
+    >
+      <BatEmblem className="w-[min(80vw,30rem)]" style={{ filter: `drop-shadow(0 0 30px ${BAT_YELLOW}88)` }} />
+    </motion.div>
+    {BAT_BURSTS.map((burst) => (
+      <Burst key={burst.word} {...burst} />
+    ))}
+  </motion.div>
+);
+
+// a bat tucked next to where it all started. every hero has an origin story
+export const Bat = ({ className }) => {
+  const [isFound, find, caption] = useSecret("bat");
+  const [isSpinning, spin] = useFlourish(BAT_TRANSITION_MS);
+
+  const signal = () => {
+    find({ countAfterMs: BAT_TRANSITION_MS });
+    spin();
+  };
+
+  return (
+    <>
+      <SecretButton id="bat" isFound={isFound} label="A small bat" caption={caption} className={className} onClick={signal}>
+        <motion.span
+          className="block"
+          initial={false}
+          animate={{ rotate: isFound ? 360 : 0 }}
+          transition={{ duration: 0.9, ease: easeOutExpo }}
+        >
+          {isFound ? (
+            <BatEmblem className="w-5" />
+          ) : (
+            <svg viewBox="0 0 100 50" className="w-5" aria-hidden="true">
+              <path d={BAT_PATH} fill="currentColor" />
+            </svg>
+          )}
+        </motion.span>
+      </SecretButton>
+      <Flourish isShown={isSpinning}>
+        <BatTransition />
       </Flourish>
     </>
   );
