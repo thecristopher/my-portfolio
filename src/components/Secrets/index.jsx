@@ -15,13 +15,13 @@ const VIEWPORT_GUTTER = 16;
 
 // how long each full screen effect stays up, the secret count pops in once it clears
 const ITEM_GET_MS = 3600;
-const SAVE_ROOM_MS = 4400;
+const SAVE_ROOM_MS = 4200;
 const TRANSMUTATION_MS = 2600;
 const GUSTS_MS = 2200;
-const WATER_SLASH_MS = 900;
+const WATER_SLASH_MS = 1200;
 const GOTCHA_MS = 3000;
 const GRACE_BANNER_MS = 3000;
-const WEB_MS = 4600;
+const WEB_MS = 4300;
 const BAT_TRANSITION_MS = 3600;
 
 // one pip per secret on the page, lit in that secret's own color once found, so the score reads at a glance
@@ -882,7 +882,38 @@ const SpiderGlyph = ({ fill }) => (
   </>
 );
 
-// a "THWIP!", the spider drops in on its thread, the web spins itself and a comic caption box names the hero
+// our friendly neighbor's mask: the red hood, the web lines running out from the nose and the big white lenses
+const MASK_HEAD = "M50 4 C78 4 92 28 90 58 C88 88 70 114 50 116 C30 114 12 88 10 58 C8 28 22 4 50 4 Z";
+const MASK_EYES = [
+  "M44 54 C40 41 27 34 17 38 C15 52 26 64 40 64 C44 62 45 58 44 54 Z",
+  "M56 54 C60 41 73 34 83 38 C85 52 74 64 60 64 C56 62 55 58 56 54 Z",
+];
+const MASK_SPOKES = Array.from({ length: 12 }, (_, index) => (index * Math.PI) / 6);
+
+const SpiderFace = ({ className, style }) => (
+  <svg viewBox="0 0 100 120" className={className} style={style}>
+    <defs>
+      <clipPath id="spider-mask-head">
+        <path d={MASK_HEAD} />
+      </clipPath>
+    </defs>
+    <path d={MASK_HEAD} fill={SPIDER_RED} />
+    <g clipPath="url(#spider-mask-head)" fill="none" stroke="#3a0b0b" strokeWidth="1.1" opacity="0.7">
+      {MASK_SPOKES.map((angle) => (
+        <path key={angle} d={`M50 66 L${(50 + 90 * Math.cos(angle)).toFixed(1)} ${(66 + 90 * Math.sin(angle)).toFixed(1)}`} />
+      ))}
+      {[14, 28, 42, 56].map((radius) => (
+        <ellipse key={radius} cx="50" cy="66" rx={radius} ry={radius * 1.1} />
+      ))}
+    </g>
+    <path d={MASK_HEAD} fill="none" stroke="#111111" strokeWidth="2" />
+    {MASK_EYES.map((eye) => (
+      <path key={eye} d={eye} fill="#f4f1ea" stroke="#111111" strokeWidth="4" strokeLinejoin="round" />
+    ))}
+  </svg>
+);
+
+// a "THWIP!", our friendly neighbor drops in on his thread, the web spins itself and a comic caption box names the hero
 const WebSwing = () => (
   <motion.div
     initial={{ opacity: 0 }}
@@ -928,16 +959,21 @@ const WebSwing = () => (
           />
         ))}
       </svg>
-      <motion.svg
-        viewBox="0 0 16 16"
-        className="absolute top-1/2 left-1/2 size-[22%] -translate-x-1/2 -translate-y-1/2"
-        initial={{ y: "-40vh", opacity: 0 }}
+      {/* he drops down his thread into the middle of the web and swings there for a moment */}
+      <motion.div
+        className="absolute top-1/2 left-1/2 w-[34%] -translate-x-1/2 -translate-y-1/2"
+        initial={{ y: "-50vh", opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, ease: easeOutExpo }}
-        style={{ filter: `drop-shadow(0 0 10px ${SPIDER_RED})` }}
       >
-        <SpiderGlyph fill={SPIDER_RED} />
-      </motion.svg>
+        <motion.div
+          animate={{ rotate: [0, 7, -5, 3, 0] }}
+          transition={{ duration: 1.6, delay: 0.6, ease: "easeInOut" }}
+          style={{ originY: 0 }}
+        >
+          <SpiderFace className="w-full" style={{ filter: `drop-shadow(0 0 14px ${SPIDER_RED}aa)` }} />
+        </motion.div>
+      </motion.div>
       <motion.p
         initial={{ opacity: 0, scale: 0.4, rotate: -18 }}
         animate={{ opacity: [0, 1, 1, 0], scale: [0.4, 1.1, 1, 1], rotate: -12 }}
