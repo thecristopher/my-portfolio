@@ -3,7 +3,7 @@ import { ArrowUpRight, GitFork, Star } from "lucide-react";
 import SectionHeader from "../../components/SectionHeader";
 import SpotlightCard from "../../components/SpotlightCard";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
-import { Bat } from "../../components/Secrets";
+import { Triforce } from "../../components/Secrets";
 import { GITHUB_USER, useGetReposQuery } from "../../api/githubApi";
 import { easeOutExpo } from "../../lib/motion";
 
@@ -81,7 +81,7 @@ const GitHub = () => {
                 <span className="text-accent">$</span> gh repo list {GITHUB_USER} | wc -l{" "}
                 <span className="text-fg">→ {repos.length}</span>
               </p>
-              <Bat className="-my-2" />
+              <Triforce className="-my-2" />
             </div>
           )}
         </div>

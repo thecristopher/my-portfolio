@@ -6,14 +6,14 @@ const STORAGE_KEY = "secrets-found";
 
 // each secret's color for the progress pips, and the line its tooltip says once found: half the franchise, half me
 export const SECRETS = {
-  triforce: { color: "#e8c35a", quip: "It's dangerous to ship alone. Take a tech lead with you." },
+  triforce: { color: "#e8c35a", quip: "It's dangerous to ship alone. Take these side quests." },
   umbrella: { color: "#d62828", quip: "Career progress saved. No ink ribbon required." },
   grace: { color: "#f5d77a", quip: "Grace touched. Respawn point set to my inbox." },
   magician: { color: "#ff91be", quip: "Every skill is a duel monster now, +500 ATK. I believe in the heart of the cards." },
   pokeball: { color: "#e3350d", quip: "Gotcha! Cristopher joined your party. Type: Full Stack." },
   alchemy: { color: "#6ec3ff", quip: "Equivalent exchange: hard problems in, readable code out." },
   airbender: { color: "#f5a524", quip: "Mastered all four stacks: frontend, backend, cloud and people." },
-  hanafuda: { color: "#3fa9f5", quip: "Total Concentration. Deep Work Breathing, First Form." },
+  hanafuda: { color: "#3fa9f5", quip: "Total Concentration Breathing. That's how every one of these exams got passed." },
   spider: { color: "#e23636", quip: "With great power comes great responsibility. So I write the tests too." },
   bat: { color: "#f5c518", quip: "Not the engineer this codebase deserves, but the one it needs on call at 3 a.m." },
 };
