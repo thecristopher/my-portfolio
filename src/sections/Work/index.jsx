@@ -4,7 +4,7 @@ import { ArrowUpRight, ChevronDown } from "lucide-react";
 import SectionHeader from "../../components/SectionHeader";
 import TerminalWindow from "../../components/TerminalWindow";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
-import { Umbrella } from "../../components/Secrets";
+import { Grace } from "../../components/Secrets";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { techIconMap } from "../../lib/techIconMap";
@@ -123,15 +123,19 @@ const ProjectCard = ({ project, index, total, progress, isStacking }) => {
                 <p><span className="text-accent">$</span> ls ./stack</p>
                 <StackList technologies={project.technologies} />
               </div>
-              <a
-                href={project.url}
-                target="_blank"
-                rel="noreferrer"
-                className="group flex items-center gap-1.5 text-muted transition-colors hover:text-accent"
-              >
-                <span className="text-accent">$</span> open {hostnameFromUrl(project.url)}
-                <ArrowUpRight size={13} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-              </a>
+              <div className="flex items-center justify-between gap-2">
+                <a
+                  href={project.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex items-center gap-1.5 text-muted transition-colors hover:text-accent"
+                >
+                  <span className="text-accent">$</span> open {hostnameFromUrl(project.url)}
+                  <ArrowUpRight size={13} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                </a>
+                {/* the last card is the one left on top of the stack, a good place to rest */}
+                {index === total - 1 && <Grace className="-my-2" />}
+              </div>
             </div>
           </div>
         </TerminalWindow>
@@ -154,12 +158,9 @@ const Work = () => {
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <SectionHeader index="03" label="work.json" title="Where the systems shipped." />
           {projects.length > 0 && (
-            <div className="flex items-center gap-1">
-              <p className="font-mono text-xs text-faint">
-                <span className="text-accent">$</span> ls -t ~/work <span className="text-fg">→ newest first</span>
-              </p>
-              <Umbrella className="-my-2" />
-            </div>
+            <p className="font-mono text-xs text-faint">
+              <span className="text-accent">$</span> ls -t ~/work <span className="text-fg">→ newest first</span>
+            </p>
           )}
         </div>
 

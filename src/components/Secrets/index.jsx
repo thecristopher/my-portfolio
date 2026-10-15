@@ -17,7 +17,7 @@ const VIEWPORT_GUTTER = 16;
 const ITEM_GET_MS = 3600;
 const SAVE_ROOM_MS = 4200;
 const TRANSMUTATION_MS = 2600;
-const GUSTS_MS = 2200;
+const GUSTS_MS = 2800;
 const WATER_SLASH_MS = 1200;
 const GOTCHA_MS = 3000;
 const GRACE_BANNER_MS = 3000;
@@ -46,7 +46,7 @@ const SecretPips = ({ found, current }) => (
 // the effect does the storytelling, the pill next to the icon mixes the franchise with me and keeps score.
 // it pops up once the effect clears, and again on hover for anything already found.
 // once it mounts it nudges itself sideways if it would spill past either edge of the screen
-const SecretButton = ({ id, isFound, label, onClick, caption, captionClassName = "left-0", className = "", children }) => {
+const SecretButton = ({ id, isFound, label, onClick, caption, captionClassName = "left-0", isCaptionBelow = false, className = "", children }) => {
   const captionRef = useRef(null);
   const [nudge, setNudge] = useState(0);
   const [isPeeking, setIsPeeking] = useState(false);
@@ -84,7 +84,7 @@ const SecretButton = ({ id, isFound, label, onClick, caption, captionClassName =
         type="button"
         aria-label={label}
         onClick={onClick}
-        className="grid size-8 place-items-center rounded-md text-faint/60 transition-colors hover:text-faint"
+        className="grid size-8 place-items-center rounded-md text-faint/40 transition-colors hover:text-faint"
       >
         {children}
       </button>
@@ -93,12 +93,12 @@ const SecretButton = ({ id, isFound, label, onClick, caption, captionClassName =
           <motion.span
             ref={captionRef}
             role={caption ? "status" : undefined}
-            initial={{ opacity: 0, y: 6, scale: 0.96, filter: "blur(4px)" }}
+            initial={{ opacity: 0, y: isCaptionBelow ? -6 : 6, scale: 0.96, filter: "blur(4px)" }}
             animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: 4, scale: 0.98 }}
+            exit={{ opacity: 0, y: isCaptionBelow ? -4 : 4, scale: 0.98 }}
             transition={{ duration: 0.35, ease: easeOutExpo }}
             style={{ marginLeft: nudge, "--secret": SECRETS[id].color }}
-            className={`secret-tooltip pointer-events-none absolute bottom-full z-30 mb-2 flex w-max max-w-[min(20rem,calc(100vw-2rem))] flex-col gap-2 rounded-xl border border-line-strong bg-panel/90 px-3 py-2.5 text-left font-mono text-[11px] text-muted shadow-[0_18px_40px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl ${captionClassName}`}
+            className={`secret-tooltip pointer-events-none absolute z-30 flex ${isCaptionBelow ? "top-full mt-2" : "bottom-full mb-2"} w-max max-w-[min(20rem,calc(100vw-2rem))] flex-col gap-2 rounded-xl border border-line-strong bg-panel/90 px-3 py-2.5 text-left font-mono text-[11px] text-muted shadow-[0_18px_40px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl ${captionClassName}`}
           >
             <span className="leading-snug text-pretty whitespace-normal text-fg">
               <span style={{ color: SECRETS[id].color }}>✦</span> {tooltip.quip}
@@ -283,7 +283,8 @@ export const Umbrella = ({ className }) => {
       <SecretButton
         id="umbrella" isFound={isFound} label="A corporate logo"
         caption={caption}
-        captionClassName="left-1/2 -translate-x-1/2 md:right-0 md:left-auto md:translate-x-0"
+        // it sits on the first line of the contact terminal, which clips anything poking out above it
+        isCaptionBelow
         className={className}
         onClick={saveGame}
       >
@@ -367,7 +368,7 @@ const TransmutationFlash = () => (
   </motion.div>
 );
 
-// a tiny transmutation circle tucked into the philosophy line. equivalent exchange: one click, one secret
+// a tiny transmutation circle chalked after the last word of the bio. equivalent exchange: one click, one secret
 export const Alchemy = ({ className }) => {
   const [isFound, find, caption] = useSecret("alchemy");
   const [isFlashing, flash] = useFlourish(TRANSMUTATION_MS);
@@ -401,12 +402,12 @@ export const Alchemy = ({ className }) => {
 };
 
 const AIR_ORANGE = "#f5a524";
-// one gust per element, top to bottom: water, earth, fire, air
+// one gust per element, top to bottom: water, earth, fire, air. they arrive one beat apart, like the intro narration
 const GUSTS = [
   { top: "18%", color: "#4aa8ff", delay: 0 },
-  { top: "38%", color: "#5fbf5a", delay: 0.12 },
-  { top: "58%", color: "#ff5a3c", delay: 0.24 },
-  { top: "78%", color: AIR_ORANGE, delay: 0.36 },
+  { top: "38%", color: "#5fbf5a", delay: 0.35 },
+  { top: "58%", color: "#ff5a3c", delay: 0.7 },
+  { top: "78%", color: AIR_ORANGE, delay: 1.05 },
 ];
 
 const Gust = ({ top, color, delay }) => (
@@ -432,7 +433,7 @@ const ElementGusts = () => (
   </motion.div>
 );
 
-// the air nomad swirl, hiding next to the pixel me. he's not the Avatar, but he can bend a little
+// the air nomad swirl, hiding next to the certifications. mastered every element, or at least every exam
 export const Airbender = ({ className }) => {
   const [isFound, find, caption] = useSecret("airbender");
   const [isBlowing, blow] = useFlourish(GUSTS_MS);
@@ -592,7 +593,7 @@ const GRACE_MOTES = [
   { x: 8, delay: 1.3 },
 ];
 
-// the Elden Ring sigil sits quiet after the contact terminal logs out. touch it and it lights up like a site of grace
+// the Elden Ring sigil rests beside the last job on the stack. touch it and it lights up like a site of grace
 export const Grace = ({ className }) => {
   const [isLit, find, caption] = useSecret("grace");
   const [isBannerShown, setIsBannerShown] = useState(false);
@@ -882,13 +883,23 @@ const SpiderGlyph = ({ fill }) => (
   </>
 );
 
-// our friendly neighbor's mask: the red hood, the web lines running out from the nose and the big white lenses
-const MASK_HEAD = "M50 4 C78 4 92 28 90 58 C88 88 70 114 50 116 C30 114 12 88 10 58 C8 28 22 4 50 4 Z";
-const MASK_EYES = [
-  "M44 54 C40 41 27 34 17 38 C15 52 26 64 40 64 C44 62 45 58 44 54 Z",
-  "M56 54 C60 41 73 34 83 38 C85 52 74 64 60 64 C56 62 55 58 56 54 Z",
-];
-const MASK_SPOKES = Array.from({ length: 12 }, (_, index) => (index * Math.PI) / 6);
+// our friendly neighbor's mask: a head that narrows to the chin, webbing that fans out from the nose,
+// and the classic lenses, wide and rounded at the temples, tapering to a point by the nose, with a thick black frame
+const MASK_HEAD = "M50 8 C73 8 86 26 86 50 C86 72 78 92 66 104 C60 110 55 113 50 113 C45 113 40 110 34 104 C22 92 14 72 14 50 C14 26 27 8 50 8 Z";
+const MASK_LEFT_EYE = "M45 65 C42.5 55 37 47 28 44 C22.5 42.2 18.5 44 18.5 49 C18.5 57 24 63.5 31 65.5 C37 67 41.5 67 45 65 Z";
+const MASK_CENTER = [50, 70];
+const MASK_SPOKES = Array.from({ length: 16 }, (_, index) => (index * Math.PI) / 8);
+const maskPoint = (angle, radius) => [MASK_CENTER[0] + radius * Math.cos(angle), MASK_CENTER[1] + radius * Math.sin(angle) * 1.1];
+const MASK_RINGS = [13, 25, 38, 52, 68].map((radius) =>
+  [...MASK_SPOKES, 2 * Math.PI]
+    .map((angle, index) => {
+      const [x, y] = maskPoint(angle, radius).map((value) => value.toFixed(1));
+      if (index === 0) return `M${x} ${y}`;
+      const [sagX, sagY] = maskPoint(angle - Math.PI / 16, radius * 0.9).map((value) => value.toFixed(1));
+      return `Q${sagX} ${sagY} ${x} ${y}`;
+    })
+    .join(" ")
+);
 
 const SpiderFace = ({ className, style }) => (
   <svg viewBox="0 0 100 120" className={className} style={style}>
@@ -896,19 +907,25 @@ const SpiderFace = ({ className, style }) => (
       <clipPath id="spider-mask-head">
         <path d={MASK_HEAD} />
       </clipPath>
+      <radialGradient id="spider-mask-shade" cx="40%" cy="35%" r="75%">
+        <stop offset="0%" stopColor="#ef3b3b" />
+        <stop offset="100%" stopColor="#a5161b" />
+      </radialGradient>
     </defs>
-    <path d={MASK_HEAD} fill={SPIDER_RED} />
-    <g clipPath="url(#spider-mask-head)" fill="none" stroke="#3a0b0b" strokeWidth="1.1" opacity="0.7">
-      {MASK_SPOKES.map((angle) => (
-        <path key={angle} d={`M50 66 L${(50 + 90 * Math.cos(angle)).toFixed(1)} ${(66 + 90 * Math.sin(angle)).toFixed(1)}`} />
-      ))}
-      {[14, 28, 42, 56].map((radius) => (
-        <ellipse key={radius} cx="50" cy="66" rx={radius} ry={radius * 1.1} />
+    <path d={MASK_HEAD} fill="url(#spider-mask-shade)" />
+    <g clipPath="url(#spider-mask-head)" fill="none" stroke="#1a0606" strokeWidth="0.9" opacity="0.6">
+      {MASK_SPOKES.map((angle) => {
+        const [x, y] = maskPoint(angle, 90).map((value) => value.toFixed(1));
+        const [startX, startY] = maskPoint(angle, 4).map((value) => value.toFixed(1));
+        return <path key={angle} d={`M${startX} ${startY} L${x} ${y}`} />;
+      })}
+      {MASK_RINGS.map((ring) => (
+        <path key={ring} d={ring} />
       ))}
     </g>
-    <path d={MASK_HEAD} fill="none" stroke="#111111" strokeWidth="2" />
-    {MASK_EYES.map((eye) => (
-      <path key={eye} d={eye} fill="#f4f1ea" stroke="#111111" strokeWidth="4" strokeLinejoin="round" />
+    <path d={MASK_HEAD} fill="none" stroke="#111111" strokeWidth="1.6" />
+    {[undefined, "translate(100 0) scale(-1 1)"].map((mirror) => (
+      <path key={mirror ?? "left"} d={MASK_LEFT_EYE} transform={mirror} fill="#f4f1ea" stroke="#111111" strokeWidth="5.5" strokeLinejoin="round" />
     ))}
   </svg>
 );
@@ -995,7 +1012,8 @@ const WebSwing = () => (
   </motion.div>
 );
 
-// a spider hanging off the certifications. with great power comes great responsibility
+// a spider hanging off the degree, Peter Parker was a student first. with great power comes great responsibility
+export { SpiderFace };
 export const Spider = ({ className }) => {
   const [isFound, find, caption] = useSecret("spider");
   const [isSwinging, swing] = useFlourish(WEB_MS);
@@ -1089,7 +1107,7 @@ const BatTransition = () => (
   </motion.div>
 );
 
-// a bat tucked next to where it all started. every hero has an origin story
+// a bat watching over the side quests, the ones shipped after hours
 export const Bat = ({ className }) => {
   const [isFound, find, caption] = useSecret("bat");
   const [isSpinning, spin] = useFlourish(BAT_TRANSITION_MS);
