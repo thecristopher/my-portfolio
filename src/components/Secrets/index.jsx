@@ -84,7 +84,7 @@ const SecretButton = ({ id, isFound, label, onClick, caption, captionClassName =
         type="button"
         aria-label={label}
         onClick={onClick}
-        className="grid size-8 place-items-center rounded-md text-faint/40 transition-colors hover:text-faint"
+        className="grid size-8 touch-manipulation place-items-center rounded-md text-faint/40 transition-colors hover:text-faint"
       >
         {children}
       </button>
