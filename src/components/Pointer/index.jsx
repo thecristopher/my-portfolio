@@ -48,10 +48,26 @@ const Pointer = () => {
     let frame = null;
     let currentMode = "block";
 
-    // follow the hovered control every frame, since sticky cards and smooth scrolling move it under a still mouse
+    // works out what sits under the mouse right now. a click can move the page under a still mouse (a filter
+    // fading jobs, a banner sliding in, smooth scrolling), so this runs every frame instead of trusting the last move
+    const resolve = (element) => {
+      const control = element?.closest(MORPHS_ONTO);
+      const field = element?.closest(TYPES_INTO);
+      const box = control?.getBoundingClientRect();
+      // a control too big to hug, like a whole card that is a link, keeps the block instead
+      const isHuggable = box && box.width < 520 && box.height < 180;
+      const nextMode = field ? "bar" : isHuggable ? "morph" : "block";
+      target = nextMode === "morph" ? control : null;
+      if (nextMode !== currentMode) {
+        currentMode = nextMode;
+        setMode(nextMode);
+      }
+    };
+
     const place = () => {
       frame = null;
-      if (target && target.isConnected) {
+      if (target) resolve(document.elementFromPoint(pointer.x, pointer.y));
+      if (target) {
         const box = target.getBoundingClientRect();
         const pull = { x: (pointer.x - (box.left + box.width / 2)) * 0.08, y: (pointer.y - (box.top + box.height / 2)) * 0.12 };
         x.set(box.left - HUG + pull.x);
@@ -62,7 +78,6 @@ const Pointer = () => {
         frame = requestAnimationFrame(place);
         return;
       }
-      target = null;
       const isBar = currentMode === "bar";
       x.set(pointer.x - (isBar ? 1 : BLOCK.width / 2));
       y.set(pointer.y - BLOCK.height / 2);
@@ -73,18 +88,14 @@ const Pointer = () => {
 
     const move = (event) => {
       pointer = { x: event.clientX, y: event.clientY };
-      const element = event.target instanceof Element ? event.target : null;
-      const control = element?.closest(MORPHS_ONTO);
-      const field = element?.closest(TYPES_INTO);
-      // a control too big to hug, like a whole card that is a link, keeps the block instead
-      const isHuggable = control && control.getBoundingClientRect().width < 520 && control.getBoundingClientRect().height < 180;
-      const nextMode = field ? "bar" : isHuggable ? "morph" : "block";
-      target = nextMode === "morph" ? control : null;
-      if (nextMode !== currentMode) {
-        currentMode = nextMode;
-        setMode(nextMode);
-      }
+      resolve(event.target instanceof Element ? event.target : null);
       setIsVisible(true);
+      frame ??= requestAnimationFrame(place);
+    };
+    // scrolling slides new things under a mouse that never moved
+    const rescan = () => {
+      if (pointer.x < 0) return;
+      resolve(document.elementFromPoint(pointer.x, pointer.y));
       frame ??= requestAnimationFrame(place);
     };
     const hide = () => setIsVisible(false);
@@ -92,6 +103,7 @@ const Pointer = () => {
     const lift = () => root.classList.remove("pointer-down");
 
     window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("scroll", rescan, { passive: true });
     window.addEventListener("pointerdown", press, { passive: true });
     window.addEventListener("pointerup", lift, { passive: true });
     root.addEventListener("pointerleave", hide);
@@ -99,6 +111,7 @@ const Pointer = () => {
       cancelAnimationFrame(frame);
       root.classList.remove("has-pointer", "pointer-down");
       window.removeEventListener("pointermove", move);
+      window.removeEventListener("scroll", rescan);
       window.removeEventListener("pointerdown", press);
       window.removeEventListener("pointerup", lift);
       root.removeEventListener("pointerleave", hide);

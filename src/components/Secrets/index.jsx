@@ -1,10 +1,12 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useAnimationControls, useReducedMotion } from "framer-motion";
-import { SECRETS, SECRET_IDS, readFound, secretTooltip, useSecret } from "../../lib/secrets";
+import { useSecret } from "../../lib/secrets";
+import { easedGlow, softBeams, softRing } from "../../actions";
 import { MAGIC_BLUE, MAGIC_PINK, castMagic } from "../../lib/magic";
 import { playSound } from "../../lib/sound";
 import { easeOutExpo } from "../../lib/motion";
+import { scrollToSection } from "../../lib/smoothScroll";
 import { PERCEPTION_DC, localRoll, verdictFor } from "../../lib/dice";
 import { useLazyGetRollQuery } from "../../api/rollApi";
 import darkMagicianGirl from "../../assets/images/dark-magician-girl.png";
@@ -13,108 +15,30 @@ const GOLD = "#e8c35a";
 const UMBRELLA_RED = "#d62828";
 const POKEBALL_RED = "#e3350d";
 
-const VIEWPORT_GUTTER = 16;
-
 // how long each full screen effect stays up, the secret count pops in once it clears
-const ITEM_GET_MS = 3600;
-const SAVE_ROOM_MS = 4200;
-const TRANSMUTATION_MS = 2600;
-const GUSTS_MS = 2800;
-const WATER_SLASH_MS = 1200;
-const GOTCHA_MS = 3000;
-const GRACE_BANNER_MS = 3000;
-const WEB_MS = 4300;
-const BAT_TRANSITION_MS = 3600;
+const ITEM_GET_MS = 4000;
+const SAVE_ROOM_MS = 4600;
+const TRANSMUTATION_MS = 3600;
+const GUSTS_MS = 3800;
+const WATER_SLASH_MS = 2800;
+const GOTCHA_MS = 3400;
+const GRACE_BANNER_MS = 3800;
+const WEB_MS = 4500;
+const BAT_TRANSITION_MS = 4400;
 
-// one pip per secret on the page, lit in that secret's own color once found, so the score reads at a glance
-const SecretPips = ({ found, current }) => (
-  <span className="flex items-center gap-1" aria-hidden="true">
-    {SECRET_IDS.map((id) => {
-      const isLit = found.includes(id);
-      return (
-        <motion.span
-          key={id}
-          initial={false}
-          animate={id === current ? { scale: [0.4, 1.5, 1] } : { scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.25, ease: easeOutExpo }}
-          className={`size-1.5 rounded-full ${isLit ? "" : "bg-line-strong"}`}
-          style={isLit ? { background: SECRETS[id].color, boxShadow: `0 0 6px ${SECRETS[id].color}` } : undefined}
-        />
-      );
-    })}
+// the button each secret hides behind. the effect it sets off does all the talking
+const SecretButton = ({ label, onClick, className = "", children }) => (
+  <span className={`relative inline-block ${className}`}>
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      className="grid size-8 touch-manipulation place-items-center rounded-md text-faint/40 transition-colors hover:text-faint"
+    >
+      {children}
+    </button>
   </span>
 );
-
-// the effect does the storytelling, the pill next to the icon mixes the franchise with me and keeps score.
-// it pops up once the effect clears, and again on hover for anything already found.
-// once it mounts it nudges itself sideways if it would spill past either edge of the screen
-const SecretButton = ({ id, isFound, label, onClick, caption, captionClassName = "left-0", className = "", children }) => {
-  const captionRef = useRef(null);
-  const [nudge, setNudge] = useState(0);
-  const [isPeeking, setIsPeeking] = useState(false);
-
-  const peek = isFound && isPeeking ? secretTooltip(id, readFound()) : null;
-  const tooltip = caption ?? peek;
-  const isShown = Boolean(tooltip);
-
-  useLayoutEffect(() => {
-    const element = captionRef.current;
-    if (!element) {
-      setNudge(0);
-      return;
-    }
-    const rect = element.getBoundingClientRect();
-    const left = rect.left - nudge;
-    const right = rect.right - nudge;
-    const viewportWidth = document.documentElement.clientWidth;
-    if (right > viewportWidth - VIEWPORT_GUTTER) setNudge(Math.max(VIEWPORT_GUTTER - left, viewportWidth - VIEWPORT_GUTTER - right));
-    else if (left < VIEWPORT_GUTTER) setNudge(VIEWPORT_GUTTER - left);
-    else setNudge(0);
-    // only re-measure when the pill shows up, nudge is read just to undo the previous one
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isShown, caption]);
-
-  return (
-    <span
-      className={`relative inline-block ${className}`}
-      onPointerEnter={() => setIsPeeking(true)}
-      onPointerLeave={() => setIsPeeking(false)}
-      onFocus={() => setIsPeeking(true)}
-      onBlur={() => setIsPeeking(false)}
-    >
-      <button
-        type="button"
-        aria-label={label}
-        onClick={onClick}
-        className="grid size-8 touch-manipulation place-items-center rounded-md text-faint/40 transition-colors hover:text-faint"
-      >
-        {children}
-      </button>
-      <AnimatePresence>
-        {tooltip && (
-          <motion.span
-            ref={captionRef}
-            role={caption ? "status" : undefined}
-            initial={{ opacity: 0, y: 6, scale: 0.96, filter: "blur(4px)" }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: 4, scale: 0.98 }}
-            transition={{ duration: 0.35, ease: easeOutExpo }}
-            style={{ marginLeft: nudge, "--secret": SECRETS[id].color }}
-            className={`secret-tooltip pointer-events-none absolute bottom-full z-30 mb-2 flex w-max max-w-[min(20rem,calc(100vw-2rem))] flex-col gap-2 rounded-xl border border-line-strong bg-panel/90 px-3 py-2.5 text-left font-mono text-[11px] text-muted shadow-[0_18px_40px_-12px_color-mix(in_oklab,var(--color-shadow)_70%,transparent)] backdrop-blur-xl ${captionClassName}`}
-          >
-            <span className="leading-snug text-pretty whitespace-normal text-fg">
-              <span style={{ color: SECRETS[id].color }}>✦</span> {tooltip.quip}
-            </span>
-            <span className="flex items-center justify-between gap-4 border-t border-line pt-2 whitespace-nowrap">
-              <SecretPips found={tooltip.found} current={caption ? id : null} />
-              <span className="tabular-nums text-faint">{tooltip.count}</span>
-            </span>
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </span>
-  );
-};
 
 // keeps a full screen flourish on screen for a moment, then lets it fade out
 const useFlourish = (lastsMs) => {
@@ -144,6 +68,118 @@ const TypedText = ({ text, startAt = 0, perLetter = 0.04 }) =>
     </motion.span>
   ));
 
+// the dark the effects play over: tinted with the egg's color in the middle, deep enough that the page never reads through
+const veil = (color, strength = 0.82) => `${easedGlow(color, { strength: 0.2, shape: "ellipse", reach: 80 })}, rgba(5,5,12,${strength})`;
+
+// a ring of light rolling out from the middle of the screen, the beat where an effect lands
+const Shockwave = ({ color, delay = 0, size = "min(80vw,30rem)" }) => (
+  <motion.span
+    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+    style={{ width: size, height: size, background: softRing(color), mixBlendMode: "screen" }}
+    initial={{ scale: 0.15, opacity: 0 }}
+    animate={{ scale: 2.2, opacity: [0, 0.9, 0] }}
+    transition={{ duration: 1.1, delay, ease: easeOutExpo }}
+  />
+);
+
+// motes thrown out evenly around the middle of the screen, cycling through the effect's colors
+const Sparks = ({ colors, count = 14, reach = 40, delay = 0, round = false }) =>
+  Array.from({ length: count }, (_, index) => {
+    const angle = (index / count) * Math.PI * 2;
+    const far = index % 2 === 0 ? reach : reach * 0.72;
+    const color = colors[index % colors.length];
+    return (
+      <motion.span
+        key={angle}
+        className="absolute top-1/2 left-1/2 -mt-2 -ml-2 size-4"
+        initial={{ x: 0, y: 0, opacity: 0, scale: 0.4 }}
+        animate={{ x: `${Math.cos(angle) * far}vmin`, y: `${Math.sin(angle) * far}vmin`, opacity: [0, 1, 0], scale: [0.4, 1.3, 0.6] }}
+        transition={{ duration: 1.3, delay, ease: easeOutExpo }}
+      >
+        {round ? (
+          <span className="block size-2.5 rounded-full" style={{ background: color, boxShadow: `0 0 10px ${color}` }} />
+        ) : (
+          <svg viewBox="0 0 8 8" className="size-full" style={{ filter: `drop-shadow(0 0 5px ${color})` }}>
+            <path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill={color} />
+          </svg>
+        )}
+      </motion.span>
+    );
+  });
+
+// the line that says what just happened, big enough to read at a glance on a phone
+const Payoff = ({ title, subtitle, color = "#fff", delay = 0, className = "font-mono", children }) => (
+  <motion.div
+    className={`relative flex flex-col items-center gap-2 text-center ${className}`}
+    initial={{ opacity: 0, y: 14 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.7, delay, ease: easeOutExpo }}
+  >
+    {children ?? (
+      <p className="text-[clamp(1.6rem,6.5vw,3.25rem)] leading-tight font-medium tracking-tight" style={{ color, textShadow: `0 0 26px ${color}88` }}>
+        {title}
+      </p>
+    )}
+    {subtitle && <p className="max-w-md text-[11px] tracking-[0.25em] text-white/75 uppercase text-balance">{subtitle}</p>}
+  </motion.div>
+);
+
+// two sets of beams at uneven angles. the broad ones carry the glow, the thin ones give it the shafts of light
+const BROAD_BEAMS = [
+  { at: 8, width: 9, strength: 0.32 },
+  { at: 61, width: 12, strength: 0.22 },
+  { at: 104, width: 7, strength: 0.3 },
+  { at: 158, width: 13, strength: 0.2 },
+  { at: 207, width: 8, strength: 0.34 },
+  { at: 251, width: 11, strength: 0.24 },
+  { at: 302, width: 9, strength: 0.28 },
+  { at: 339, width: 6, strength: 0.18 },
+];
+const THIN_BEAMS = [
+  { at: 27, width: 3.6, strength: 0.3 },
+  { at: 83, width: 3, strength: 0.22 },
+  { at: 131, width: 4.2, strength: 0.28 },
+  { at: 186, width: 2.8, strength: 0.2 },
+  { at: 229, width: 4, strength: 0.3 },
+  { at: 278, width: 3.2, strength: 0.24 },
+  { at: 321, width: 3.6, strength: 0.26 },
+];
+
+// the beams are brightest at the source and thin out toward the edge, the way real light falls off
+const BEAM_FALLOFF = easedGlow("black", { reach: 78 });
+
+const BeamLayer = ({ beams, color, turn, duration, delay }) => (
+  <motion.div
+    className="absolute inset-0 rounded-full"
+    style={{ background: softBeams(beams, color), maskImage: BEAM_FALLOFF, mixBlendMode: "screen" }}
+    initial={{ rotate: 0, opacity: 0 }}
+    animate={{ rotate: turn, opacity: 1 }}
+    transition={{ rotate: { duration, ease: "linear" }, opacity: { duration: 1.2, delay, ease: "easeOut" } }}
+  />
+);
+
+// god rays behind a "you got it" moment: broad glow and thin shafts turning against each other, a bloom at the core
+// and a slow breath, so the light feels alive instead of spinning like a pinwheel
+const LightRays = ({ color, delay = 0 }) => (
+  <motion.div
+    className="absolute top-1/2 left-1/2 size-[min(160vmax,72rem)] -translate-x-1/2 -translate-y-1/2"
+    initial={{ scale: 0.7, opacity: 0 }}
+    animate={{ scale: [0.7, 1.04, 1], opacity: 1 }}
+    transition={{ duration: 1.6, delay, ease: easeOutExpo }}
+  >
+    <BeamLayer beams={BROAD_BEAMS} color={color} turn={24} duration={6} delay={delay} />
+    {/* the shafts are the item's own color washed toward white, so they glow instead of cutting like lasers */}
+    <BeamLayer beams={THIN_BEAMS} color={`color-mix(in oklab, ${color} 45%, #fffbe8)`} turn={-40} duration={6} delay={delay + 0.15} />
+    <motion.div
+      className="absolute inset-[30%] rounded-full"
+      style={{ background: `${easedGlow("#fffbe8", { strength: 0.75, reach: 45 })}, ${easedGlow(color, { strength: 0.45 })}`, mixBlendMode: "screen" }}
+      initial={{ opacity: 0, scale: 0.6 }}
+      animate={{ opacity: [0, 1, 0.75], scale: [0.6, 1.1, 1] }}
+      transition={{ duration: 1.4, delay: delay + 0.1, ease: easeOutExpo }}
+    />
+  </motion.div>
+);
+
 // three triangles that drop into place once found
 const TRIFORCE_PIECES = ["M8 1 L12 8 L4 8 Z", "M4 8 L8 15 L0 15 Z", "M12 8 L16 15 L8 15 Z"];
 
@@ -161,10 +197,15 @@ const ItemGet = () => (
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     transition={{ duration: 0.4 }}
-    className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-10 bg-black/60 px-4"
+    className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-10 overflow-hidden px-4"
+    style={{ background: veil(GOLD) }}
     aria-hidden="true"
   >
     <div className="relative grid size-[min(60vw,16rem)] place-items-center">
+      {/* the light lives with the relic, so it pours out of the triforce and not the middle of the screen */}
+      <LightRays color={GOLD} delay={0.7} />
+      <Shockwave color={GOLD} delay={0.85} />
+      <Sparks colors={[GOLD, "#fff6c8"]} count={16} reach={42} delay={0.9} />
       <svg viewBox="0 0 16 16" className="relative size-full overflow-visible" style={{ filter: `drop-shadow(0 0 18px ${GOLD})` }}>
         {TRIFORCE_PIECES.map((path, index) => (
           <motion.path
@@ -189,25 +230,25 @@ const ItemGet = () => (
         <TypedText text="Triforce" startAt={1.68} />
       </span>
       <TypedText text="!" startAt={2} />
+      <span className="mt-2 block text-sm text-white/70">
+        <TypedText text="Courage, wisdom and a clean merge." startAt={2.3} perLetter={0.03} />
+      </span>
     </motion.p>
   </motion.div>
 );
 
 export const Triforce = ({ className }) => {
-  const [isFound, find, caption] = useSecret("triforce");
+  const [isFound, find] = useSecret("triforce");
   const [isHeldUp, holdUp] = useFlourish(ITEM_GET_MS);
 
   const open = () => {
-    find({ countAfterMs: ITEM_GET_MS });
+    find();
     holdUp();
   };
 
   return (
     <>
-      <SecretButton
-        id="triforce" isFound={isFound} label="A small golden relic"
-        caption={caption}
-        captionClassName="right-0"
+      <SecretButton label="A small golden relic"
         className={className}
         onClick={open}
       >
@@ -249,10 +290,13 @@ const SaveRoom = () => (
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     transition={{ duration: 0.6 }}
-    className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-10 bg-black/90 px-4"
+    className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-10 overflow-hidden px-4"
+    // solid black under the red glow, the save room cuts the game away entirely so the typewriter line reads clean
+    style={{ background: `${easedGlow(UMBRELLA_RED, { strength: 0.24, shape: "ellipse", reach: 75 })}, #000` }}
     aria-hidden="true"
   >
-    <svg viewBox="0 0 16 16" className="size-[min(50vw,13rem)] overflow-visible">
+    <Shockwave color={UMBRELLA_RED} delay={0.7} size="min(70vw,24rem)" />
+    <svg viewBox="0 0 16 16" className="relative size-[min(50vw,13rem)] overflow-visible" style={{ filter: `drop-shadow(0 0 24px ${UMBRELLA_RED}88)` }}>
       {UMBRELLA_WEDGES.map(({ path, isRed }, index) => (
         <motion.path
           key={path}
@@ -268,24 +312,29 @@ const SaveRoom = () => (
     <p className="text-center font-serif text-[clamp(1.1rem,4vw,2rem)] tracking-[0.25em] text-[#e9e2d0] uppercase">
       <TypedText text="Your game has been saved." startAt={0.9} perLetter={0.06} />
     </p>
+    <motion.p
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 1, 0.6, 1] }}
+      transition={{ duration: 0.8, delay: 2.6 }}
+      className="font-mono text-xs tracking-[0.3em] text-[#e9e2d0]/60 uppercase"
+    >
+      ink ribbon used · 1 left
+    </motion.p>
   </motion.div>
 );
 
 export const Umbrella = ({ className }) => {
-  const [isFound, find, caption] = useSecret("umbrella");
+  const [isFound, find] = useSecret("umbrella");
   const [isSaving, save] = useFlourish(SAVE_ROOM_MS);
 
   const saveGame = () => {
-    find({ countAfterMs: SAVE_ROOM_MS });
+    find();
     save();
   };
 
   return (
     <>
-      <SecretButton
-        id="umbrella" isFound={isFound} label="A corporate logo"
-        caption={caption}
-        captionClassName="left-1/2 -translate-x-1/2 md:right-0 md:left-auto md:translate-x-0"
+      <SecretButton label="A corporate logo"
         className={className}
         onClick={saveGame}
       >
@@ -324,18 +373,22 @@ const TransmutationFlash = () => (
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     transition={{ duration: 0.5 }}
-    className="pointer-events-none fixed inset-0 z-50 grid place-items-center bg-black/40"
+    className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 overflow-hidden px-4"
+    // darker than the rest, the philosophy behind it is set huge and would read through the title
+    style={{ background: veil(ALCHEMY_BLUE, 0.92) }}
     aria-hidden="true"
   >
+    <Shockwave color={ALCHEMY_BLUE} delay={1.1} />
+    <Sparks colors={[ALCHEMY_BLUE, "#e6f6ff"]} count={12} reach={38} delay={1.15} />
     {/* the glow is a still gradient behind the circle. a glow filter on the turning circle would repaint every
         frame, and phones can't keep up with that */}
     <div
-      className="absolute size-[min(95vw,34rem)] rounded-full"
-      style={{ background: `radial-gradient(circle, ${ALCHEMY_BLUE}33 0%, ${ALCHEMY_BLUE}1a 45%, transparent 70%)` }}
+      className="absolute top-1/2 left-1/2 size-[min(95vw,34rem)] -translate-x-1/2 -translate-y-1/2 rounded-full"
+      style={{ background: easedGlow(ALCHEMY_BLUE, { strength: 0.22 }) }}
     />
     <motion.svg
       viewBox="0 0 100 100"
-      className="relative size-[min(80vw,28rem)]"
+      className="relative size-[min(80vw,26rem,52vh)]"
       initial={{ rotate: -30 }}
       animate={{ rotate: 0 }}
       transition={{ duration: 2.4, ease: easeOutExpo }}
@@ -371,16 +424,17 @@ const TransmutationFlash = () => (
         />
       ))}
     </motion.svg>
+    <Payoff title="Equivalent Exchange" subtitle="hard problems in, readable code out" color={ALCHEMY_BLUE} delay={1.4} className="font-serif" />
   </motion.div>
 );
 
 // a tiny transmutation circle tucked into the philosophy line. equivalent exchange, like the line says: hard problems in, readable code out
 export const Alchemy = ({ className }) => {
-  const [isFound, find, caption] = useSecret("alchemy");
+  const [isFound, find] = useSecret("alchemy");
   const [isFlashing, flash] = useFlourish(TRANSMUTATION_MS);
 
   const transmute = () => {
-    find({ countAfterMs: TRANSMUTATION_MS });
+    find();
     flash();
   };
 
@@ -388,7 +442,7 @@ export const Alchemy = ({ className }) => {
 
   return (
     <>
-      <SecretButton id="alchemy" isFound={isFound} label="A chalk circle" caption={caption} className={className} onClick={transmute}>
+      <SecretButton label="A chalk circle" className={className} onClick={transmute}>
         <svg
           viewBox="0 0 16 16"
           className="size-4"
@@ -430,28 +484,80 @@ const Gust = ({ top, color, delay }) => (
   </motion.svg>
 );
 
-// the four nations sweep across the screen as wind, one gust each
+const NATIONS = [
+  { name: "Water", color: "#4aa8ff" },
+  { name: "Earth", color: "#5fbf5a" },
+  { name: "Fire", color: "#ff5a3c" },
+  { name: "Air", color: AIR_ORANGE },
+];
+
+// the four nations sweep across the screen as wind, then the air nomad spiral spins up in the middle and names them
 const ElementGusts = () => (
-  <motion.div exit={{ opacity: 0 }} className="pointer-events-none fixed inset-0 z-50 overflow-hidden" aria-hidden="true">
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.4 }}
+    className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 overflow-hidden px-4"
+    style={{ background: veil(AIR_ORANGE) }}
+    aria-hidden="true"
+  >
     {GUSTS.map((gust) => (
       <Gust key={gust.top} {...gust} />
     ))}
+    <Shockwave color={AIR_ORANGE} delay={1.5} />
+    <motion.svg
+      viewBox="0 0 16 16"
+      className="relative size-[min(42vw,11rem)]"
+      initial={{ scale: 0, rotate: -360, opacity: 0 }}
+      animate={{ scale: 1, rotate: 0, opacity: 1 }}
+      transition={{ duration: 1.4, delay: 0.9, ease: easeOutExpo }}
+      style={{ filter: `drop-shadow(0 0 14px ${AIR_ORANGE})` }}
+    >
+      {[0, 120, 240].map((turn) => (
+        <path
+          key={turn}
+          d="M8 8 C8 5 11 3.5 13 5 C14.5 6.2 13.5 8.5 11.5 8"
+          fill="none"
+          stroke={AIR_ORANGE}
+          strokeWidth="0.9"
+          strokeLinecap="round"
+          transform={`rotate(${turn} 8 8)`}
+        />
+      ))}
+    </motion.svg>
+    <Payoff subtitle="every element, every stack" delay={1.6} className="font-serif">
+      <p className="flex flex-wrap justify-center gap-x-3 text-[clamp(1.4rem,6vw,3rem)] leading-tight tracking-wide">
+        {NATIONS.map(({ name, color }, index) => (
+          <motion.span
+            key={name}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 1.7 + index * 0.2, ease: easeOutExpo }}
+            style={{ color, textShadow: `0 0 20px ${color}88` }}
+          >
+            {name}
+            {index < NATIONS.length - 1 && <span className="text-white/40">.</span>}
+          </motion.span>
+        ))}
+      </p>
+    </Payoff>
   </motion.div>
 );
 
 // the air nomad swirl under profile.json, from the editor to the org chart. every element, every stack
 export const Airbender = ({ className }) => {
-  const [isFound, find, caption] = useSecret("airbender");
+  const [isFound, find] = useSecret("airbender");
   const [isBlowing, blow] = useFlourish(GUSTS_MS);
 
   const bend = () => {
-    find({ countAfterMs: GUSTS_MS });
+    find();
     blow();
   };
 
   return (
     <>
-      <SecretButton id="airbender" isFound={isFound} label="A spiral of wind" caption={caption} captionClassName="left-1/2 -translate-x-1/2" className={className} onClick={bend}>
+      <SecretButton label="A spiral of wind" className={className} onClick={bend}>
         <motion.svg
           viewBox="0 0 16 16"
           className="size-4"
@@ -483,54 +589,81 @@ export const Airbender = ({ className }) => {
 const HANAFUDA_RED = "#d8342c";
 const WATER_BLUE = "#3fa9f5";
 
-// one long curved slash of water across the screen, with a white edge where the blade cut
+const SLASH_LAYERS = [
+  { color: WATER_BLUE, width: 3.2, opacity: 0.7 },
+  { color: "#bfe6ff", width: 1.4, opacity: 0.9 },
+  { color: "#ffffff", width: 0.4, opacity: 1 },
+];
+
+// one blade stroke drawn as three layered curves, deep water outside and a white edge where it cut
+const Slash = ({ path, delay }) =>
+  SLASH_LAYERS.map(({ color, width, opacity }) => (
+    <motion.path
+      key={color}
+      d={path}
+      fill="none"
+      stroke={color}
+      strokeWidth={width}
+      strokeLinecap="round"
+      opacity={opacity}
+      initial={{ pathLength: 0 }}
+      animate={{ pathLength: 1 }}
+      transition={{ duration: 0.35, delay, ease: "easeOut" }}
+    />
+  ));
+
+// spray thrown off the blade, flung along the slash and falling away
+const DROPLETS = Array.from({ length: 12 }, (_, index) => ({ left: 8 + index * 7.5, rise: 6 + (index % 4) * 5, delay: 0.15 + index * 0.025 }));
+
+// two curved slashes of water cross the screen, spray flies off the blade and the form is named like the anime does
 const WaterSlash = () => (
   <motion.div
-    initial={{ opacity: 1 }}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
-    transition={{ duration: 0.6 }}
-    className="pointer-events-none fixed inset-0 z-50"
+    transition={{ duration: 0.3 }}
+    className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-end overflow-hidden px-4 pb-[18vh]"
+    style={{ background: veil(WATER_BLUE) }}
     aria-hidden="true"
   >
-    <svg viewBox="0 0 100 60" preserveAspectRatio="none" className="size-full overflow-visible">
-      {[
-        { color: WATER_BLUE, width: 3.2, opacity: 0.7 },
-        { color: "#bfe6ff", width: 1.4, opacity: 0.9 },
-        { color: "#ffffff", width: 0.4, opacity: 1 },
-      ].map(({ color, width, opacity }) => (
-        <motion.path
-          key={color}
-          d="M-5 48 C20 20 55 10 105 18"
-          fill="none"
-          stroke={color}
-          strokeWidth={width}
-          strokeLinecap="round"
-          opacity={opacity}
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
-        />
-      ))}
+    <svg viewBox="0 0 100 60" preserveAspectRatio="none" className="absolute inset-0 size-full overflow-visible">
+      <Slash path="M-5 48 C20 20 55 10 105 18" delay={0} />
+      <Slash path="M-5 14 C30 24 60 40 105 36" delay={0.45} />
     </svg>
+    {DROPLETS.map(({ left, rise, delay }) => (
+      <motion.span
+        key={left}
+        className="absolute top-[42%] size-2 rounded-full bg-[#bfe6ff]"
+        style={{ left: `${left}%`, boxShadow: `0 0 8px ${WATER_BLUE}` }}
+        initial={{ y: 0, opacity: 0 }}
+        animate={{ y: [`0vh`, `-${rise}vh`, `${rise * 2}vh`], opacity: [0, 1, 0] }}
+        transition={{ duration: 1.2, delay, ease: "easeOut" }}
+      />
+    ))}
+    <Payoff subtitle="first form · water surface slash" delay={0.8} className="font-serif">
+      <p className="text-[clamp(1.75rem,8vw,4rem)] leading-none tracking-[0.2em]" style={{ color: "#e8f6ff", textShadow: `0 0 26px ${WATER_BLUE}` }}>
+        水の呼吸
+      </p>
+      <p className="text-[clamp(0.9rem,3.5vw,1.4rem)] tracking-[0.3em] uppercase" style={{ color: WATER_BLUE }}>
+        Water Breathing
+      </p>
+    </Payoff>
   </motion.div>
 );
 
 // Tanjiro's sun earring, a little hanafuda card. flip it and he answers with Water Breathing
 export const Hanafuda = ({ className }) => {
-  const [isFound, find, caption] = useSecret("hanafuda");
+  const [isFound, find] = useSecret("hanafuda");
   const [isSlashing, slash] = useFlourish(WATER_SLASH_MS);
 
   const breathe = () => {
-    find({ countAfterMs: WATER_SLASH_MS });
+    find();
     slash();
   };
 
   return (
     <>
-      <SecretButton
-        id="hanafuda" isFound={isFound} label="A small card earring"
-        caption={caption}
-        captionClassName="left-1/2 -translate-x-1/2 md:right-0 md:left-auto md:translate-x-0"
+      <SecretButton label="A small card earring"
         className={className}
         onClick={breathe}
       >
@@ -556,17 +689,48 @@ export const Hanafuda = ({ className }) => {
 
 const GRACE_GOLD = "#f5d77a";
 
-// the gold banner Elden Ring rolls across the screen the first time you touch a grace
+// specks of gold rising up the whole screen, the way the air above a grace shimmers
+const GRACE_EMBERS = Array.from({ length: 18 }, (_, index) => ({ left: 4 + ((index * 37) % 92), delay: (index % 6) * 0.25, size: 3 + (index % 3) * 2 }));
+
+// the gold banner Elden Ring rolls across the screen the first time you touch a grace, over the golden light it gives off
 const GraceDiscovered = () => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     transition={{ duration: 1.2 }}
-    className="pointer-events-none fixed inset-x-0 top-1/2 z-50 -translate-y-1/2"
+    className="pointer-events-none fixed inset-0 z-50 grid place-items-center overflow-hidden"
+    style={{ background: veil(GRACE_GOLD, 0.78) }}
     aria-hidden="true"
   >
-    <div className="bg-gradient-to-r from-transparent via-black/85 to-transparent px-4 py-8 text-center">
+    {GRACE_EMBERS.map(({ left, delay, size }) => (
+      <motion.span
+        key={left}
+        className="absolute bottom-0 rounded-full"
+        style={{ left: `${left}%`, width: size, height: size, background: GRACE_GOLD, boxShadow: `0 0 10px ${GRACE_GOLD}` }}
+        initial={{ y: 0, opacity: 0 }}
+        animate={{ y: "-85vh", opacity: [0, 1, 0] }}
+        transition={{ duration: 3, delay, ease: "easeOut" }}
+      />
+    ))}
+    {/* the sigil itself, drawn huge and faint behind the banner */}
+    <svg viewBox="0 0 16 16" className="absolute size-[min(80vw,30rem,70vh)] overflow-visible" style={{ opacity: 0.35 }}>
+      {["M8 1 V15", "M10.6 5 A2.6 2.6 0 1 1 10.59 4.99", "M3.2 6.5 A4.8 4.8 0 0 0 12.8 6.5", "M5 11.5 A3 3 0 0 1 11 11.5"].map((path, index) => (
+        <motion.path
+          key={path}
+          d={path}
+          fill="none"
+          stroke={GRACE_GOLD}
+          strokeWidth="0.25"
+          strokeLinecap="round"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 1, delay: 0.2 + index * 0.2, ease: "easeInOut" }}
+        />
+      ))}
+    </svg>
+    <Shockwave color={GRACE_GOLD} delay={0.4} />
+    <div className="relative w-full bg-gradient-to-r from-transparent via-black/85 to-transparent px-4 py-8 text-center">
       <motion.span
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
@@ -588,6 +752,14 @@ const GraceDiscovered = () => (
         transition={{ duration: 1.4, ease: easeOutExpo }}
         className="mx-auto mt-4 block h-px max-w-xl bg-gradient-to-r from-transparent via-[#f5d77a]/70 to-transparent"
       />
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 1.4 }}
+        className="mt-4 font-serif text-xs tracking-[0.3em] text-[#e9dcb0]/70 uppercase"
+      >
+        Contact · Inbox of the Tarnished
+      </motion.p>
     </div>
   </motion.div>
 );
@@ -601,14 +773,14 @@ const GRACE_MOTES = [
 
 // the Elden Ring sigil sits quiet after the contact terminal logs out. touch it and it lights up like a site of grace
 export const Grace = ({ className }) => {
-  const [isLit, find, caption] = useSecret("grace");
+  const [isLit, find] = useSecret("grace");
   const [isBannerShown, setIsBannerShown] = useState(false);
   const bannerTimer = useRef(null);
 
   useEffect(() => () => clearTimeout(bannerTimer.current), []);
 
   const touch = () => {
-    find({ countAfterMs: GRACE_BANNER_MS });
+    find();
     setIsBannerShown(true);
     clearTimeout(bannerTimer.current);
     bannerTimer.current = setTimeout(() => setIsBannerShown(false), GRACE_BANNER_MS);
@@ -618,7 +790,7 @@ export const Grace = ({ className }) => {
 
   return (
     <>
-      <SecretButton id="grace" isFound={isLit} label="A faded golden sigil" caption={caption} className={className} onClick={touch}>
+      <SecretButton label="A faded golden sigil" className={className} onClick={touch}>
         <svg
           viewBox="0 0 16 16"
           className="size-4 overflow-visible"
@@ -650,70 +822,147 @@ export const Grace = ({ className }) => {
   );
 };
 
-const FLIGHT_S = 4.4;
-// arrives a quarter of the way in, hovers over the skills, then shoots off the top of the screen
-const FLIGHT_TIMES = [0, 0.25, 0.8, 1];
-const CAST_AT_MS = 1200;
-const SPARKLES = [
-  { x: -18, y: 30, delay: 0, color: MAGIC_PINK },
-  { x: 120, y: 10, delay: 0.3, color: GOLD },
-  { x: 140, y: 120, delay: 0.6, color: MAGIC_PINK },
-  { x: -10, y: 160, delay: 0.15, color: GOLD },
-  { x: 60, y: -14, delay: 0.45, color: MAGIC_PINK },
-  { x: 100, y: 210, delay: 0.75, color: GOLD },
-];
+const FLIGHT_S = 4.6;
+// flies in, hovers in the middle of the screen while she casts, then shoots off the top right
+const FLIGHT_TIMES = [0, 0.22, 0.78, 1];
+const CAST_AT_MS = 1300;
+const CAST_AT_S = CAST_AT_MS / 1000;
 
-const Sparkle = ({ x, y, delay, color }) => (
-  <motion.svg
-    viewBox="0 0 8 8"
-    className="absolute size-3"
-    style={{ left: x, top: y }}
-    initial={{ opacity: 0, scale: 0 }}
-    animate={{ opacity: [0, 1, 0], scale: [0, 1, 0] }}
-    transition={{ duration: 0.9, delay: 1.1 + delay, repeat: 2 }}
-  >
+// stars thrown out from her wand when the spell goes off, spread evenly around a circle
+const SPELL_STARS = Array.from({ length: 16 }, (_, index) => ({
+  angle: (index / 16) * Math.PI * 2,
+  reach: index % 2 === 0 ? 46 : 34,
+  color: index % 3 === 0 ? GOLD : index % 2 === 0 ? MAGIC_PINK : MAGIC_BLUE,
+}));
+
+const Star4 = ({ color, className = "", style }) => (
+  <svg viewBox="0 0 8 8" className={className} style={style} aria-hidden="true">
     <path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill={color} />
-  </motion.svg>
+  </svg>
+);
+
+// the magic circle she casts: two rings and a hexagram drawing themselves, then a shockwave rolling out
+const SpellCircle = () => (
+  <div className="absolute top-1/2 left-1/2 size-[min(90vw,34rem)] -translate-x-1/2 -translate-y-1/2">
+    <motion.svg
+      viewBox="0 0 100 100"
+      className="size-full"
+      initial={{ rotate: -40, opacity: 0 }}
+      animate={{ rotate: 20, opacity: [0, 1, 1, 0] }}
+      transition={{ duration: 2.6, delay: CAST_AT_S - 0.3, times: [0, 0.15, 0.7, 1], ease: "easeOut" }}
+      style={{ filter: `drop-shadow(0 0 6px ${MAGIC_PINK})` }}
+    >
+      {["M50 3 A47 47 0 1 1 49.9 3", "M50 11 A39 39 0 1 1 49.9 11", "M50 11 L83.8 69.5 L16.2 69.5 Z", "M50 89 L16.2 30.5 L83.8 30.5 Z"].map((path, index) => (
+        <motion.path
+          key={path}
+          d={path}
+          fill="none"
+          stroke={index % 2 === 0 ? MAGIC_PINK : MAGIC_BLUE}
+          strokeWidth="0.7"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 0.6, delay: CAST_AT_S - 0.3 + index * 0.1, ease: "easeInOut" }}
+        />
+      ))}
+    </motion.svg>
+    <motion.span
+      className="absolute inset-0 rounded-full"
+      style={{ background: `${softRing(MAGIC_PINK)}, ${softRing(MAGIC_BLUE, { strength: 0.5, at: 62 })}`, mixBlendMode: "screen" }}
+      initial={{ scale: 0.2, opacity: 0 }}
+      animate={{ scale: 2.4, opacity: [0, 0.9, 0] }}
+      transition={{ duration: 1.1, delay: CAST_AT_S, ease: easeOutExpo }}
+    />
+    {SPELL_STARS.map(({ angle, reach, color }) => (
+      <motion.span
+        key={angle}
+        className="absolute top-1/2 left-1/2 -mt-2 -ml-2"
+        initial={{ x: 0, y: 0, opacity: 0, scale: 0.4 }}
+        animate={{ x: `${Math.cos(angle) * reach}vmin`, y: `${Math.sin(angle) * reach}vmin`, opacity: [0, 1, 0], scale: [0.4, 1.4, 0.6] }}
+        transition={{ duration: 1.4, delay: CAST_AT_S, ease: easeOutExpo }}
+      >
+        <Star4 color={color} className="size-4" style={{ filter: `drop-shadow(0 0 6px ${color})` }} />
+      </motion.span>
+    ))}
+  </div>
+);
+
+// what the spell did, stamped big enough to read while she's still on screen
+const BuffBanner = () => (
+  <motion.div
+    className="absolute inset-x-4 bottom-[12vh] flex flex-col items-center gap-2 text-center font-mono"
+    initial={{ opacity: 0, y: 16 }}
+    animate={{ opacity: [0, 1, 1, 0], y: [16, 0, 0, -8] }}
+    transition={{ duration: 3, delay: CAST_AT_S + 0.2, times: [0, 0.12, 0.8, 1], ease: easeOutExpo }}
+  >
+    <p
+      className="text-[clamp(2.5rem,9vw,5rem)] leading-none font-medium tracking-tight"
+      style={{
+        backgroundImage: `linear-gradient(to right, ${MAGIC_PINK}, ${MAGIC_BLUE})`,
+        WebkitBackgroundClip: "text",
+        backgroundClip: "text",
+        color: "transparent",
+        filter: `drop-shadow(0 0 18px ${MAGIC_PINK}aa)`,
+      }}
+    >
+      +500 ATK
+    </p>
+    <p className="text-xs tracking-[0.25em] text-white/80 uppercase">every skill is a duel monster now</p>
+  </motion.div>
 );
 
 const MagicianFlyby = () => {
   const prefersReducedMotion = useReducedMotion();
+  // she flies relative to the middle of the screen, so wherever the screen ends she hovers fully inside it
   const flight = prefersReducedMotion
-    ? { initial: { opacity: 0, x: "55vw", y: "-30vh" }, animate: { opacity: [0, 1, 1, 0] } }
+    ? { initial: { opacity: 0 }, animate: { opacity: [0, 1, 1, 0] } }
     : {
-        initial: { x: "-30vw", y: "20vh", rotate: -14, opacity: 0 },
+        initial: { x: "-75vw", y: "35vh", rotate: -16, opacity: 0 },
         animate: {
-          x: ["-30vw", "55vw", "55vw", "110vw"],
-          y: ["20vh", "-30vh", "-30vh", "-90vh"],
-          rotate: [-14, 0, 0, 12],
+          x: ["-75vw", "0vw", "0vw", "80vw"],
+          y: ["35vh", "0vh", "-2vh", "-85vh"],
+          rotate: [-16, 0, 0, 14],
           opacity: [0, 1, 1, 1],
         },
       };
 
   return (
     <motion.div
-      {...flight}
-      transition={{ duration: FLIGHT_S, times: FLIGHT_TIMES, ease: "easeInOut" }}
-      className="pointer-events-none fixed bottom-0 left-0 z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4 }}
+      className="pointer-events-none fixed inset-0 z-50 overflow-hidden"
+      style={{ background: `${easedGlow(MAGIC_BLUE, { strength: 0.18, shape: "ellipse", reach: 85 })}, rgba(10,6,20,0.6)` }}
       aria-hidden="true"
     >
+      {!prefersReducedMotion && <SpellCircle />}
       <motion.div
-        animate={prefersReducedMotion ? undefined : { y: [0, -10, 0] }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-        className="relative"
+        {...flight}
+        transition={{ duration: FLIGHT_S, times: FLIGHT_TIMES, ease: "easeInOut" }}
+        className="absolute top-1/2 left-1/2"
       >
-        <img src={darkMagicianGirl} alt="" className="h-48 w-auto drop-shadow-[0_0_24px_rgba(255,145,190,0.55)] sm:h-64" />
-        {SPARKLES.map((sparkle) => (
-          <Sparkle key={`${sparkle.x}-${sparkle.y}`} {...sparkle} />
-        ))}
+        <motion.div
+          animate={prefersReducedMotion ? undefined : { y: [0, -12, 0] }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+          className="-translate-x-1/2 -translate-y-1/2"
+        >
+          <img
+            src={darkMagicianGirl}
+            alt=""
+            className="h-[min(42vh,18rem)] w-auto max-w-none [image-rendering:pixelated]"
+            style={{ filter: `drop-shadow(0 0 22px ${MAGIC_PINK}aa)` }}
+          />
+        </motion.div>
       </motion.div>
+      <BuffBanner />
+      <p className="absolute right-4 bottom-12 font-mono text-[11px] text-white/60">pixel art by TeykioArts</p>
     </motion.div>
   );
 };
 
 // a little wizard hat on top of the skills. tap it and a magician flies in and turns every skill into a duel monster for good
 export const Magician = ({ className }) => {
-  const [isFound, find, caption] = useSecret("magician");
+  const [isFound, find] = useSecret("magician");
   const [isFlying, setIsFlying] = useState(false);
   const flightTimer = useRef(null);
   const castTimer = useRef(null);
@@ -727,34 +976,30 @@ export const Magician = ({ className }) => {
   );
 
   const summon = () => {
+    if (isFlying) return;
     find();
     setIsFlying(true);
     clearTimeout(flightTimer.current);
     clearTimeout(castTimer.current);
-    castTimer.current = setTimeout(() => castMagic(), CAST_AT_MS);
+    // the page glides up to the cards as the spell lands, so the flip plays right where you're looking
+    castTimer.current = setTimeout(() => {
+      castMagic();
+      scrollToSection("skill-cards");
+    }, CAST_AT_MS);
     flightTimer.current = setTimeout(() => setIsFlying(false), FLIGHT_S * 1000 + 100);
   };
 
   return (
     <>
-      <SecretButton id="magician" isFound={isFound} label="A pointy wizard hat" caption={caption} captionClassName="right-0" className={className} onClick={summon}>
+      <SecretButton label="A pointy wizard hat" className={className} onClick={summon}>
         <svg viewBox="0 0 16 16" className="size-4" aria-hidden="true">
           <path d="M9 1 L4 13 H13 Z" fill={isFound ? MAGIC_BLUE : "currentColor"} />
           <path d="M2 13 H14 V14.5 H2 Z" fill={isFound ? MAGIC_PINK : "currentColor"} />
           {isFound && <path d="M6.5 8 H11" stroke={MAGIC_PINK} strokeWidth="1.2" />}
         </svg>
       </SecretButton>
-      <AnimatePresence>{isFlying && <MagicianFlyby />}</AnimatePresence>
       <Flourish isShown={isFlying}>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="pointer-events-none fixed right-4 bottom-12 z-50 font-mono text-[11px] text-muted"
-          aria-hidden="true"
-        >
-          pixel art by TeykioArts
-        </motion.p>
+        <MagicianFlyby />
       </Flourish>
     </>
   );
@@ -769,16 +1014,23 @@ const Gotcha = () => (
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     transition={{ duration: 0.3 }}
-    className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-12 bg-black/50 px-4"
+    className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-12 overflow-hidden px-4"
+    style={{ background: veil(POKEBALL_RED) }}
     aria-hidden="true"
   >
     <div className="relative">
+      {/* the light lives with the ball, so the catch glows from the ball itself */}
+      <LightRays color="#ffd84a" delay={0.9} />
+      <Shockwave color="#fff" delay={0.95} size="min(50vw,16rem)" />
+      <Sparks colors={["#ffd84a", "#fff", POKEBALL_RED]} count={12} reach={30} delay={1} />
+      {/* it drops in, rocks three times like the real catch, then clicks still */}
       <motion.svg
         viewBox="0 0 16 16"
-        className="size-[min(40vw,9rem)]"
-        initial={{ scale: 0.4 }}
-        animate={{ scale: [0.4, 1.15, 1] }}
-        transition={{ duration: 0.45, ease: easeOutExpo }}
+        className="relative size-[min(40vw,9rem)]"
+        initial={{ scale: 0.4, y: -120, rotate: 0 }}
+        animate={{ scale: [0.4, 1.1, 1], y: [-120, 0, 0], rotate: [0, 0, -18, 14, -10, 6, 0] }}
+        transition={{ duration: 1, times: [0, 0.25, 1], rotate: { duration: 0.9, delay: 0.1, times: [0, 0.2, 0.35, 0.5, 0.65, 0.8, 1] }, ease: easeOutExpo }}
+        style={{ originY: 0.9 }}
       >
         <path d="M1 8 A7 7 0 0 1 15 8 Z" fill={POKEBALL_RED} />
         <path d="M1 8 A7 7 0 0 0 15 8 Z" fill="#f4f1ea" />
@@ -793,7 +1045,7 @@ const Gotcha = () => (
           className="absolute top-0 left-1/2 size-6 -translate-x-1/2"
           initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
           animate={{ x: drift, y: [0, -70, -50], opacity: [0, 1, 0], scale: [0, 1.2, 0.8] }}
-          transition={{ duration: 0.9, delay: 0.3 + index * 0.05, ease: "easeOut" }}
+          transition={{ duration: 0.9, delay: 1 + index * 0.05, ease: "easeOut" }}
         >
           <path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill="#ffd84a" />
         </motion.svg>
@@ -802,23 +1054,23 @@ const Gotcha = () => (
     <motion.p
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, delay: 0.5 }}
-      className="w-full max-w-md rounded-xl border-4 border-[#3b5ba7] bg-[#f8f8f0] px-5 py-4 font-mono text-base text-[#202020] shadow-[inset_0_0_0_3px_#c8d8f0]"
+      transition={{ duration: 0.25, delay: 1.1 }}
+      className="relative w-full max-w-md rounded-xl border-4 border-[#3b5ba7] bg-[#f8f8f0] px-5 py-4 font-mono text-base text-[#202020] shadow-[inset_0_0_0_3px_#c8d8f0]"
     >
-      <TypedText text="Gotcha! Cristopher was caught!" startAt={0.7} />
+      <TypedText text="Gotcha! Cristopher was caught!" startAt={1.25} />
     </motion.p>
   </motion.div>
 );
 
 // grey until caught. it wobbles three times, then clicks shut like it should
 export const Pokeball = ({ className }) => {
-  const [isFound, find, caption] = useSecret("pokeball");
+  const [isFound, find] = useSecret("pokeball");
   const wobbleControls = useAnimationControls();
   const [isCelebrating, celebrate] = useFlourish(GOTCHA_MS);
 
   const isWobbling = useRef(false);
 
-  // the sound starts on the click so it never feels laggy, the caption waits for the click shut
+  // the sound starts on the click so it never feels laggy
   const throwBall = async () => {
     if (isWobbling.current) return;
     isWobbling.current = true;
@@ -827,14 +1079,14 @@ export const Pokeball = ({ className }) => {
       rotate: [0, -22, 18, 0, -22, 18, 0, -22, 18, 0],
       transition: { duration: 0.9, times: [0, 0.06, 0.18, 0.3, 0.4, 0.52, 0.64, 0.74, 0.86, 1] },
     });
-    find({ withSound: false, countAfterMs: GOTCHA_MS });
+    find({ withSound: false });
     celebrate();
     isWobbling.current = false;
   };
 
   return (
     <>
-      <SecretButton id="pokeball" isFound={isFound} label="A red and white ball" caption={caption} className={className} onClick={throwBall}>
+      <SecretButton label="A red and white ball" className={className} onClick={throwBall}>
         <motion.svg viewBox="0 0 16 16" className="size-3.5" aria-hidden="true" animate={wobbleControls} style={{ originY: 1 }}>
           <path d="M1 8 A7 7 0 0 1 15 8 Z" fill={isFound ? POKEBALL_RED : "currentColor"} />
           <path d="M1 8 A7 7 0 0 0 15 8 Z" fill={isFound ? "#f4f1ea" : "transparent"} />
@@ -943,10 +1195,12 @@ const WebSwing = () => (
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     transition={{ duration: 0.4 }}
-    className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 bg-black/60 px-4"
+    className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 overflow-hidden px-4"
+    style={{ background: `${easedGlow(SPIDER_RED, { strength: 0.16, shape: "ellipse", at: "50% 40%", reach: 75 })}, rgba(8,10,26,0.95)` }}
     aria-hidden="true"
   >
-    <div className="relative size-[min(70vw,20rem)]">
+    <Shockwave color={SPIDER_RED} delay={0.6} />
+    <div className="relative size-[min(70vw,20rem,48vh)]">
       {/* the thread hangs from above the screen down to the middle of the web, unrolling as the spider drops */}
       <motion.span
         initial={{ scaleY: 0 }}
@@ -991,7 +1245,7 @@ const WebSwing = () => (
       >
         <div
           className="absolute -inset-1/3 rounded-full"
-          style={{ background: `radial-gradient(circle, ${SPIDER_RED}55 0%, transparent 65%)` }}
+          style={{ background: easedGlow(SPIDER_RED, { strength: 0.33 }) }}
         />
         <motion.div
           animate={{ rotate: [0, 7, -5, 3, 0] }}
@@ -1026,17 +1280,17 @@ const WebSwing = () => (
 // a spider hanging off the degree, Peter Parker was a student first. with great power comes great responsibility
 export { SpiderFace };
 export const Spider = ({ className }) => {
-  const [isFound, find, caption] = useSecret("spider");
+  const [isFound, find] = useSecret("spider");
   const [isSwinging, swing] = useFlourish(WEB_MS);
 
   const thwip = () => {
-    find({ countAfterMs: WEB_MS });
+    find();
     swing();
   };
 
   return (
     <>
-      <SecretButton id="spider" isFound={isFound} label="A tiny spider" caption={caption} className={className} onClick={thwip}>
+      <SecretButton label="A tiny spider" className={className} onClick={thwip}>
         <motion.svg
           viewBox="0 0 16 16"
           className="size-4"
@@ -1102,7 +1356,8 @@ const BatTransition = () => (
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     transition={{ duration: 0.3 }}
-    className="pointer-events-none fixed inset-0 z-50 grid place-items-center overflow-hidden bg-[radial-gradient(circle,#1d2a5c_0%,#05060d_75%)]"
+    className="pointer-events-none fixed inset-0 z-50 grid place-items-center overflow-hidden"
+    style={{ background: `${easedGlow("#1d2a5c", { shape: "ellipse", reach: 95 })}, #05060d` }}
     aria-hidden="true"
   >
     <motion.div
@@ -1110,8 +1365,19 @@ const BatTransition = () => (
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8, delay: 1 }}
       className="absolute h-[min(60vw,22rem)] w-[min(100vw,40rem)] rounded-full"
-      style={{ background: `radial-gradient(closest-side, ${BAT_YELLOW}44, transparent)` }}
+      style={{ background: easedGlow(BAT_YELLOW, { strength: 0.27 }) }}
     />
+    {/* two searchlights sweeping the night sky behind the logo */}
+    {[-1, 1].map((side) => (
+      <motion.span
+        key={side}
+        className="absolute bottom-0 left-1/2 h-[140vh] w-[30vmax] origin-bottom -translate-x-1/2"
+        style={{ background: `linear-gradient(to top, ${BAT_YELLOW}40, transparent 80%)`, clipPath: "polygon(45% 100%, 55% 100%, 100% 0, 0 0)" }}
+        initial={{ rotate: side * 40, opacity: 0 }}
+        animate={{ rotate: [side * 40, side * -10, side * 20], opacity: [0, 1, 1] }}
+        transition={{ duration: 3, ease: "easeInOut" }}
+      />
+    ))}
     <motion.div
       initial={{ scale: 0.02, rotate: 0 }}
       animate={{ scale: 1, rotate: 1080 }}
@@ -1119,25 +1385,33 @@ const BatTransition = () => (
     >
       <BatEmblem className="w-[min(80vw,30rem)]" />
     </motion.div>
+    <Shockwave color={BAT_YELLOW} delay={1.75} />
     {BAT_BURSTS.map((burst) => (
       <Burst key={burst.word} {...burst} />
     ))}
+    <div className="absolute inset-x-4 bottom-[9vh]">
+      <Payoff subtitle="same bat time, same bat channel" delay={3} className="font-sans">
+        <p className="text-[clamp(1.4rem,6vw,2.75rem)] font-black tracking-tight italic" style={{ color: BAT_YELLOW, WebkitTextStroke: "1px #111" }}>
+          TO THE BAT INBOX!
+        </p>
+      </Payoff>
+    </div>
   </motion.div>
 );
 
 // a bat next to the email, the closest thing to a Bat-Signal. on call at 3 a.m.
 export const Bat = ({ className }) => {
-  const [isFound, find, caption] = useSecret("bat");
+  const [isFound, find] = useSecret("bat");
   const [isSpinning, spin] = useFlourish(BAT_TRANSITION_MS);
 
   const signal = () => {
-    find({ countAfterMs: BAT_TRANSITION_MS });
+    find();
     spin();
   };
 
   return (
     <>
-      <SecretButton id="bat" isFound={isFound} label="A small bat" caption={caption} className={className} onClick={signal}>
+      <SecretButton label="A small bat" className={className} onClick={signal}>
         <motion.span
           className="block"
           initial={false}
@@ -1212,7 +1486,7 @@ const AbilityCheck = ({ result }) => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
       className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 px-4 text-[#efe3c4]"
-      style={{ background: "radial-gradient(ellipse at center, rgba(28,22,14,0.94), rgba(5,4,3,0.97) 70%)" }}
+      style={{ background: `${easedGlow("rgb(40 31 18)", { strength: 0.9, shape: "ellipse", reach: 90 })}, rgba(5,4,3,0.97)` }}
       aria-hidden="true"
     >
       <motion.div
@@ -1230,7 +1504,21 @@ const AbilityCheck = ({ result }) => {
         </p>
       </motion.div>
 
-      <div className="relative grid size-[min(52vw,15rem)] place-items-center">
+      <div className="relative grid size-[min(52vw,15rem,32vh)] place-items-center">
+        {/* a ring of runes turning behind the die, like the check circle in camp */}
+        <motion.svg
+          viewBox="0 0 100 100"
+          className="absolute -inset-[30%] size-[160%] opacity-50"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+        >
+          <circle cx="50" cy="50" r="48" fill="none" stroke={D20_GOLD} strokeWidth="0.4" />
+          <circle cx="50" cy="50" r="43" fill="none" stroke={D20_GOLD} strokeWidth="0.25" strokeDasharray="1 2.5" />
+          {Array.from({ length: 12 }, (_, index) => (
+            <path key={index} d="M50 2.5 L51.2 6 L50 9.5 L48.8 6 Z" fill={D20_GOLD} transform={`rotate(${index * 30} 50 50)`} />
+          ))}
+        </motion.svg>
+        {result && <Shockwave key="landed" color={color} size="100%" />}
         {verdict?.tone === "critical" &&
           CRIT_SPARKS.map((angle) => (
             <motion.span
@@ -1297,7 +1585,7 @@ const rollPerception = async (requestRoll) => {
 
 // a d20 at the very end of the page, under the logout. throw it and the camp rolls a perception check
 export const D20 = ({ className }) => {
-  const [isFound, find, caption] = useSecret("d20");
+  const [isFound, find] = useSecret("d20");
   const [requestRoll] = useLazyGetRollQuery();
   const [isShown, setIsShown] = useState(false);
   const [result, setResult] = useState(null);
@@ -1312,7 +1600,7 @@ export const D20 = ({ className }) => {
     const startedAt = Date.now();
     setResult(null);
     setIsShown(true);
-    find({ countAfterMs: D20_TUMBLE_MS + D20_VERDICT_MS + 400 });
+    find();
     const rolled = await rollPerception(() => requestRoll(undefined, false));
     later(() => {
       setResult(rolled);
@@ -1322,7 +1610,7 @@ export const D20 = ({ className }) => {
 
   return (
     <>
-      <SecretButton id="d20" isFound={isFound} label="A twenty sided die" caption={caption} className={className} onClick={roll}>
+      <SecretButton label="A twenty sided die" className={className} onClick={roll}>
         <motion.span
           className="block"
           initial={false}

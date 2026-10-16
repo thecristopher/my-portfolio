@@ -1,14 +1,48 @@
+import { useSyncExternalStore } from "react";
 import { echo } from "./echo";
 
-// moves focus into the sidebar's file tree, onto the file you're reading, so j/k can walk it like nvim-tree
-export const focusFileTree = () => {
-  const tree = document.querySelector("[data-file-tree]");
-  if (!tree || tree.getClientRects().length === 0) {
-    echo("the file tree lives on wide screens. on a phone, the menu up top has the same folders");
-    return false;
-  }
-  const current = tree.querySelector("button[aria-current='true']") ?? tree.querySelector("button");
-  current?.focus();
-  echo("NvimTree · j/k move · l open · h close · esc back to the page");
-  return true;
+// whether nvim-tree is open, shared by \e, :tree, the statusline and the phone menu. it starts closed, like nvim
+let isOpen = false;
+const listeners = new Set();
+
+const notify = () => listeners.forEach((listener) => listener());
+
+const subscribe = (listener) => {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
 };
+
+export const getFileTreeOpen = () => isOpen;
+
+export const useFileTreeOpen = () => useSyncExternalStore(subscribe, getFileTreeOpen);
+
+// focus lands on the file you're reading, so j/k can walk the tree right away
+const focusCurrentRow = () => {
+  const tree = document.querySelector("[data-file-tree]");
+  const current = tree?.querySelector("button[aria-current='true']") ?? tree?.querySelector("button");
+  current?.focus({ preventScroll: true });
+};
+
+export const setFileTreeOpen = (open, { focus = false } = {}) => {
+  if (open === isOpen) {
+    if (open && focus) focusCurrentRow();
+    return;
+  }
+  isOpen = open;
+  document.documentElement.dataset.tree = open ? "open" : "closed";
+  notify();
+  if (open && focus) requestAnimationFrame(focusCurrentRow);
+  if (!open) {
+    // focus never stays behind inside a closed tree
+    if (document.activeElement?.closest?.("[data-file-tree]")) document.activeElement.blur();
+  }
+};
+
+export const toggleFileTree = ({ focus = false } = {}) => {
+  setFileTreeOpen(!isOpen, { focus });
+  // the keys only mean something with a keyboard, so a phone skips the hint
+  const hasKeyboard = globalThis.matchMedia?.("(hover: hover) and (pointer: fine)").matches;
+  if (isOpen && hasKeyboard) echo("NvimTree · j/k move · l open · h close · q or \\e to hide");
+};
+
+export const closeFileTree = () => setFileTreeOpen(false);

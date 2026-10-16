@@ -25,22 +25,26 @@ The page paints with real content straight away: every build saves what the API 
 
 | Key | What it does |
 | --- | --- |
+| `f` | Follow a hint: every link and button on screen gets a short label, type it to click. Nothing needs the mouse |
+| `1` to `7` | Jump to a section by its buffer number |
+| `]]` / `[[` | Next / previous section |
 | `j` / `k` | Scroll down / up |
 | `d` / `u` | Half page down / up |
 | `gg` / `G` | Jump to top / bottom |
+| `h` / `l` | Slide the side quests shelf while it's on screen |
 | `/` | Search the page. `n` / `N` step through the matches, `esc` or `:noh` clears them |
-| `\e` | Focus the file tree. In it, `j` / `k` move, `l` opens, `h` closes or climbs to the folder, `esc` goes back |
+| `\e` | Toggle the file tree. In it, `j` / `k` move, `l` opens, `h` closes or climbs to the folder, `q` hides it, `esc` goes back |
 | `:` or `⌘K` | Open the command line |
 
-From the command line you can jump to any section, search, copy my email, mute the sound, open the quest log, or switch between six colorschemes. The default is `rosarito`, the Pacific after dark with the sunset in the accent, made for this site; a light system gets the light `lotus` instead, and `kanagawa`, `catppuccin`, `rose-pine` and `ember` are there too. In browsers with View Transitions, the new colorscheme spreads out in a circle from wherever you clicked, and the browser bar and tab icon follow it.
+From the command line you can jump to any section, search, copy my email, mute the sound, open the quest log, or switch between six colorschemes. The default is `rosarito`, Baja at dusk with the sunset in the accent, made for this site, and everyone starts there. `kanagawa`, `catppuccin`, `rose-pine`, `ember` and the light `lotus` are there too. In browsers with View Transitions, the new colorscheme spreads out in a circle from wherever you clicked, and the browser bar and tab icon follow it.
 
-On wide screens the sections live in a file tree down the left edge, drawn like nvim-tree: the folder for the section you're reading opens by itself and the cursorline follows the file on screen. On smaller screens the menu up top opens the same tree.
+On wide screens there's no top nav at all, the keyboard and the file tree cover it. The sections live in a file tree drawn like nvim-tree that stays out of the way until you ask for it: `\e` or `:tree` opens it, and on phones so does the menu button. While it's closed on a wide screen it folds down to a slim rail on the left edge, one icon per section, so it's always clear it's there. On wide screens it docks down the left edge like a split and the page moves over; on phones it slides over the page and closes once you pick a file. The cursorline follows the file on screen.
 
 The statusline at the bottom shows the current mode, buffer and scroll position, the search and its match count, my local time in Rosarito with a guess at what I'm doing, and a sound toggle. On a phone, tapping the mode opens the command line.
 
 ### Secrets
 
-There are 11 of them hidden around the page, each with its own full screen moment and a little synth jingle generated on the fly (no audio files shipped). The page remembers which ones you found, and each one leaves behind a tooltip that mashes its franchise up with my career, plus a row of pips in every secret's color so you can see how many are left. After the first find, the score shows up in the statusline and opens a quest log (`:quests`). Its riddles stay locked for the first minute and a half, so the hunt stays a hunt. One of them asks the API to roll for you. Some commands are hidden too, if you know what to type. I'm not saying where any of them are.
+There are 11 of them hidden around the page, each with its own full screen moment and a little synth jingle generated on the fly (no audio files shipped). The page remembers which ones you found. After the first find, the score shows up in the statusline and opens a quest log (`:quests`). Its riddles stay locked for the first minute and a half, so the hunt stays a hunt. One of them asks the API to roll for you. Some commands are hidden too, if you know what to type. I'm not saying where any of them are.
 
 ## Stack
 

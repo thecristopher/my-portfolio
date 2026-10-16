@@ -1,5 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
+  hintLabels,
+  stepSection,
+  auroraLayout,
+  mixColors,
+  parseCssColor,
+  softRing,
+  easedGlow,
+  glowFalloff,
+  softBeams,
+  brandColorFor,
+  shelfEdges,
   wrapRange,
   scrambleFrame,
   letterWeight,
@@ -246,12 +257,12 @@ describe("resolveTheme", () => {
     expect(resolveTheme("lordran")).toBe("rosarito");
   });
 
-  it("picks the light colorscheme for a light system when nothing is saved", () => {
-    expect(resolveTheme(null, true)).toBe("lotus");
+  it("starts everyone on rosarito when nothing is saved", () => {
+    expect(resolveTheme(null)).toBe("rosarito");
   });
 
-  it("keeps a saved dark colorscheme even on a light system", () => {
-    expect(resolveTheme("ember", true)).toBe("ember");
+  it("keeps a saved light colorscheme", () => {
+    expect(resolveTheme("lotus")).toBe("lotus");
   });
 });
 
@@ -616,5 +627,185 @@ describe("wrapRange", () => {
   it("loops past either end", () => {
     expect(wrapRange(-50, 0, -60)).toBe(-10);
     expect(wrapRange(-50, 0, 10)).toBe(-40);
+  });
+});
+
+describe("shelfEdges", () => {
+  it("is at the start before anything scrolls", () => {
+    expect(shelfEdges({ scrollLeft: 0, scrollWidth: 1200, clientWidth: 600 })).toEqual({ isAtStart: true, isAtEnd: false });
+  });
+
+  it("is at the end once the last card is in view", () => {
+    expect(shelfEdges({ scrollLeft: 600, scrollWidth: 1200, clientWidth: 600 })).toEqual({ isAtStart: false, isAtEnd: true });
+  });
+
+  it("forgives the half pixel a zoomed screen lands on", () => {
+    expect(shelfEdges({ scrollLeft: 599.5, scrollWidth: 1200, clientWidth: 600 }).isAtEnd).toBe(true);
+  });
+
+  it("is at both ends when everything fits", () => {
+    expect(shelfEdges({ scrollLeft: 0, scrollWidth: 600, clientWidth: 600 })).toEqual({ isAtStart: true, isAtEnd: true });
+  });
+});
+
+describe("brandColorFor", () => {
+  it("paints React in its own cyan", () => {
+    expect(brandColorFor("React")).toBe("#61dafb");
+  });
+
+  it("ignores the notes the API adds after a name", () => {
+    expect(brandColorFor("Docker (optional)")).toBe("#2496ed");
+  });
+
+  it("leaves a black logo like Next.js to the text color", () => {
+    expect(brandColorFor("Next.js")).toBeNull();
+  });
+
+  it("has nothing for a tool it has never heard of", () => {
+    expect(brandColorFor("Umbrella Corp T-Virus")).toBeNull();
+  });
+});
+
+describe("softBeams", () => {
+  it("fades a beam in and out around its angle", () => {
+    expect(softBeams([{ at: 90, width: 4, strength: 0.5 }], "gold")).toBe(
+      "conic-gradient(from 0deg, transparent 0deg, transparent 86deg, color-mix(in oklab, gold 50%, transparent) 90deg, transparent 94deg, transparent 360deg)"
+    );
+  });
+
+  it("lays the beams out in angle order whatever order they come in", () => {
+    const gradient = softBeams([{ at: 200, width: 2, strength: 1 }, { at: 20, width: 2, strength: 1 }], "gold");
+    expect(gradient.indexOf("20deg")).toBeLessThan(gradient.indexOf("200deg"));
+  });
+
+  it("draws nothing without beams", () => {
+    expect(softBeams([], "gold")).toBe("none");
+  });
+});
+
+describe("glowFalloff", () => {
+  it("is full strength at the center", () => {
+    expect(glowFalloff(0)).toBe(1);
+  });
+
+  it("is gone at the edge", () => {
+    expect(glowFalloff(1)).toBe(0);
+  });
+
+  it("only ever fades on the way out", () => {
+    const samples = [0, 0.2, 0.4, 0.6, 0.8, 1].map(glowFalloff);
+    samples.slice(1).forEach((value, index) => expect(value).toBeLessThan(samples[index]));
+  });
+});
+
+describe("easedGlow", () => {
+  it("starts at the glow's strength and ends fully transparent at its reach", () => {
+    const glow = easedGlow("red", { strength: 0.4, reach: 80, steps: 4 });
+    expect(glow.startsWith("radial-gradient(closest-side at center, color-mix(in oklab, red 40%, transparent) 0%")).toBe(true);
+    expect(glow.endsWith("color-mix(in oklab, red 0%, transparent) 80%)")).toBe(true);
+  });
+
+  it("can sit anywhere in its shape", () => {
+    expect(easedGlow("red", { shape: "ellipse", at: "50% 40%" })).toMatch(/^radial-gradient\(ellipse at 50% 40%/);
+  });
+});
+
+describe("softRing", () => {
+  it("peaks at the ring and fades out on both sides", () => {
+    const ring = softRing("gold", { strength: 0.5, at: 70, spread: 20, steps: 2 });
+    expect(ring).toBe(
+      "radial-gradient(closest-side, color-mix(in oklab, gold 0%, transparent) 50%, color-mix(in oklab, gold 28.1%, transparent) 60%, color-mix(in oklab, gold 50%, transparent) 70%, color-mix(in oklab, gold 28.1%, transparent) 80%, color-mix(in oklab, gold 0%, transparent) 90%)"
+    );
+  });
+
+  it("never spills past the edge of its circle", () => {
+    expect(softRing("gold", { at: 95, spread: 20 })).not.toMatch(/10[1-9]%|11\d%/);
+  });
+});
+
+describe("parseCssColor", () => {
+  it("reads a six digit hex", () => {
+    expect(parseCssColor("#ff0000")).toEqual([1, 0, 0]);
+  });
+
+  it("reads a three digit hex", () => {
+    expect(parseCssColor("#0f0")).toEqual([0, 1, 0]);
+  });
+
+  it("reads rgb with spaces or commas", () => {
+    expect(parseCssColor("rgb(0 0 255)")).toEqual([0, 0, 1]);
+    expect(parseCssColor("rgba(0, 0, 255, 0.5)")).toEqual([0, 0, 1]);
+  });
+
+  it("gives up on anything else", () => {
+    expect(parseCssColor("var(--color-umbrella)")).toBeNull();
+  });
+});
+
+describe("mixColors", () => {
+  it("lands halfway between two colors", () => {
+    expect(mixColors([0, 0, 0], [1, 0.5, 0], 0.5)).toEqual([0.5, 0.25, 0]);
+  });
+});
+
+describe("auroraLayout", () => {
+  it("spreads each light across 40% of the screen's longer side", () => {
+    expect(auroraLayout({ width: 1000, height: 500 }).reach).toBe(400);
+  });
+
+  it("keeps the first light to the left of the second", () => {
+    const { first, second } = auroraLayout({ width: 1000, height: 500 });
+    expect(first.x).toBeLessThan(second.x);
+  });
+
+  it("stacks the first light above the second on a tall phone", () => {
+    const { first, second } = auroraLayout({ width: 390, height: 844 });
+    expect(first.y).toBeLessThan(second.y);
+  });
+
+  it("drifts the lights in opposite directions as the page scrolls", () => {
+    const top = auroraLayout({ width: 1000, height: 500, progress: 0 });
+    const bottom = auroraLayout({ width: 1000, height: 500, progress: 1 });
+    expect(bottom.first.x).toBeGreaterThan(top.first.x);
+    expect(bottom.second.x).toBeLessThan(top.second.x);
+  });
+});
+
+describe("hintLabels", () => {
+  it("uses single letters while they last", () => {
+    expect(hintLabels(3, "abc")).toEqual(["a", "b", "c"]);
+  });
+
+  it("makes every label longer together once the short ones run out", () => {
+    expect(hintLabels(5, "ab")).toEqual(["aaa", "aab", "aba", "abb", "baa"]);
+  });
+
+  it("never makes one label the start of another", () => {
+    const labels = hintLabels(40);
+    labels.forEach((label) => expect(labels.filter((other) => other !== label && other.startsWith(label))).toEqual([]));
+  });
+
+  it("makes nothing for nothing", () => {
+    expect(hintLabels(0)).toEqual([]);
+  });
+});
+
+describe("stepSection", () => {
+  const ids = ["home", "about", "work"];
+
+  it("moves to the next section", () => {
+    expect(stepSection(ids, "about", 1)).toBe("work");
+  });
+
+  it("moves to the previous section", () => {
+    expect(stepSection(ids, "about", -1)).toBe("home");
+  });
+
+  it("stays on the last section going forward", () => {
+    expect(stepSection(ids, "work", 1)).toBe("work");
+  });
+
+  it("starts at the top when it can't tell where you are", () => {
+    expect(stepSection(ids, "raccoon-city", 1)).toBe("home");
   });
 });

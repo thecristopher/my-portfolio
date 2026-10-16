@@ -187,15 +187,6 @@ const Contact = () => {
 
   return (
     <section id="contact" className="relative pt-16 pb-20 sm:pt-24 sm:pb-28">
-      {/* the glow fades out before the section edge so it never leaves a hard line above the footer */}
-      <div
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-        style={{ maskImage: "linear-gradient(to bottom, black 40%, transparent 95%)" }}
-        aria-hidden="true"
-      >
-        <div className="absolute top-1/2 left-1/2 size-[44rem] -translate-x-1/2 rounded-full bg-accent/10 blur-[160px]" />
-      </div>
-
       <div className="relative mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
         <div className="flex items-end justify-between gap-8">
           <div className="flex flex-col gap-6">

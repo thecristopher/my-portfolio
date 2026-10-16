@@ -5,20 +5,30 @@
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
 
-  /* rosarito is the default colorscheme: the Pacific after dark, sand for text and the sunset for the accent.
-     the others override these below */
-  --color-ink: #0e1219;
-  --color-panel: #141a24;
-  --color-raised: #1b2330;
-  --color-line: #1e2633;
-  --color-line-strong: #2c3747;
-  --color-fg: #efe7d8;
-  --color-muted: #a3abb8;
-  --color-faint: #66707f;
-  --color-accent: #ff8f5e;
-  --color-signal: #6fc6d6;
-  --color-string: #a6d49a;
-  --color-error: #ff6b81;
+  /* rosarito is the default colorscheme: Baja at dusk. the sky going violet over the Pacific, sand for the text,
+     the last of the sunset for the accent, sea glass and bougainvillea for the rest. the others override these below */
+  --color-ink: #14111c;
+  --color-panel: #1a1624;
+  --color-raised: #241f30;
+  --color-line: #282235;
+  --color-line-strong: #3a3248;
+  --color-fg: #f4ebdf;
+  --color-muted: #b3a9b6;
+  --color-faint: #756c80;
+  --color-accent: #ff8e6b;
+  --color-signal: #7ccfc4;
+  --color-string: #b4d68f;
+  --color-error: #ff6f96;
+  /* each filetype's own color, the way nvim-web-devicons paints them: react cyan, markdown blue, json yellow... */
+  --color-ft-react: #20c2e3;
+  --color-ft-markdown: #519aba;
+  --color-ft-json: #cbcb41;
+  --color-ft-toml: #e0773d;
+  --color-ft-yaml: #e8484f;
+  --color-ft-lua: #51a0cf;
+  --color-ft-shell: #89e051;
+  --color-ft-log: #c5c5c5;
+  --color-ft-git: #f14c28;
   /* what every drop shadow is mixed from. pure black on the dark schemes, a soft brown on the light one */
   --color-shadow: #000;
 }
@@ -84,7 +94,7 @@
   --color-error: #ff5f57;
 }
 
-/* kanagawa lotus, the one light colorscheme. a light system gets it until the visitor picks another */
+/* kanagawa lotus, the one light colorscheme, for anyone who picks it */
 :root[data-theme="lotus"] {
   color-scheme: light;
   --color-ink: #f2ecbc;
@@ -100,6 +110,16 @@
   --color-string: #6f894e;
   --color-error: #c84053;
   --color-shadow: rgb(110 95 40 / 0.35);
+  /* the same filetype colors, deep enough to read on paper */
+  --color-ft-react: #0e7f98;
+  --color-ft-markdown: #2f6e8f;
+  --color-ft-json: #8a7a00;
+  --color-ft-toml: #b0501c;
+  --color-ft-yaml: #b8262d;
+  --color-ft-lua: #2a6f9e;
+  --color-ft-shell: #4a8a1c;
+  --color-ft-log: #6b6b6b;
+  --color-ft-git: #c43a18;
 }
 
 /* nothing may ever make the page wider than the screen. iOS Safari zooms the whole page out the moment something
@@ -108,6 +128,20 @@
 html,
 body {
   overflow-x: clip;
+}
+
+/* an open file tree takes the left 16rem on wide screens, like a split. each section keeps its backgrounds full
+   bleed and pads only what's inside, so no glow or grid stops short in a hard line beside the tree */
+.clears-tree > main > section,
+.clears-tree > footer {
+  transition: padding-left 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 80rem) {
+  :root[data-tree="open"] .clears-tree > main > section,
+  :root[data-tree="open"] .clears-tree > footer {
+    padding-left: 16rem;
+  }
 }
 
 html {
@@ -125,6 +159,9 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
+
+/* every glow below fades along the same eased curve as easedGlow in actions, flat at the center and flat at the
+   edge, so none of them shows a hot spot or a ring where it runs out */
 
 /* the light behind the page. registered as colors so a change of section fades between them instead of jumping */
 @property --aurora-a {
@@ -144,11 +181,65 @@ body {
 }
 
 .aurora-a {
-  background: radial-gradient(closest-side, color-mix(in oklab, var(--aurora-a) 13%, transparent), transparent);
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--aurora-a) 15%, transparent) 0%,
+    color-mix(in oklab, var(--aurora-a) 14.9%, transparent) 4.2%,
+    color-mix(in oklab, var(--aurora-a) 14.8%, transparent) 8.3%,
+    color-mix(in oklab, var(--aurora-a) 14.5%, transparent) 12.5%,
+    color-mix(in oklab, var(--aurora-a) 14.2%, transparent) 16.7%,
+    color-mix(in oklab, var(--aurora-a) 13.7%, transparent) 20.8%,
+    color-mix(in oklab, var(--aurora-a) 13.2%, transparent) 25%,
+    color-mix(in oklab, var(--aurora-a) 12.6%, transparent) 29.2%,
+    color-mix(in oklab, var(--aurora-a) 11.9%, transparent) 33.3%,
+    color-mix(in oklab, var(--aurora-a) 11.1%, transparent) 37.5%,
+    color-mix(in oklab, var(--aurora-a) 10.2%, transparent) 41.7%,
+    color-mix(in oklab, var(--aurora-a) 9.4%, transparent) 45.8%,
+    color-mix(in oklab, var(--aurora-a) 8.4%, transparent) 50%,
+    color-mix(in oklab, var(--aurora-a) 7.5%, transparent) 54.2%,
+    color-mix(in oklab, var(--aurora-a) 6.5%, transparent) 58.3%,
+    color-mix(in oklab, var(--aurora-a) 5.6%, transparent) 62.5%,
+    color-mix(in oklab, var(--aurora-a) 4.6%, transparent) 66.7%,
+    color-mix(in oklab, var(--aurora-a) 3.7%, transparent) 70.8%,
+    color-mix(in oklab, var(--aurora-a) 2.9%, transparent) 75%,
+    color-mix(in oklab, var(--aurora-a) 2.1%, transparent) 79.2%,
+    color-mix(in oklab, var(--aurora-a) 1.4%, transparent) 83.3%,
+    color-mix(in oklab, var(--aurora-a) 0.8%, transparent) 87.5%,
+    color-mix(in oklab, var(--aurora-a) 0.4%, transparent) 91.7%,
+    color-mix(in oklab, var(--aurora-a) 0.1%, transparent) 95.8%,
+    color-mix(in oklab, var(--aurora-a) 0%, transparent) 100%
+  );
 }
 
 .aurora-b {
-  background: radial-gradient(closest-side, color-mix(in oklab, var(--aurora-b) 10%, transparent), transparent);
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--aurora-b) 12%, transparent) 0%,
+    color-mix(in oklab, var(--aurora-b) 12%, transparent) 4.2%,
+    color-mix(in oklab, var(--aurora-b) 11.8%, transparent) 8.3%,
+    color-mix(in oklab, var(--aurora-b) 11.6%, transparent) 12.5%,
+    color-mix(in oklab, var(--aurora-b) 11.3%, transparent) 16.7%,
+    color-mix(in oklab, var(--aurora-b) 11%, transparent) 20.8%,
+    color-mix(in oklab, var(--aurora-b) 10.5%, transparent) 25%,
+    color-mix(in oklab, var(--aurora-b) 10%, transparent) 29.2%,
+    color-mix(in oklab, var(--aurora-b) 9.5%, transparent) 33.3%,
+    color-mix(in oklab, var(--aurora-b) 8.9%, transparent) 37.5%,
+    color-mix(in oklab, var(--aurora-b) 8.2%, transparent) 41.7%,
+    color-mix(in oklab, var(--aurora-b) 7.5%, transparent) 45.8%,
+    color-mix(in oklab, var(--aurora-b) 6.8%, transparent) 50%,
+    color-mix(in oklab, var(--aurora-b) 6%, transparent) 54.2%,
+    color-mix(in oklab, var(--aurora-b) 5.2%, transparent) 58.3%,
+    color-mix(in oklab, var(--aurora-b) 4.5%, transparent) 62.5%,
+    color-mix(in oklab, var(--aurora-b) 3.7%, transparent) 66.7%,
+    color-mix(in oklab, var(--aurora-b) 3%, transparent) 70.8%,
+    color-mix(in oklab, var(--aurora-b) 2.3%, transparent) 75%,
+    color-mix(in oklab, var(--aurora-b) 1.7%, transparent) 79.2%,
+    color-mix(in oklab, var(--aurora-b) 1.1%, transparent) 83.3%,
+    color-mix(in oklab, var(--aurora-b) 0.7%, transparent) 87.5%,
+    color-mix(in oklab, var(--aurora-b) 0.3%, transparent) 91.7%,
+    color-mix(in oklab, var(--aurora-b) 0.1%, transparent) 95.8%,
+    color-mix(in oklab, var(--aurora-b) 0%, transparent) 100%
+  );
 }
 
 /* each section's number, set huge and hollow behind its header */
@@ -188,6 +279,15 @@ body {
 
 .pointer-down .pointer {
   scale: 0.92;
+}
+
+/* a tool's logo in its brand color, or the text color for the black ones */
+.tech-icon {
+  color: var(--brand, var(--color-fg));
+}
+
+:root[data-theme="lotus"] .tech-icon {
+  color: color-mix(in oklab, var(--brand, var(--color-fg)) 72%, black);
 }
 
 /* every match of a `/` search, and the one the cursor is on */
@@ -242,7 +342,34 @@ body::after {
     linear-gradient(to right, var(--color-line) 1px, transparent 1px),
     linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
   background-size: 72px 72px;
-  mask-image: radial-gradient(ellipse 70% 55% at 50% 30%, black 20%, transparent 75%);
+  mask-image: radial-gradient(
+    ellipse 70% 55% at 50% 30%,
+    color-mix(in oklab, black 100%, transparent) 0%,
+    color-mix(in oklab, black 99.7%, transparent) 3.2%,
+    color-mix(in oklab, black 98.6%, transparent) 6.5%,
+    color-mix(in oklab, black 96.9%, transparent) 9.8%,
+    color-mix(in oklab, black 94.5%, transparent) 13%,
+    color-mix(in oklab, black 91.5%, transparent) 16.2%,
+    color-mix(in oklab, black 87.9%, transparent) 19.5%,
+    color-mix(in oklab, black 83.7%, transparent) 22.8%,
+    color-mix(in oklab, black 79%, transparent) 26%,
+    color-mix(in oklab, black 73.9%, transparent) 29.2%,
+    color-mix(in oklab, black 68.3%, transparent) 32.5%,
+    color-mix(in oklab, black 62.4%, transparent) 35.8%,
+    color-mix(in oklab, black 56.2%, transparent) 39%,
+    color-mix(in oklab, black 49.9%, transparent) 42.2%,
+    color-mix(in oklab, black 43.5%, transparent) 45.5%,
+    color-mix(in oklab, black 37.1%, transparent) 48.8%,
+    color-mix(in oklab, black 30.9%, transparent) 52%,
+    color-mix(in oklab, black 24.8%, transparent) 55.2%,
+    color-mix(in oklab, black 19.1%, transparent) 58.5%,
+    color-mix(in oklab, black 13.9%, transparent) 61.8%,
+    color-mix(in oklab, black 9.3%, transparent) 65%,
+    color-mix(in oklab, black 5.5%, transparent) 68.2%,
+    color-mix(in oklab, black 2.6%, transparent) 71.5%,
+    color-mix(in oklab, black 0.7%, transparent) 74.8%,
+    color-mix(in oklab, black 0%, transparent) 78%
+  );
 }
 
 /* the same grid again in the accent color, only visible in a soft circle around the cursor */
@@ -253,7 +380,34 @@ body::after {
   background-size: 72px 72px;
   opacity: 0;
   transition: opacity 0.6s ease;
-  mask-image: radial-gradient(260px circle at var(--grid-x, 50%) var(--grid-y, 50%), black, transparent 75%);
+  mask-image: radial-gradient(
+    280px circle at var(--grid-x, 50%) var(--grid-y, 50%),
+    color-mix(in oklab, black 100%, transparent) 0%,
+    color-mix(in oklab, black 99.7%, transparent) 4.2%,
+    color-mix(in oklab, black 98.6%, transparent) 8.3%,
+    color-mix(in oklab, black 96.9%, transparent) 12.5%,
+    color-mix(in oklab, black 94.5%, transparent) 16.7%,
+    color-mix(in oklab, black 91.5%, transparent) 20.8%,
+    color-mix(in oklab, black 87.9%, transparent) 25%,
+    color-mix(in oklab, black 83.7%, transparent) 29.2%,
+    color-mix(in oklab, black 79%, transparent) 33.3%,
+    color-mix(in oklab, black 73.9%, transparent) 37.5%,
+    color-mix(in oklab, black 68.3%, transparent) 41.7%,
+    color-mix(in oklab, black 62.4%, transparent) 45.8%,
+    color-mix(in oklab, black 56.2%, transparent) 50%,
+    color-mix(in oklab, black 49.9%, transparent) 54.2%,
+    color-mix(in oklab, black 43.5%, transparent) 58.3%,
+    color-mix(in oklab, black 37.1%, transparent) 62.5%,
+    color-mix(in oklab, black 30.9%, transparent) 66.7%,
+    color-mix(in oklab, black 24.8%, transparent) 70.8%,
+    color-mix(in oklab, black 19.1%, transparent) 75%,
+    color-mix(in oklab, black 13.9%, transparent) 79.2%,
+    color-mix(in oklab, black 9.3%, transparent) 83.3%,
+    color-mix(in oklab, black 5.5%, transparent) 87.5%,
+    color-mix(in oklab, black 2.6%, transparent) 91.7%,
+    color-mix(in oklab, black 0.7%, transparent) 95.8%,
+    color-mix(in oklab, black 0%, transparent) 100%
+  );
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -290,7 +444,34 @@ body::after {
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.4s ease;
-  background: radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 50%), var(--color-accent), transparent 70%);
+  background: radial-gradient(
+    280px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    color-mix(in oklab, var(--color-accent) 100%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent) 99.7%, transparent) 4.2%,
+    color-mix(in oklab, var(--color-accent) 98.6%, transparent) 8.3%,
+    color-mix(in oklab, var(--color-accent) 96.9%, transparent) 12.5%,
+    color-mix(in oklab, var(--color-accent) 94.5%, transparent) 16.7%,
+    color-mix(in oklab, var(--color-accent) 91.5%, transparent) 20.8%,
+    color-mix(in oklab, var(--color-accent) 87.9%, transparent) 25%,
+    color-mix(in oklab, var(--color-accent) 83.7%, transparent) 29.2%,
+    color-mix(in oklab, var(--color-accent) 79%, transparent) 33.3%,
+    color-mix(in oklab, var(--color-accent) 73.9%, transparent) 37.5%,
+    color-mix(in oklab, var(--color-accent) 68.3%, transparent) 41.7%,
+    color-mix(in oklab, var(--color-accent) 62.4%, transparent) 45.8%,
+    color-mix(in oklab, var(--color-accent) 56.2%, transparent) 50%,
+    color-mix(in oklab, var(--color-accent) 49.9%, transparent) 54.2%,
+    color-mix(in oklab, var(--color-accent) 43.5%, transparent) 58.3%,
+    color-mix(in oklab, var(--color-accent) 37.1%, transparent) 62.5%,
+    color-mix(in oklab, var(--color-accent) 30.9%, transparent) 66.7%,
+    color-mix(in oklab, var(--color-accent) 24.8%, transparent) 70.8%,
+    color-mix(in oklab, var(--color-accent) 19.1%, transparent) 75%,
+    color-mix(in oklab, var(--color-accent) 13.9%, transparent) 79.2%,
+    color-mix(in oklab, var(--color-accent) 9.3%, transparent) 83.3%,
+    color-mix(in oklab, var(--color-accent) 5.5%, transparent) 87.5%,
+    color-mix(in oklab, var(--color-accent) 2.6%, transparent) 91.7%,
+    color-mix(in oklab, var(--color-accent) 0.7%, transparent) 95.8%,
+    color-mix(in oklab, var(--color-accent) 0%, transparent) 100%
+  );
   mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -309,7 +490,34 @@ body::after {
   z-index: -1;
   opacity: 0;
   transition: opacity 0.4s ease;
-  background: radial-gradient(420px circle at var(--spot-x, 50%) var(--spot-y, 50%), color-mix(in oklab, var(--color-accent) 14%, transparent), transparent 60%);
+  background: radial-gradient(
+    440px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    color-mix(in oklab, var(--color-accent) 13%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent) 13%, transparent) 4.2%,
+    color-mix(in oklab, var(--color-accent) 12.8%, transparent) 8.3%,
+    color-mix(in oklab, var(--color-accent) 12.6%, transparent) 12.5%,
+    color-mix(in oklab, var(--color-accent) 12.3%, transparent) 16.7%,
+    color-mix(in oklab, var(--color-accent) 11.9%, transparent) 20.8%,
+    color-mix(in oklab, var(--color-accent) 11.4%, transparent) 25%,
+    color-mix(in oklab, var(--color-accent) 10.9%, transparent) 29.2%,
+    color-mix(in oklab, var(--color-accent) 10.3%, transparent) 33.3%,
+    color-mix(in oklab, var(--color-accent) 9.6%, transparent) 37.5%,
+    color-mix(in oklab, var(--color-accent) 8.9%, transparent) 41.7%,
+    color-mix(in oklab, var(--color-accent) 8.1%, transparent) 45.8%,
+    color-mix(in oklab, var(--color-accent) 7.3%, transparent) 50%,
+    color-mix(in oklab, var(--color-accent) 6.5%, transparent) 54.2%,
+    color-mix(in oklab, var(--color-accent) 5.7%, transparent) 58.3%,
+    color-mix(in oklab, var(--color-accent) 4.8%, transparent) 62.5%,
+    color-mix(in oklab, var(--color-accent) 4%, transparent) 66.7%,
+    color-mix(in oklab, var(--color-accent) 3.2%, transparent) 70.8%,
+    color-mix(in oklab, var(--color-accent) 2.5%, transparent) 75%,
+    color-mix(in oklab, var(--color-accent) 1.8%, transparent) 79.2%,
+    color-mix(in oklab, var(--color-accent) 1.2%, transparent) 83.3%,
+    color-mix(in oklab, var(--color-accent) 0.7%, transparent) 87.5%,
+    color-mix(in oklab, var(--color-accent) 0.3%, transparent) 91.7%,
+    color-mix(in oklab, var(--color-accent) 0.1%, transparent) 95.8%,
+    color-mix(in oklab, var(--color-accent) 0%, transparent) 100%
+  );
 }
 
 .spotlight:hover::before {
@@ -346,16 +554,6 @@ body::after {
   to {
     background-position: -30% 0;
   }
-}
-
-/* the pill above each found secret gets a thin edge of light in that secret's color */
-.secret-tooltip::before {
-  content: "";
-  position: absolute;
-  inset-inline: 12px;
-  top: -1px;
-  height: 1px;
-  background: linear-gradient(to right, transparent, var(--secret), transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

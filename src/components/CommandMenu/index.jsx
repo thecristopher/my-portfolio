@@ -8,7 +8,7 @@ import { pauseSmoothScroll, resumeSmoothScroll, scrollToSection } from "../../li
 import { echo } from "../../lib/echo";
 import { getMuted, setMuted } from "../../lib/sound";
 import { clearSearch } from "../../lib/search";
-import { focusFileTree } from "../../lib/fileTree";
+import { toggleFileTree } from "../../lib/fileTree";
 import { HELP_TEXT } from "../../hooks/useVimKeys";
 import { easeOutExpo } from "../../lib/motion";
 
@@ -80,7 +80,9 @@ const buildCommands = ({ links, contact, colorscheme, onSetColorscheme, onOpenQu
   const finding = [
     { id: "search", group: "Find", label: "Search the page", alias: "search", keywords: "find grep /", icon: Search, run: onOpenSearch },
     { id: "noh", group: "Find", label: "Clear search highlights", alias: "noh", keywords: "nohlsearch clear", icon: SearchX, run: clearSearch },
-    { id: "tree", group: "Find", label: "Focus the file tree", alias: "tree", keywords: "nvimtree sidebar explorer", icon: FolderTree, run: () => setTimeout(focusFileTree, 0) },
+    { id: "tree", group: "Find", label: "Toggle the file tree", alias: "tree", keywords: "nvimtree sidebar explorer menu", icon: FolderTree, run: () => setTimeout(() => toggleFileTree({ focus: true }), 0) },
+    // the real command, for anyone whose fingers type it without thinking
+    { id: "nvimtreetoggle", group: "Find", label: "NvimTreeToggle", alias: "nvimtreetoggle", icon: FolderTree, hidden: true, run: () => setTimeout(() => toggleFileTree({ focus: true }), 0) },
   ];
 
   const extras = [

@@ -101,15 +101,10 @@ const FILE_TYPES = { tsx: "typescriptreact", md: "markdown", json: "json", lua: 
 export const fileTypeFor = (bufferName = "") => FILE_TYPES[bufferName.split(".").pop()] ?? "text";
 
 export const THEMES = ["rosarito", "kanagawa", "catppuccin", "rose-pine", "ember", "lotus"];
-// home: the Pacific at night with the sunset still in the accent
+// home: Baja at dusk. everyone lands here first, whatever their system is set to
 export const DEFAULT_THEME = "rosarito";
-// the one light colorscheme, picked for anyone whose system is set to light until they choose another
-export const LIGHT_THEME = "lotus";
 
-export const resolveTheme = (saved, prefersLight = false) => {
-  if (THEMES.includes(saved)) return saved;
-  return prefersLight ? LIGHT_THEME : DEFAULT_THEME;
-};
+export const resolveTheme = (saved) => (THEMES.includes(saved) ? saved : DEFAULT_THEME);
 
 export const isMaxLevel = (level, maxLevel) => level >= maxLevel;
 
@@ -303,4 +298,138 @@ export const scrambleFrame = (text = "", progress = 0, random = Math.random) =>
 export const wrapRange = (min, max, value) => {
   const span = max - min;
   return ((((value - min) % span) + span) % span) + min;
+};
+
+// whether a sideways scroller is resting against either end. a pixel of slack, since zoomed screens land on fractions
+export const shelfEdges = ({ scrollLeft, scrollWidth, clientWidth }) => ({
+  isAtStart: scrollLeft <= 1,
+  isAtEnd: scrollLeft + clientWidth >= scrollWidth - 1,
+});
+
+// each tool in the color its own logo uses. the ones whose logo is plain black follow the text color instead
+const TECH_COLORS = {
+  React: "#61dafb",
+  "Next.js": null,
+  TypeScript: "#3178c6",
+  JavaScript: "#f7df1e",
+  "Node.js": "#5fa04e",
+  AWS: "#ff9900",
+  Lambda: "#ff9900",
+  Bedrock: "#01a88d",
+  DynamoDB: "#527fff",
+  Aurora: "#527fff",
+  Serverless: "#fd5750",
+  Docker: "#2496ed",
+  Kubernetes: "#326ce5",
+  Terraform: "#844fba",
+  "GitHub Actions": "#2088ff",
+  OpenSearch: "#00a3e0",
+  PostgreSQL: "#4169e1",
+  MySQL: "#4479a1",
+  "SQL Server": "#cc2927",
+  SQL: "#e38c00",
+  PHP: "#777bb4",
+  Symfony: null,
+  Python: "#4b8bbe",
+  "C#": "#9b4f96",
+  ".NET": "#512bd4",
+  MVC: "#512bd4",
+  Azure: "#0089d6",
+  LLMs: "#d97757",
+};
+
+export const brandColorFor = (tech = "") => TECH_COLORS[cleanTechName(tech)] ?? null;
+
+// a conic gradient of soft light beams. each beam fades in and out around its own angle instead of starting on a
+// hard edge, and they sit at uneven angles with uneven widths and strengths, so it reads as light, not a sunburst
+export const softBeams = (beams = [], color = "white") => {
+  const stops = [...beams]
+    .sort((a, b) => a.at - b.at)
+    .flatMap(({ at, width, strength }) => [
+      `transparent ${at - width}deg`,
+      `color-mix(in oklab, ${color} ${Math.round(strength * 100)}%, transparent) ${at}deg`,
+      `transparent ${at + width}deg`,
+    ]);
+  return stops.length === 0 ? "none" : `conic-gradient(from 0deg, transparent 0deg, ${stops.join(", ")}, transparent 360deg)`;
+};
+
+// how strong a glow is at a point between its center (0) and its edge (1). flat at both ends, so there's no hot
+// spot in the middle and no ring where it runs out, the falloff a straight two stop gradient can't give
+export const glowFalloff = (t) => (1 - t * t) ** 2;
+
+// a radial glow built from that falloff, many stops deep so the eye can't find where it ends
+export const easedGlow = (color, { strength = 1, reach = 100, shape = "closest-side", at = "center", steps = 24 } = {}) => {
+  const stops = Array.from({ length: steps + 1 }, (_, index) => {
+    const t = index / steps;
+    const amount = Math.round(strength * glowFalloff(t) * 1000) / 10;
+    return `color-mix(in oklab, ${color} ${amount}%, transparent) ${Math.round(t * reach * 10) / 10}%`;
+  });
+  return `radial-gradient(${shape} at ${at}, ${stops.join(", ")})`;
+};
+
+// a ring of light with the same eased falloff on both sides, for a shockwave that reads as a pulse of light
+// instead of a drawn circle. at and spread are percentages of the radius
+export const softRing = (color, { strength = 0.7, at = 76, spread = 24, steps = 8 } = {}) => {
+  const stops = Array.from({ length: steps * 2 + 1 }, (_, index) => {
+    const offset = index / steps - 1;
+    const amount = Math.round(strength * glowFalloff(Math.abs(offset)) * 1000) / 10;
+    const position = Math.min(100, Math.max(0, at + offset * spread));
+    return `color-mix(in oklab, ${color} ${amount}%, transparent) ${Math.round(position * 10) / 10}%`;
+  });
+  return `radial-gradient(closest-side, ${stops.join(", ")})`;
+};
+
+// a colorscheme color as the 0 to 1 channels a shader wants. reads the hex and rgb() forms the stylesheet uses
+export const parseCssColor = (value = "") => {
+  const text = value.trim();
+  const hex = text.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (hex) {
+    const digits = hex[1].length === 3 ? [...hex[1]].map((digit) => digit + digit).join("") : hex[1];
+    return [0, 2, 4].map((at) => parseInt(digits.slice(at, at + 2), 16) / 255);
+  }
+  const rgb = text.match(/^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
+  if (rgb) return rgb.slice(1, 4).map((channel) => Number(channel) / 255);
+  return null;
+};
+
+export const mixColors = (from, to, amount) => from.map((channel, index) => channel + (to[index] - channel) * amount);
+
+// where the two pools of light behind the page sit, in css pixels from the top left. one starts up and to the left,
+// the other down and to the right, and they drift past each other as the page scrolls. reach is how far each spreads
+export const auroraLayout = ({ width, height, progress = 0 }) => {
+  const span = Math.max(width, height) * 0.8;
+  const reach = span / 2;
+  const driftA = (-0.1 + 0.45 * progress) * span;
+  const driftB = (0.2 - 0.45 * progress) * span;
+  return {
+    reach,
+    first: { x: -0.25 * width + reach + driftA, y: -0.25 * height + reach },
+    second: { x: width * 1.25 - reach + driftB, y: height * (4 / 3) - reach },
+  };
+};
+
+// vimium's hint letters: home row first, the keys easiest to reach without looking
+export const HINT_ALPHABET = "sadfjklewcmpgh";
+
+// a label for every hint, all the same length so none is the start of another and typing one never stops early
+export const hintLabels = (count, alphabet = HINT_ALPHABET) => {
+  if (count <= 0) return [];
+  let length = 1;
+  while (alphabet.length ** length < count) length += 1;
+  return Array.from({ length: count }, (_, index) => {
+    let label = "";
+    let rest = index;
+    for (let at = 0; at < length; at += 1) {
+      label = alphabet[rest % alphabet.length] + label;
+      rest = Math.floor(rest / alphabet.length);
+    }
+    return label;
+  });
+};
+
+// the section after or before the one you're reading, held at the ends like vim's ]] and [[ do at the last section
+export const stepSection = (ids = [], currentId, direction) => {
+  const at = ids.indexOf(currentId);
+  if (at === -1) return ids[0] ?? null;
+  return ids[Math.min(ids.length - 1, Math.max(0, at + direction))];
 };

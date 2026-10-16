@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { playSound } from "./sound";
 
 // the little icons hidden around the page. finding one remembers it, so a discovered grace stays lit
 const STORAGE_KEY = "secrets-found";
 
-// each secret's color for the progress pips, the line its tooltip says once found (half the franchise, half me),
-// its name in the quest log, the buffer it hides in and a riddle the quest log gives away after a while
+// each secret's color, the line the quest log says once it's found (half the franchise, half me), its name there,
+// the buffer it hides in and a riddle the quest log gives away after a while
 export const SECRETS = {
   triforce: {
     color: "#e8c35a",
@@ -96,13 +96,6 @@ export const secretCount = (found) => `${found.length}/${SECRET_IDS.length} secr
 
 export const isComplete = (found) => SECRET_IDS.every((id) => found.includes(id));
 
-// what the pill next to a secret says: its quip (or the victory line once every one is found) and the score
-export const secretTooltip = (id, found) => ({
-  quip: isComplete(found) ? COMPLETION_QUIP : SECRETS[id]?.quip,
-  count: secretCount(found),
-  found,
-});
-
 export const migrateFound = (found) => [...new Set(found.map((id) => RENAMED[id] ?? id))];
 
 export const readFound = () => {
@@ -147,28 +140,15 @@ export const hintFor = (id, elapsedMs) => {
   return { isLocked: false, where: secret.where, riddle: secret.riddle };
 };
 
-const CAPTION_MS = 2800;
-
-// returns whether this secret was ever found, a function to find it, and the tooltip to pop up right now
+// returns whether this secret was ever found and a function to find it
 export const useSecret = (id) => {
   const [isFound, setIsFound] = useState(() => readFound().includes(id));
-  const [caption, setCaption] = useState(null);
-  const captionTimer = useRef(null);
 
-  useEffect(() => () => clearTimeout(captionTimer.current), []);
-
-  // the count waits for the full screen effect to clear, otherwise it would pop up hidden underneath it
-  const find = ({ withSound = true, countAfterMs = 0 } = {}) => {
-    const found = [...new Set([...readFound(), id])];
-    saveFound(found);
+  const find = ({ withSound = true } = {}) => {
+    saveFound([...new Set([...readFound(), id])]);
     setIsFound(true);
     if (withSound) playSound(id);
-    clearTimeout(captionTimer.current);
-    captionTimer.current = setTimeout(() => {
-      setCaption(secretTooltip(id, found));
-      captionTimer.current = setTimeout(() => setCaption(null), CAPTION_MS);
-    }, countAfterMs);
   };
 
-  return [isFound, find, caption];
+  return [isFound, find];
 };

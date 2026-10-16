@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, MotionConfig, motion, useScroll, useSpring } from "framer-motion";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -10,6 +10,7 @@ import QuestLog from "./components/QuestLog";
 import SearchLine from "./components/SearchLine";
 import Splash from "./components/Splash";
 import Pointer from "./components/Pointer";
+import HintMode from "./components/HintMode";
 import Aurora from "./components/Aurora";
 import StackRibbon from "./components/StackRibbon";
 import Hero from "./sections/Hero";
@@ -33,13 +34,19 @@ const ScrollProgress = () => {
   return <motion.div style={{ scaleX }} className="fixed inset-x-0 top-0 z-50 h-px origin-left bg-accent" />;
 };
 
+// one shared empty list, so the section ids only change when the nav actually arrives
+const NO_LINKS = [];
+
 const App = () => {
   const [isCmdlineOpen, setIsCmdlineOpen] = useState(false);
   const [isQuestLogOpen, setIsQuestLogOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isHinting, setIsHinting] = useState(false);
   const { colorscheme, applyColorscheme } = useColorscheme();
-  const { data: links = [] } = useGetNavBarQuery();
-  const activeSectionId = useActiveSection(withManifesto(links.map((link) => sectionIdFromUrl(link.url))));
+  const { data: links = NO_LINKS } = useGetNavBarQuery();
+  const bufferIds = useMemo(() => links.map((link) => sectionIdFromUrl(link.url)), [links]);
+  const sectionIds = useMemo(() => withManifesto(bufferIds), [bufferIds]);
+  const activeSectionId = useActiveSection(sectionIds);
 
   const openCmdline = useCallback(() => setIsCmdlineOpen(true), []);
   const closeCmdline = useCallback(() => setIsCmdlineOpen(false), []);
@@ -47,9 +54,18 @@ const App = () => {
   const closeQuestLog = useCallback(() => setIsQuestLogOpen(false), []);
   const openSearch = useCallback(() => setIsSearchOpen(true), []);
   const closeSearch = useCallback(() => setIsSearchOpen(false), []);
+  const openHints = useCallback(() => setIsHinting(true), []);
+  const closeHints = useCallback(() => setIsHinting(false), []);
 
   useEffect(() => startSmoothScroll(), []);
-  useVimKeys({ onOpenCmdline: openCmdline, onOpenSearch: openSearch, isPaused: isCmdlineOpen || isQuestLogOpen || isSearchOpen });
+  useVimKeys({
+    onOpenCmdline: openCmdline,
+    onOpenSearch: openSearch,
+    onOpenHints: openHints,
+    sectionIds,
+    bufferIds,
+    isPaused: isCmdlineOpen || isQuestLogOpen || isSearchOpen || isHinting,
+  });
 
   useEffect(() => {
     const toggleOnShortcut = (event) => {
@@ -74,8 +90,9 @@ const App = () => {
       <ScrollProgress />
       <FileTree onOpenCmdline={openCmdline} />
       <Navbar onOpenCmdline={openCmdline} />
-      {/* on wide screens the file tree takes the left edge, so everything else moves over to make room */}
-      <div className="xl:pl-64">
+      {/* on wide screens an open file tree takes the left edge. the sections still run edge to edge underneath it,
+          only their content moves over to make room (see .clears-tree) */}
+      <div className="clears-tree">
         <main>
           <Hero />
           <Manifesto />
@@ -107,6 +124,7 @@ const App = () => {
       <AnimatePresence>{isSearchOpen && <SearchLine onClose={closeSearch} />}</AnimatePresence>
       <QuestLog isOpen={isQuestLogOpen} onClose={closeQuestLog} />
       <Resume />
+      {isHinting && <HintMode onClose={closeHints} />}
       <Splash />
       <Pointer />
     </MotionConfig>

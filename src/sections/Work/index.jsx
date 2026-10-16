@@ -7,7 +7,7 @@ import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { Umbrella } from "../../components/Secrets";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
-import { techIconMap } from "../../lib/techIconMap";
+import TechIcon from "../../components/TechIcon";
 import {
   careerCommits,
   cleanTechName,
@@ -32,7 +32,6 @@ const FILTERED_OUT = "opacity-25 grayscale";
 const StackList = ({ technologies, pickedTech }) => (
   <ul className={`grid gap-x-4 gap-y-1.5 ${technologies.length > 8 ? "grid-cols-2" : "grid-cols-1"}`}>
     {technologies.map((tech) => {
-      const Icon = techIconMap[tech];
       const name = cleanTechName(tech);
       const isPicked = pickedTech === name;
       return (
@@ -44,7 +43,9 @@ const StackList = ({ technologies, pickedTech }) => (
             title={isPicked ? "Show every job" : `Only the jobs that shipped with ${name}`}
             className={`flex w-full min-w-0 items-center gap-2 text-left transition-colors ${isPicked ? "text-accent" : "text-muted hover:text-fg"}`}
           >
-            <span className={`grid w-4 place-items-center ${isPicked ? "text-accent" : "text-faint"}`}>{Icon ? <Icon size={12} /> : "·"}</span>
+            <span className="grid w-4 place-items-center text-faint">
+              <TechIcon tech={tech} className="size-3" fallback="·" />
+            </span>
             <span className="truncate">{name}</span>
           </button>
         </li>
@@ -132,7 +133,7 @@ const GrepBanner = ({ tech, matches, total }) => (
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -8 }}
     transition={{ duration: 0.4, ease: easeOutExpo }}
-    className="sticky top-20 z-20 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/40 bg-panel/90 px-4 py-3 font-mono text-xs backdrop-blur-xl xl:top-6"
+    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/40 bg-panel/90 px-4 py-3 font-mono text-xs shadow-[0_18px_40px_-16px_color-mix(in_oklab,var(--color-shadow)_80%,transparent)] backdrop-blur-xl"
   >
     <p className="text-muted">
       <span className="text-accent">$</span> grep -l "{tech}" ~/work/* <span className="text-fg">→ {matches} of {total} jobs</span>
@@ -305,9 +306,13 @@ const Work = () => {
 
         {projects.length > 0 && <CareerLog projects={projects} />}
 
-        <AnimatePresence>
-          {pickedTech && <GrepBanner tech={pickedTech} matches={countUsing(projects, pickedTech)} total={projects.length} />}
-        </AnimatePresence>
+        {/* always in the flow at zero height, so the banner floats over the jobs instead of shoving them down
+            the moment a tool is picked */}
+        <div className="sticky top-20 z-20 -mb-16 h-0 xl:top-6">
+          <AnimatePresence>
+            {pickedTech && <GrepBanner tech={pickedTech} matches={countUsing(projects, pickedTech)} total={projects.length} />}
+          </AnimatePresence>
+        </div>
 
         <div ref={stackRef} className="flex flex-col gap-8 md:gap-[18vh]">
           {featured.map((project, index) => (

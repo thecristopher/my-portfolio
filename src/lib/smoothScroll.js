@@ -14,19 +14,35 @@ export const startSmoothScroll = () => {
   };
 };
 
-// a section that moves things sideways (the pinned side quests) can say where down the page one of its parts shows up
-const scrollTargets = new Map();
+// a target that lives on a sideways shelf (a repo) also slides the shelf over to it while the page scrolls there
+const slideShelfTo = (element) => {
+  const shelf = element.closest("[data-shelf]");
+  if (!shelf) return;
+  const card = element.closest("[data-shelf] > *");
+  shelf.scrollTo({ left: card.offsetLeft - parseFloat(getComputedStyle(shelf).scrollPaddingLeft || 0), behavior: "smooth" });
+};
 
-export const registerScrollTarget = (id, findY) => {
-  scrollTargets.set(id, findY);
-  return () => scrollTargets.delete(id);
+// one card along a sideways shelf, the width of a card plus the gap after it
+export const slideShelf = (shelf, direction) => {
+  const card = shelf?.firstElementChild;
+  if (!card) return;
+  const gap = parseFloat(getComputedStyle(shelf).columnGap) || 0;
+  shelf.scrollBy({ left: direction * (card.offsetWidth + gap), behavior: "smooth" });
+};
+
+// h and l slide the repo shelf, but only while it's on screen. says whether it found one to slide
+export const nudgeShelf = (direction) => {
+  const shelf = document.querySelector("[data-shelf]");
+  const box = shelf?.getBoundingClientRect();
+  if (!box || box.bottom < 0 || box.top > window.innerHeight) return false;
+  slideShelf(shelf, direction);
+  return true;
 };
 
 export const scrollToSection = (id) => {
-  const customY = scrollTargets.get(id)?.();
-  if (customY != null) return scrollToY(customY);
   const section = document.getElementById(id);
   if (!section) return;
+  slideShelfTo(section);
   if (lenis) lenis.scrollTo(section, { offset: NAV_OFFSET });
   else section.scrollIntoView({ behavior: "smooth" });
 };

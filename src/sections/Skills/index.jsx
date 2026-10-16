@@ -8,6 +8,7 @@ import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetSkillsQuery } from "../../api/skillsApi";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { iconMap } from "../../lib/iconMap";
+import TechIcon from "../../components/TechIcon";
 import { easeOutExpo } from "../../lib/motion";
 import { formatIndex, isMaxLevel, markMainStack } from "../../actions";
 import { echo } from "../../lib/echo";
@@ -25,6 +26,10 @@ const MAX_LEVEL = 5;
 const BUFFED_BAR = { backgroundImage: `linear-gradient(to right, ${MAGIC_PINK}, ${MAGIC_BLUE})`, boxShadow: `0 0 8px ${MAGIC_PINK}` };
 
 const BUFF_ATK = 500;
+const BUFFED_CARD = {
+  borderColor: `${MAGIC_PINK}aa`,
+  boxShadow: `0 0 0 1px ${MAGIC_PINK}55, 0 0 36px -6px ${MAGIC_PINK}66, 0 0 70px -20px ${MAGIC_BLUE}88`,
+};
 
 // what a card turns into once she buffs the page: a duel monster with its stats and effect, +500 ATK included
 const DuelStats = ({ skill }) => (
@@ -69,13 +74,25 @@ const CapabilityCard = ({ skill, index, isBuffed }) => {
       >
         <SpotlightCard
           className="group flex h-full flex-col gap-6 rounded-2xl border border-line bg-panel p-7 transition-[border-color,box-shadow] duration-500 hover:border-line-strong sm:p-8"
-          style={isDuelMonster ? { borderColor: `${MAGIC_PINK}88`, boxShadow: `0 0 24px ${MAGIC_PINK}22` } : undefined}
+          style={isDuelMonster ? BUFFED_CARD : undefined}
         >
           <div className="flex items-center justify-between">
             <span className="grid size-11 place-items-center rounded-xl border border-line bg-ink text-muted transition-all duration-500 group-hover:border-accent/40 group-hover:text-accent">
               {Icon && <Icon size={20} aria-hidden="true" />}
             </span>
-            <span className="font-mono text-[11px] text-faint">{formatIndex(index)}</span>
+            {isDuelMonster ? (
+              <motion.span
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.5 + (index % 3) * 0.12, ease: easeOutExpo }}
+                className="rounded-full px-2.5 py-1 font-mono text-[11px] text-white"
+                style={{ backgroundImage: `linear-gradient(to right, ${MAGIC_PINK}, ${MAGIC_BLUE})`, boxShadow: `0 0 14px ${MAGIC_PINK}88` }}
+              >
+                ★ +{BUFF_ATK}
+              </motion.span>
+            ) : (
+              <span className="font-mono text-[11px] text-faint">{formatIndex(index)}</span>
+            )}
           </div>
           <h3 className="text-xl font-medium tracking-tight">{skill.title}</h3>
           <p className="text-sm leading-relaxed text-muted text-pretty">{skill.description}</p>
@@ -97,19 +114,20 @@ const HealthHeading = ({ children }) => (
 const RatedReport = ({ tools, isBuffed, pickedTech }) => (
   <ul className="gap-x-12 md:columns-2">
     {tools.map((tool, index) => (
-      <li key={tool.name} className="mb-3.5 grid break-inside-avoid grid-cols-[7.5rem_1fr_2.5rem] items-center gap-3">
+      <li key={tool.name} className="mb-3.5 grid break-inside-avoid grid-cols-[9rem_1fr_2.5rem] items-center gap-3">
         <button
           type="button"
           onClick={() => grepWork(tool.name)}
           title={`See the jobs that shipped with ${tool.name}`}
-          className={`truncate text-left underline-offset-4 transition-colors hover:text-accent hover:underline ${
+          className={`flex min-w-0 items-center gap-2 text-left underline-offset-4 transition-colors hover:text-accent hover:underline ${
             pickedTech === tool.name ? "text-accent" : tool.isMain ? "text-fg" : "text-muted"
           }`}
         >
-          <span className={tool.isMain ? "text-accent" : "text-transparent"} aria-hidden="true">
-            ●{" "}
+          <span className={`text-[9px] ${tool.isMain ? "text-accent" : "text-transparent"}`} aria-hidden="true">
+            ●
           </span>
-          {tool.name}
+          <TechIcon tech={tool.name} className="size-3.5" fallback={<span className="size-3.5 shrink-0" />} />
+          <span className="truncate">{tool.name}</span>
         </button>
         <span className="h-1.5 overflow-hidden rounded-full bg-line">
           <motion.span
