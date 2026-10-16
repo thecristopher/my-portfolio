@@ -4,7 +4,7 @@ import { D20 } from "../Secrets";
 const EMPTY_LINES = 4;
 
 const Footer = ({ onOpenCmdline }) => (
-  <footer className="pb-8">
+  <footer className="relative pb-8">
     <div className="mx-auto flex max-w-6xl flex-col px-4 font-mono text-xs sm:px-6" aria-hidden="true">
       {Array.from({ length: EMPTY_LINES }, (_, line) => (
         <span key={line} className="leading-7 text-signal/40" style={{ opacity: 1 - line * 0.2 }}>

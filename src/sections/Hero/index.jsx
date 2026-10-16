@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { motion, useMotionTemplate, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
-import TextReveal from "../../components/TextReveal";
+import KineticName from "../../components/KineticName";
 import TypeLine from "../../components/TypeLine";
 import CountUp from "../../components/CountUp";
 import PixelAvatar from "../../components/PixelAvatar";
@@ -12,16 +12,18 @@ import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { extractYearsOfExperience, timesCertified } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
+import { INTRO_S } from "../../lib/intro";
 
 const WHOAMI = ["tech lead", "engineering manager", "full stack", "aws certified"];
 
 // the sprite drops in once the name has landed, so he doesn't steal its moment
-const AVATAR_ENTERS_AT_S = 1.2;
+const AVATAR_ENTERS_AT_S = INTRO_S + 1.2;
 
+// everything in the hero waits for the boot screen, if it plays
 const riseIn = (delay) => ({
   initial: { opacity: 0, y: 24, filter: "blur(8px)" },
   animate: { opacity: 1, y: 0, filter: "blur(0px)" },
-  transition: { duration: 1.2, delay, ease: easeOutExpo },
+  transition: { duration: 1.2, delay: INTRO_S + delay, ease: easeOutExpo },
 });
 
 const Stat = ({ value, label, delay }) => (
@@ -85,7 +87,7 @@ const Hero = () => {
       <div className="relative mx-auto grid w-full max-w-6xl gap-14 px-4 sm:px-6 lg:grid-cols-12 lg:items-center lg:gap-8">
         <motion.div style={{ y: contentY, opacity: contentOpacity, filter: contentFilter }} className="flex flex-col gap-8 lg:col-span-7">
           <div className="flex flex-col gap-1.5 text-sm">
-            <TypeLine prompt="~ $" text="whoami" delay={0.3} speed={90} onDone={() => setIsBooted(true)} className="text-muted" />
+            <TypeLine prompt="~ $" text="whoami" delay={INTRO_S + 0.3} speed={90} onDone={() => setIsBooted(true)} className="text-muted" />
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: isBooted ? 1 : 0 }}
@@ -93,18 +95,20 @@ const Hero = () => {
               className="flex flex-wrap font-mono text-fg"
             >
               {WHOAMI.map((title, index) => (
-                <span key={title} className={index === WHOAMI.length - 1 ? "text-accent" : undefined}>
-                  {index > 0 && <span className="px-2 text-faint">·</span>}
+                // the dot trails each title, so when the line wraps on a phone it never starts with one
+                <span key={title} className={`whitespace-nowrap ${index === WHOAMI.length - 1 ? "text-accent" : ""}`}>
                   {title}
+                  {index < WHOAMI.length - 1 && <span className="px-2 text-faint">·</span>}
                 </span>
               ))}
             </motion.p>
           </div>
 
-          <h1 className="text-[clamp(3.5rem,10vw,7.5rem)] leading-[0.9] font-medium tracking-[-0.055em]">
-            <TextReveal text="Cristopher" delay={0.5} className="block" />
-            <TextReveal text="Cervantes" delay={0.62} className="block text-muted" />
-          </h1>
+          <KineticName
+            lines={[{ text: "Cristopher" }, { text: "Cervantes", className: "text-muted" }]}
+            delay={INTRO_S + 0.5}
+            className="text-[clamp(3.5rem,10vw,7.5rem)] leading-[0.9] font-medium tracking-[-0.055em]"
+          />
 
           <motion.p {...riseIn(1)} className="max-w-xl text-lg leading-relaxed text-muted text-pretty sm:text-xl">
             Hey there! I'm a <span className="text-fg">full stack developer</span> from{" "}
@@ -135,9 +139,9 @@ const Hero = () => {
           </motion.div>
 
           <motion.dl {...riseIn(1.3)} className="grid max-w-lg grid-cols-3 gap-4 pt-6">
-            {years && <Stat value={years} label="Years coding" delay={1.4} />}
-            {certified && <Stat value={certified} label="AWS Certified" delay={1.5} />}
-            {projects.length > 0 && <Stat value={projects.length} label="Companies" delay={1.6} />}
+            {years && <Stat value={years} label="Years coding" delay={INTRO_S + 1.4} />}
+            {certified && <Stat value={certified} label="AWS Certified" delay={INTRO_S + 1.5} />}
+            {projects.length > 0 && <Stat value={projects.length} label="Companies" delay={INTRO_S + 1.6} />}
           </motion.dl>
         </motion.div>
 

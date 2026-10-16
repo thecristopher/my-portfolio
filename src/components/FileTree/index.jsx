@@ -9,6 +9,7 @@ import { useActiveSection } from "../../hooks/useActiveSection";
 import { buildFileTree, sectionIdFromUrl } from "../../actions";
 import { scrollToSection } from "../../lib/smoothScroll";
 import { easeOutExpo } from "../../lib/motion";
+import { INTRO_S } from "../../lib/intro";
 
 // the colors nvim-web-devicons gives each filetype, mapped onto the colorscheme
 const FILE_ICONS = {
@@ -202,7 +203,7 @@ const FileTree = ({ onOpenCmdline }) => (
   <motion.aside
     initial={{ x: -24, opacity: 0 }}
     animate={{ x: 0, opacity: 1 }}
-    transition={{ duration: 1, delay: 0.2, ease: easeOutExpo }}
+    transition={{ duration: 1, delay: INTRO_S + 0.2, ease: easeOutExpo }}
     aria-label="Sections"
     data-search-skip
     className="fixed top-0 bottom-7 left-0 z-40 hidden w-64 flex-col border-r border-line bg-panel/60 font-mono text-xs backdrop-blur-xl xl:flex"

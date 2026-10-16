@@ -126,6 +126,70 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* the light behind the page. registered as colors so a change of section fades between them instead of jumping */
+@property --aurora-a {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --aurora-b {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
+.aurora {
+  transition: --aurora-a 1.6s ease, --aurora-b 1.6s ease;
+}
+
+.aurora-a {
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--aurora-a) 13%, transparent), transparent);
+}
+
+.aurora-b {
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--aurora-b) 10%, transparent), transparent);
+}
+
+/* each section's number, set huge and hollow behind its header */
+.section-numeral {
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in oklab, var(--color-fg) 9%, transparent);
+  mask-image: linear-gradient(to bottom, black 30%, transparent 85%);
+}
+
+/* the custom cursor takes over only once it's on screen, and text fields keep a real caret */
+.has-pointer,
+.has-pointer * {
+  cursor: none !important;
+}
+
+.has-pointer :is(input, textarea, [contenteditable="true"]) {
+  cursor: text !important;
+}
+
+/* vim's block cursor: whatever is under it shows through inverted */
+.pointer {
+  background: #fff;
+  mix-blend-mode: difference;
+  transition: background-color 0.25s ease, opacity 0.25s ease, scale 0.2s ease;
+}
+
+.pointer[data-pointer="morph"] {
+  mix-blend-mode: normal;
+  background: color-mix(in oklab, var(--color-accent) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-accent) 45%, transparent);
+}
+
+.pointer[data-pointer="bar"] {
+  background: var(--color-accent);
+  mix-blend-mode: normal;
+}
+
+.pointer-down .pointer {
+  scale: 0.92;
+}
+
 /* every match of a `/` search, and the one the cursor is on */
 ::highlight(search) {
   background-color: color-mix(in oklab, var(--color-signal) 30%, transparent);

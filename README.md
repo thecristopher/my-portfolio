@@ -6,10 +6,12 @@ Live at [cristophercervantes.com](https://cristophercervantes.com). The content 
 
 ## What's in it
 
-Every section has its own seal (its buffer name running around a ring that turns as you scroll, with a mark that draws itself in the middle) and its own way of moving:
+The first visit opens on an nvim dashboard that boots and then pushes through into the page. On a mouse, the cursor is vim's block: it inverts whatever it sits on, wraps itself around anything you can click the way iPadOS does, and thins into the insert bar over a text field. A wash of colored light sits behind the whole page and takes on each section's colors as you reach it.
 
-- **Hero** with the pixel avatar, a blueprint grid that lights up under your cursor and buttons that lean toward it. He drops in, bounces on his toes in a fighting stance, blinks, glances around, waves hello, hops when you scroll and throws a jab when you poke him. Scroll away and the grid tips back into a floor running off to the horizon.
-- **Philosophy**, which holds the page still while the sentence lights up word by word, with a reading line filling underneath.
+Every section has its own seal (its buffer name running around a ring that turns as you scroll, with a mark that draws itself in the middle), its number set huge and hollow behind the header, a label that decodes itself like a terminal, and its own way of moving:
+
+- **Hero** with my name set in Geist's variable weights, the letters bulking up as the cursor passes (on a phone, a wave rolls through them once), the pixel avatar, a blueprint grid that lights up under your cursor and buttons that lean toward it. He drops in, bounces on his toes in a fighting stance, blinks, glances around, waves hello, hops when you scroll and throws a jab when you poke him. Scroll away and the grid tips back into a floor running off to the horizon.
+- **Philosophy**, which holds the page still while the sentence lights up word by word, with a reading line filling underneath. After it, two ribbons run in opposite directions, every tool I've shipped with and how I like to work, racing and leaning with how fast you scroll.
 - **About** with the bio, a portrait that drifts inside its frame as you scroll, and a `profile.json` that types itself out.
 - **Work**, opened by a `git log --graph` of my career whose branch line draws itself as you read (every title I've held is a commit, the first job is the root commit), then a stack of cards for every place I've shipped software. Click any tool in a card's stack, or in the skills' `:checkhealth`, and the jobs that never used it fade back.
 - **Education**, the degree and the AWS badges, with light glinting across each badge like a foil seal.
