@@ -5,6 +5,7 @@ import TextReveal from "../../components/TextReveal";
 import TerminalWindow from "../../components/TerminalWindow";
 import TypeLine from "../../components/TypeLine";
 import Seal from "../../components/Seal";
+import Scramble from "../../components/Scramble";
 import { Bat, Grace } from "../../components/Secrets";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetContactQuery } from "../../api/contactApi";
@@ -199,7 +200,7 @@ const Contact = () => {
         <div className="flex items-end justify-between gap-8">
           <div className="flex flex-col gap-6">
             <p className="font-mono text-xs tracking-[0.15em] text-muted">
-              <span className="text-accent">07</span> <span className="text-faint">/</span> contact.sh
+              <span className="text-accent">07</span> <span className="text-faint">/</span> <Scramble text="contact.sh" />
             </p>
             <SunsetHeadline />
           </div>

@@ -5,6 +5,7 @@ import { useGetNavBarQuery } from "../../api/navBarApi";
 import { useActiveSection } from "../../hooks/useActiveSection";
 import { bufferNameFor, sectionIdFromUrl } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
+import { INTRO_S } from "../../lib/intro";
 import { TreeList } from "../FileTree";
 
 const BufferTab = ({ sectionId, number, isActive }) => (
@@ -46,7 +47,7 @@ const Navbar = ({ onOpenCmdline }) => {
     <motion.header
       initial={{ y: -40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 1, delay: 0.2, ease: easeOutExpo }}
+      transition={{ duration: 1, delay: INTRO_S + 0.2, ease: easeOutExpo }}
       className="fixed inset-x-0 top-0 z-40 px-3 pt-3 xl:hidden"
     >
       <nav

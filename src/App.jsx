@@ -8,6 +8,10 @@ import Statusline from "./components/Statusline";
 import FileTree from "./components/FileTree";
 import QuestLog from "./components/QuestLog";
 import SearchLine from "./components/SearchLine";
+import Splash from "./components/Splash";
+import Pointer from "./components/Pointer";
+import Aurora from "./components/Aurora";
+import StackRibbon from "./components/StackRibbon";
 import Hero from "./sections/Hero";
 import Manifesto from "./sections/Manifesto";
 import About from "./sections/About";
@@ -66,6 +70,7 @@ const App = () => {
       >
         Skip to content
       </a>
+      <Aurora sectionId={activeSectionId} />
       <ScrollProgress />
       <FileTree onOpenCmdline={openCmdline} />
       <Navbar onOpenCmdline={openCmdline} />
@@ -74,6 +79,7 @@ const App = () => {
         <main>
           <Hero />
           <Manifesto />
+          <StackRibbon />
           <About />
           <Work />
           <Education />
@@ -101,6 +107,8 @@ const App = () => {
       <AnimatePresence>{isSearchOpen && <SearchLine onClose={closeSearch} />}</AnimatePresence>
       <QuestLog isOpen={isQuestLogOpen} onClose={closeQuestLog} />
       <Resume />
+      <Splash />
+      <Pointer />
     </MotionConfig>
   );
 };

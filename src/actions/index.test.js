@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  wrapRange,
+  scrambleFrame,
+  letterWeight,
   buildFileTree,
   sectionIdForBuffer,
   careerCommits,
@@ -572,5 +575,46 @@ describe("buildFileTree", () => {
 
   it("keeps a section without data as a file until its data arrives", () => {
     expect(buildFileTree(["github"])[0]).toMatchObject({ name: "repos.yml", isDirectory: false });
+  });
+});
+
+describe("letterWeight", () => {
+  it("is at full weight right under the cursor", () => {
+    expect(letterWeight(0)).toBe(820);
+  });
+
+  it("rests once the cursor is out of reach", () => {
+    expect(letterWeight(240)).toBe(500);
+    expect(letterWeight(900)).toBe(500);
+  });
+
+  it("eases in between", () => {
+    expect(letterWeight(120)).toBeGreaterThan(500);
+    expect(letterWeight(120)).toBeLessThan(820);
+  });
+});
+
+describe("scrambleFrame", () => {
+  it("is the real text once it's done", () => {
+    expect(scrambleFrame("work.json", 1)).toBe("work.json");
+  });
+
+  it("keeps the dots where they are while the letters are noise", () => {
+    expect(scrambleFrame("work.json", 0, () => 0)).toBe("aaaa.aaaa");
+  });
+
+  it("settles from the left", () => {
+    expect(scrambleFrame("abcd", 0.5, () => 0.99)).toBe("ab$$");
+  });
+});
+
+describe("wrapRange", () => {
+  it("leaves a value inside the range alone", () => {
+    expect(wrapRange(-50, 0, -20)).toBe(-20);
+  });
+
+  it("loops past either end", () => {
+    expect(wrapRange(-50, 0, -60)).toBe(-10);
+    expect(wrapRange(-50, 0, 10)).toBe(-40);
   });
 });

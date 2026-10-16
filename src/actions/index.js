@@ -279,3 +279,28 @@ export const buildFileTree = (sectionIds = [], { projects = [], repos = [], hasC
     if (children.length === 0) return { sectionId, name: bufferNameFor(sectionId), isDirectory: false, children };
     return { sectionId, name: `${DIRECTORY_NAMES[sectionId] ?? sectionId}/`, isDirectory: true, children };
   });
+
+// how heavy a letter of the hero name gets with the cursor this many pixels away: full weight right on top of it,
+// easing back to the resting weight by the edge of the reach
+export const letterWeight = (distance, { rest = 500, peak = 820, reach = 240 } = {}) => {
+  const closeness = Math.max(0, 1 - distance / reach);
+  return rest + (peak - rest) * closeness * closeness * (3 - 2 * closeness);
+};
+
+const SCRAMBLE_GLYPHS = "abcdefghijklmnopqrstuvwxyz0123456789/._-~#$";
+
+// one frame of a label decoding itself: the letters up to how far along it is are real, the rest are noise.
+// punctuation and spaces hold still so the shape of the word reads from the start
+export const scrambleFrame = (text = "", progress = 0, random = Math.random) =>
+  [...text]
+    .map((letter, index) => {
+      if (index < Math.floor(progress * text.length) || /[\s.·/]/.test(letter)) return letter;
+      return SCRAMBLE_GLYPHS[Math.floor(random() * SCRAMBLE_GLYPHS.length)];
+    })
+    .join("");
+
+// keeps a value looping inside [min, max), the way the stack ribbon wraps its offset back around
+export const wrapRange = (min, max, value) => {
+  const span = max - min;
+  return ((((value - min) % span) + span) % span) + min;
+};
