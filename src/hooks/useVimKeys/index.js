@@ -26,7 +26,7 @@ export const useVimKeys = ({ onOpenCmdline, isPaused }) => {
         u: () => scrollByAmount(-HALF_PAGE()),
         G: () => scrollToEdge("bottom"),
         ":": () => onOpenCmdline(),
-        "?": () => echo("j/k scroll · d/u half page · gg/G top/bottom · : commands · try :colorscheme or :q"),
+        "?": () => echo("j/k scroll · d/u half page · gg/G top/bottom · : commands · try :colorscheme, :quests or :q"),
       };
 
       if (isDoubleG) {

@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildFileTree,
+  sectionIdForBuffer,
+  careerCommits,
+  countUsing,
+  formatYears,
+  localClock,
+  nowStatus,
+  shortHash,
+  usesTech,
   cleanTechName,
   revealCircle,
   extractYearsOfExperience,
@@ -17,7 +26,6 @@ import {
   findCommandByAlias,
   bufferNameFor,
   scrollPosition,
-  gutterLines,
   fileTypeFor,
   resolveTheme,
   isMaxLevel,
@@ -216,16 +224,6 @@ describe("scrollPosition", () => {
   });
 });
 
-describe("gutterLines", () => {
-  it("shows the real line number in the middle row", () => {
-    expect(gutterLines(42, 5)[2]).toEqual({ row: 2, label: 42, isCurrent: true });
-  });
-
-  it("shows distances from the middle everywhere else", () => {
-    expect(gutterLines(42, 5).map((line) => line.label)).toEqual([2, 1, 42, 1, 2]);
-  });
-});
-
 describe("fileTypeFor", () => {
   it("names tsx buffers like nvim does", () => {
     expect(fileTypeFor("index.tsx")).toBe("typescriptreact");
@@ -243,6 +241,14 @@ describe("resolveTheme", () => {
 
   it("falls back to kanagawa for anything else", () => {
     expect(resolveTheme("lordran")).toBe("kanagawa");
+  });
+
+  it("picks the light colorscheme for a light system when nothing is saved", () => {
+    expect(resolveTheme(null, true)).toBe("lotus");
+  });
+
+  it("keeps a saved dark colorscheme even on a light system", () => {
+    expect(resolveTheme("ember", true)).toBe("ember");
   });
 });
 
@@ -406,5 +412,165 @@ describe("timesCertified", () => {
 
   it("shows nothing for a Tarnished with no certifications yet", () => {
     expect(timesCertified([])).toBeNull();
+  });
+});
+
+describe("formatYears", () => {
+  it("prints a closed range", () => {
+    expect(formatYears(2017, 2019)).toBe("2017 – 2019");
+  });
+
+  it("leaves a current job open", () => {
+    expect(formatYears(2021, null)).toBe("2021 – present");
+  });
+
+  it("prints one year once", () => {
+    expect(formatYears(2016, 2016)).toBe("2016");
+  });
+
+  it("is empty without a start", () => {
+    expect(formatYears(null, null)).toBeNull();
+  });
+});
+
+describe("shortHash", () => {
+  it("is seven hex characters", () => {
+    expect(shortHash("PSL Group:Tech Lead")).toMatch(/^[0-9a-f]{7}$/);
+  });
+
+  it("is stable and tells inputs apart", () => {
+    expect(shortHash("a")).toBe(shortHash("a"));
+    expect(shortHash("a")).not.toBe(shortHash("b"));
+  });
+});
+
+describe("careerCommits", () => {
+  const projects = [
+    { title: "PSL Group", roles: ["Tech Lead", "Engineering Manager"], start_year: 2021, end_year: null },
+    { title: "Hisense México", roles: [] },
+    { title: "Systems Communications", roles: ["Intern"], start_year: 2015, end_year: 2016 },
+  ];
+  const commits = careerCommits(projects);
+
+  it("puts the newest title on top as HEAD", () => {
+    expect(commits[0]).toMatchObject({ type: "promote", message: "Engineering Manager", isHead: true, years: "2021 – present" });
+  });
+
+  it("joins a company with its first title", () => {
+    expect(commits[1]).toMatchObject({ type: "join", message: "Tech Lead @ PSL Group", isHead: false, years: null });
+  });
+
+  it("names the company alone when the title is unknown", () => {
+    expect(commits[2]).toMatchObject({ type: "join", message: "Hisense México", targetId: "work-hisense-mexico" });
+  });
+
+  it("makes the first job the root commit", () => {
+    expect(commits.at(-1)).toMatchObject({ type: "init", message: "Intern @ Systems Communications", years: "2015 – 2016" });
+  });
+
+  it("is empty without projects", () => {
+    expect(careerCommits([])).toEqual([]);
+  });
+});
+
+describe("usesTech", () => {
+  const project = { technologies: ["AWS", "Docker (optional)"] };
+
+  it("matches a tool in the stack, ignoring notes in parentheses", () => {
+    expect(usesTech(project, "Docker")).toBe(true);
+  });
+
+  it("misses a tool that isn't there", () => {
+    expect(usesTech(project, "PHP")).toBe(false);
+  });
+
+  it("matches everything when no tool is picked", () => {
+    expect(usesTech(project, null)).toBe(true);
+  });
+
+  it("counts the projects that used a tool", () => {
+    expect(countUsing([project, { technologies: ["PHP"] }], "PHP")).toBe(1);
+  });
+});
+
+describe("localClock", () => {
+  it("reads the time where I live", () => {
+    // 21:30 UTC on a Wednesday is 14:30 in Tijuana during daylight time
+    expect(localClock(new Date("2026-07-15T21:30:00Z"), "America/Tijuana")).toEqual({ hour: 14, time: "14:30", isWeekend: false });
+  });
+
+  it("knows a Saturday", () => {
+    expect(localClock(new Date("2026-07-18T18:00:00Z"), "America/Tijuana").isWeekend).toBe(true);
+  });
+});
+
+describe("nowStatus", () => {
+  it("is asleep in the small hours", () => {
+    expect(nowStatus({ hour: 3, isWeekend: false })).toMatch(/asleep/);
+  });
+
+  it("is in reviews on a weekday morning", () => {
+    expect(nowStatus({ hour: 10, isWeekend: false })).toMatch(/code reviews/);
+  });
+
+  it("is off the clock on a weekend afternoon", () => {
+    expect(nowStatus({ hour: 15, isWeekend: true })).toMatch(/family/);
+  });
+
+  it("has an answer for the last hour of the day", () => {
+    expect(nowStatus({ hour: 23, isWeekend: false })).toBeTruthy();
+  });
+});
+
+describe("sectionIdForBuffer", () => {
+  it("finds the section behind a buffer", () => {
+    expect(sectionIdForBuffer("repos.yml")).toBe("github");
+  });
+
+  it("knows the philosophy", () => {
+    expect(sectionIdForBuffer("philosophy.md")).toBe("manifesto");
+  });
+
+  it("is null for a buffer that doesn't exist", () => {
+    expect(sectionIdForBuffer("lordran.txt")).toBeNull();
+  });
+});
+
+describe("buildFileTree", () => {
+  const sections = ["home", "about", "work", "github", "contact"];
+  const tree = buildFileTree(sections, {
+    projects: [{ title: "PSL Group" }, { title: "Hisense México", featured: false }],
+    repos: [{ name: "dotfiles" }],
+  });
+
+  it("slips the philosophy in right after the hero", () => {
+    expect(tree.map((node) => node.name).slice(0, 2)).toEqual(["index.tsx", "philosophy.md"]);
+  });
+
+  it("opens sections with something inside as directories", () => {
+    expect(tree.find((node) => node.sectionId === "about")).toMatchObject({ name: "about/", isDirectory: true });
+  });
+
+  it("lists the career log, each featured job and the earlier ones under work", () => {
+    expect(tree.find((node) => node.sectionId === "work").children).toEqual([
+      { name: "career.log", targetId: "career-log" },
+      { name: "01-psl-group.json", targetId: "work-psl-group" },
+      { name: "earlier.log", targetId: "work-earlier" },
+    ]);
+  });
+
+  it("names the repos folder side-quests", () => {
+    expect(tree.find((node) => node.sectionId === "github")).toMatchObject({
+      name: "side-quests/",
+      children: [{ name: "dotfiles.git", targetId: "repo-dotfiles" }],
+    });
+  });
+
+  it("leaves contact as a single file", () => {
+    expect(tree.at(-1)).toMatchObject({ name: "contact.sh", isDirectory: false, children: [] });
+  });
+
+  it("keeps a section without data as a file until its data arrives", () => {
+    expect(buildFileTree(["github"])[0]).toMatchObject({ name: "repos.yml", isDirectory: false });
   });
 });

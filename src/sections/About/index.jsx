@@ -122,7 +122,7 @@ const About = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-6 lg:col-span-7">
+          <div id="bio" className="flex flex-col gap-6 lg:col-span-7">
             {isLoading && <SkeletonLines lines={6} />}
             {isError && <LoadError what="the bio" />}
             {lead && (
@@ -136,7 +136,7 @@ const About = () => {
               </Reveal>
             ))}
 
-            <Reveal delay={0.15} className="mt-6">
+            <Reveal delay={0.15} className="mt-6" id="profile">
               <ProfileJson
                 editor={about?.editor ?? "Neovim"}
                 certifications={(about?.certifications ?? []).map((cert) => cert.name)}

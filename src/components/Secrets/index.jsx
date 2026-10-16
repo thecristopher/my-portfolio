@@ -98,7 +98,7 @@ const SecretButton = ({ id, isFound, label, onClick, caption, captionClassName =
             exit={{ opacity: 0, y: 4, scale: 0.98 }}
             transition={{ duration: 0.35, ease: easeOutExpo }}
             style={{ marginLeft: nudge, "--secret": SECRETS[id].color }}
-            className={`secret-tooltip pointer-events-none absolute bottom-full z-30 mb-2 flex w-max max-w-[min(20rem,calc(100vw-2rem))] flex-col gap-2 rounded-xl border border-line-strong bg-panel/90 px-3 py-2.5 text-left font-mono text-[11px] text-muted shadow-[0_18px_40px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl ${captionClassName}`}
+            className={`secret-tooltip pointer-events-none absolute bottom-full z-30 mb-2 flex w-max max-w-[min(20rem,calc(100vw-2rem))] flex-col gap-2 rounded-xl border border-line-strong bg-panel/90 px-3 py-2.5 text-left font-mono text-[11px] text-muted shadow-[0_18px_40px_-12px_color-mix(in_oklab,var(--color-shadow)_70%,transparent)] backdrop-blur-xl ${captionClassName}`}
           >
             <span className="leading-snug text-pretty whitespace-normal text-fg">
               <span style={{ color: SECRETS[id].color }}>✦</span> {tooltip.quip}

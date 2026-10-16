@@ -41,16 +41,17 @@ const Navbar = ({ onOpenCmdline }) => {
   const closeMenu = () => setIsMenuOpen(false);
 
   return (
+    // only below xl. wide screens get the file tree down the left edge instead
     <motion.header
       initial={{ y: -40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 1, delay: 0.2, ease: easeOutExpo }}
-      className="fixed inset-x-0 top-0 z-40 px-3 pt-3"
+      className="fixed inset-x-0 top-0 z-40 px-3 pt-3 xl:hidden"
     >
       <nav
         className={`mx-auto flex h-14 items-center justify-between gap-4 rounded-full border px-2 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isScrolled
-            ? "max-w-4xl border-line-strong bg-panel/70 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+            ? "max-w-4xl border-line-strong bg-panel/70 shadow-[0_10px_40px_-10px_color-mix(in_oklab,var(--color-shadow)_60%,transparent)] backdrop-blur-xl"
             : "max-w-6xl border-transparent bg-transparent"
         }`}
       >
@@ -58,13 +59,13 @@ const Navbar = ({ onOpenCmdline }) => {
           href="#home"
           onClick={closeMenu}
           className={`overflow-hidden pl-3 font-mono text-xs whitespace-nowrap text-muted transition-all duration-500 hover:text-fg ${
-            isScrolled ? "md:w-0 md:pl-0 md:opacity-0" : "md:opacity-100"
+            isScrolled ? "lg:w-0 lg:pl-0 lg:opacity-0" : "lg:opacity-100"
           }`}
         >
           <span className="text-accent">~/</span>cristopher
         </a>
 
-        <ul className="hidden items-center md:flex">
+        <ul className="hidden items-center lg:flex">
           {sectionIds.map((sectionId, index) => (
             <BufferTab key={sectionId} sectionId={sectionId} number={index + 1} isActive={activeId === sectionId} />
           ))}
@@ -74,14 +75,14 @@ const Navbar = ({ onOpenCmdline }) => {
           <button
             type="button"
             onClick={onOpenCmdline}
-            className="hidden items-center rounded-full border border-line-strong bg-ink/50 px-3.5 py-1.5 font-mono text-xs text-muted transition-colors hover:text-fg md:flex"
+            className="flex items-center rounded-full border border-line-strong bg-ink/50 px-3.5 py-1.5 font-mono text-xs text-muted transition-colors hover:text-fg"
             aria-label="Open command line"
           >
             <span className="text-signal">:</span>cmd
           </button>
           <button
             type="button"
-            className="grid size-10 place-items-center rounded-full text-muted hover:text-fg md:hidden"
+            className="grid size-10 place-items-center rounded-full text-muted hover:text-fg lg:hidden"
             onClick={() => setIsMenuOpen((open) => !open)}
             aria-expanded={isMenuOpen}
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
@@ -98,7 +99,7 @@ const Navbar = ({ onOpenCmdline }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.4, ease: easeOutExpo }}
-            className="mt-2 rounded-3xl border border-line-strong bg-panel/95 px-5 py-2 font-mono backdrop-blur-xl md:hidden"
+            className="mt-2 rounded-3xl border border-line-strong bg-panel/95 px-5 py-2 font-mono backdrop-blur-xl lg:hidden"
           >
             {sectionIds.map((sectionId, index) => (
               <li key={sectionId} className="border-b border-line last:border-0">

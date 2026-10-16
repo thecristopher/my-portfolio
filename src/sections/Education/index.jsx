@@ -7,13 +7,8 @@ import TerminalWindow from "../../components/TerminalWindow";
 import { Hanafuda, Spider } from "../../components/Secrets";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetAboutQuery } from "../../api/aboutApi";
-import { hostnameFromUrl } from "../../actions";
+import { formatYears, hostnameFromUrl } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
-
-const formatYears = (start, end) => {
-  if (start && end) return `${start} – ${end}`;
-  return start ? `${start} – present` : null;
-};
 
 const TomlLine = ({ name, children }) => (
   <p>
@@ -145,14 +140,14 @@ const Education = () => {
         {isError && <LoadError what="education" />}
 
         <div className="grid gap-8 lg:grid-cols-12 lg:items-start">
-          <div className="flex flex-col gap-8 lg:col-span-7">
+          <div id="degree" className="flex flex-col gap-8 lg:col-span-7">
             {schools.map((school) => (
               <Diploma key={school.school} school={school} />
             ))}
           </div>
 
           {certifications.length > 0 && (
-            <div className="flex flex-col gap-4 lg:col-span-5">
+            <div id="certifications" className="flex flex-col gap-4 lg:col-span-5">
               <div className="flex items-center gap-1">
                 <p className="font-mono text-xs text-faint">
                   <span className="text-accent">$</span> aws certifications list <span className="text-fg">→ {certifications.length} earned</span>

@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, AtSign, Check, Copy, CornerDownLeft, FileText, HelpCircle, Palette, Printer } from "lucide-react";
+import { ArrowRight, AtSign, Check, Copy, CornerDownLeft, FileText, HelpCircle, Palette, Printer, Sparkles, Volume2 } from "lucide-react";
 import { useGetNavBarQuery } from "../../api/navBarApi";
 import { useGetContactQuery } from "../../api/contactApi";
-import { THEMES, bufferNameFor, filterCommands, findCommandByAlias, sectionIdFromUrl } from "../../actions";
+import { THEMES, bufferNameFor, filterCommands, findCommandByAlias, sectionIdFromUrl, withManifesto } from "../../actions";
 import { pauseSmoothScroll, resumeSmoothScroll, scrollToSection } from "../../lib/smoothScroll";
 import { echo } from "../../lib/echo";
+import { getMuted, setMuted } from "../../lib/sound";
 import { easeOutExpo } from "../../lib/motion";
 
-const HELP_TEXT = "j/k scroll · d/u half page · gg/G top/bottom · : commands · need a copy? :resume";
+const HELP_TEXT = "j/k scroll · d/u half page · gg/G top/bottom · : commands · need a copy? :resume · stuck? :quests";
 
 // only typed exactly, never listed. a few nods to raccoon city
 const SECRET_COMMANDS = [
@@ -22,15 +23,15 @@ const SECRET_COMMANDS = [
   { alias: "merchant", label: "Merchant", run: () => echo("What're ya buyin'? Scroll down, stranger, the good stuff is in contact.sh", "success") },
 ].map((command) => ({ ...command, id: `secret-${command.alias}`, group: "Secrets", icon: HelpCircle, hidden: true }));
 
-const buildCommands = ({ links, contact, colorscheme, onSetColorscheme }) => {
-  const buffers = links.map((link) => {
-    const sectionId = sectionIdFromUrl(link.url);
+const buildCommands = ({ links, contact, colorscheme, onSetColorscheme, onOpenQuestLog }) => {
+  const buffers = withManifesto(links.map((link) => sectionIdFromUrl(link.url))).map((sectionId) => {
+    const link = links.find((item) => sectionIdFromUrl(item.url) === sectionId);
     return {
       id: `buffer-${sectionId}`,
       group: "Buffers",
       label: `:e ${bufferNameFor(sectionId)}`,
       alias: sectionId,
-      keywords: link.title,
+      keywords: link?.title ?? "philosophy manifesto",
       icon: FileText,
       run: () => scrollToSection(sectionId),
     };
@@ -76,6 +77,19 @@ const buildCommands = ({ links, contact, colorscheme, onSetColorscheme }) => {
 
   const extras = [
     { id: "help", group: "Extras", label: "Show keybindings", alias: "help", icon: HelpCircle, run: () => echo(HELP_TEXT) },
+    { id: "quests", group: "Extras", label: "Open the quest log", alias: "quests", keywords: "secrets easter eggs hints", icon: Sparkles, run: onOpenQuestLog },
+    {
+      id: "sound",
+      group: "Extras",
+      label: "Toggle sound",
+      alias: "sound",
+      keywords: "mute audio",
+      icon: Volume2,
+      run: () => {
+        setMuted(!getMuted());
+        echo(getMuted() ? "set nosound. the jingles stay quiet" : "set sound. the jingles are back", "success");
+      },
+    },
   ];
 
   const colorschemes = THEMES.map((theme) => ({
@@ -91,13 +105,13 @@ const buildCommands = ({ links, contact, colorscheme, onSetColorscheme }) => {
   return [...shortcuts, ...buffers, ...reachOut, ...colorschemes, ...extras, ...SECRET_COMMANDS];
 };
 
-const Cmdline = ({ onClose, colorscheme, onSetColorscheme }) => {
+const Cmdline = ({ onClose, colorscheme, onSetColorscheme, onOpenQuestLog }) => {
   const { data: links = [] } = useGetNavBarQuery();
   const { data: contact } = useGetContactQuery();
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const commands = buildCommands({ links, contact, colorscheme, onSetColorscheme });
+  const commands = buildCommands({ links, contact, colorscheme, onSetColorscheme, onOpenQuestLog });
   const results = filterCommands(commands, query);
 
   const runCommand = (command) => {
@@ -137,7 +151,7 @@ const Cmdline = ({ onClose, colorscheme, onSetColorscheme }) => {
       exit={{ opacity: 0, scale: 0.98, y: -8 }}
       transition={{ duration: 0.35, ease: easeOutExpo }}
       onClick={(event) => event.stopPropagation()}
-      className="mx-auto w-full max-w-xl overflow-hidden rounded-2xl border border-line-strong bg-panel/95 shadow-[0_40px_120px_-20px_rgba(0,0,0,0.9)] backdrop-blur-xl"
+      className="mx-auto w-full max-w-xl overflow-hidden rounded-2xl border border-line-strong bg-panel/95 shadow-[0_40px_120px_-20px_color-mix(in_oklab,var(--color-shadow)_90%,transparent)] backdrop-blur-xl"
     >
       <div className="flex items-center gap-2 border-b border-line px-5 py-4 font-mono text-sm">
         <span className="text-signal">:</span>
@@ -197,7 +211,7 @@ const Cmdline = ({ onClose, colorscheme, onSetColorscheme }) => {
   );
 };
 
-const CommandMenu = ({ isOpen, onClose, colorscheme, onSetColorscheme }) => {
+const CommandMenu = ({ isOpen, onClose, colorscheme, onSetColorscheme, onOpenQuestLog }) => {
   useEffect(() => {
     if (!isOpen) return;
     pauseSmoothScroll();
@@ -220,7 +234,7 @@ const CommandMenu = ({ isOpen, onClose, colorscheme, onSetColorscheme }) => {
           onClick={onClose}
           className="fixed inset-0 z-50 bg-ink/60 px-4 pt-[16vh] backdrop-blur-sm"
         >
-          <Cmdline onClose={onClose} colorscheme={colorscheme} onSetColorscheme={onSetColorscheme} />
+          <Cmdline onClose={onClose} colorscheme={colorscheme} onSetColorscheme={onSetColorscheme} onOpenQuestLog={onOpenQuestLog} />
         </motion.div>
       )}
     </AnimatePresence>

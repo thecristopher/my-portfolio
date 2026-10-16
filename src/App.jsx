@@ -5,7 +5,8 @@ import Footer from "./components/Footer";
 import CommandMenu from "./components/CommandMenu";
 import Resume from "./components/Resume";
 import Statusline from "./components/Statusline";
-import LineGutter from "./components/LineGutter";
+import FileTree from "./components/FileTree";
+import QuestLog from "./components/QuestLog";
 import Hero from "./sections/Hero";
 import Manifesto from "./sections/Manifesto";
 import About from "./sections/About";
@@ -19,7 +20,7 @@ import { useVimKeys } from "./hooks/useVimKeys";
 import { useColorscheme } from "./hooks/useColorscheme";
 import { useActiveSection } from "./hooks/useActiveSection";
 import { useGetNavBarQuery } from "./api/navBarApi";
-import { sectionIdFromUrl } from "./actions";
+import { sectionIdFromUrl, withManifesto } from "./actions";
 
 const ScrollProgress = () => {
   const { scrollYProgress } = useScroll();
@@ -29,15 +30,18 @@ const ScrollProgress = () => {
 
 const App = () => {
   const [isCmdlineOpen, setIsCmdlineOpen] = useState(false);
+  const [isQuestLogOpen, setIsQuestLogOpen] = useState(false);
   const { colorscheme, applyColorscheme } = useColorscheme();
   const { data: links = [] } = useGetNavBarQuery();
-  const activeSectionId = useActiveSection(links.map((link) => sectionIdFromUrl(link.url)));
+  const activeSectionId = useActiveSection(withManifesto(links.map((link) => sectionIdFromUrl(link.url))));
 
   const openCmdline = useCallback(() => setIsCmdlineOpen(true), []);
   const closeCmdline = useCallback(() => setIsCmdlineOpen(false), []);
+  const openQuestLog = useCallback(() => setIsQuestLogOpen(true), []);
+  const closeQuestLog = useCallback(() => setIsQuestLogOpen(false), []);
 
   useEffect(() => startSmoothScroll(), []);
-  useVimKeys({ onOpenCmdline: openCmdline, isPaused: isCmdlineOpen });
+  useVimKeys({ onOpenCmdline: openCmdline, isPaused: isCmdlineOpen || isQuestLogOpen });
 
   useEffect(() => {
     const toggleOnShortcut = (event) => {
@@ -59,30 +63,37 @@ const App = () => {
         Skip to content
       </a>
       <ScrollProgress />
-      <LineGutter />
+      <FileTree onOpenCmdline={openCmdline} />
       <Navbar onOpenCmdline={openCmdline} />
-      <main>
-        <Hero />
-        <Manifesto />
-        <About />
-        <Work />
-        <Education />
-        <GitHub />
-        <Skills />
-        <Contact />
-      </main>
-      <Footer onOpenCmdline={openCmdline} />
+      {/* on wide screens the file tree takes the left edge, so everything else moves over to make room */}
+      <div className="xl:pl-64">
+        <main>
+          <Hero />
+          <Manifesto />
+          <About />
+          <Work />
+          <Education />
+          <GitHub />
+          <Skills />
+          <Contact />
+        </main>
+        <Footer onOpenCmdline={openCmdline} />
+      </div>
       <Statusline
         mode={isCmdlineOpen ? "COMMAND" : "NORMAL"}
         colorscheme={colorscheme}
         activeId={activeSectionId}
+        onOpenCmdline={openCmdline}
+        onOpenQuestLog={openQuestLog}
       />
       <CommandMenu
         isOpen={isCmdlineOpen}
         onClose={closeCmdline}
         colorscheme={colorscheme}
         onSetColorscheme={applyColorscheme}
+        onOpenQuestLog={openQuestLog}
       />
+      <QuestLog isOpen={isQuestLogOpen} onClose={closeQuestLog} />
       <Resume />
     </MotionConfig>
   );

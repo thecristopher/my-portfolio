@@ -10,6 +10,16 @@ import { useGetAboutQuery } from "../../api/aboutApi";
 import { iconMap } from "../../lib/iconMap";
 import { easeOutExpo } from "../../lib/motion";
 import { formatIndex, isMaxLevel, markMainStack } from "../../actions";
+import { echo } from "../../lib/echo";
+import { scrollToSection } from "../../lib/smoothScroll";
+import { pickTech, usePickedTech } from "../../lib/stackFilter";
+
+// a tool in the report greps the work history for it, then takes you there to see which jobs light up
+const grepWork = (tool) => {
+  pickTech(tool);
+  echo(`grep -l "${tool}" ~/work/*`, "success");
+  scrollToSection("work");
+};
 
 const MAX_LEVEL = 5;
 const BUFFED_BAR = { backgroundImage: `linear-gradient(to right, ${MAGIC_PINK}, ${MAGIC_BLUE})`, boxShadow: `0 0 8px ${MAGIC_PINK}` };
@@ -83,16 +93,23 @@ const HealthHeading = ({ children }) => (
 );
 
 // columns fill top to bottom so the list reads in relevance order, and maxed tools go green like a passing healthcheck
-const RatedReport = ({ tools, isBuffed }) => (
+const RatedReport = ({ tools, isBuffed, pickedTech }) => (
   <ul className="gap-x-12 md:columns-2">
     {tools.map((tool, index) => (
       <li key={tool.name} className="mb-3.5 grid break-inside-avoid grid-cols-[7.5rem_1fr_2.5rem] items-center gap-3">
-        <span className={`truncate ${tool.isMain ? "text-fg" : "text-muted"}`}>
+        <button
+          type="button"
+          onClick={() => grepWork(tool.name)}
+          title={`See the jobs that shipped with ${tool.name}`}
+          className={`truncate text-left underline-offset-4 transition-colors hover:text-accent hover:underline ${
+            pickedTech === tool.name ? "text-accent" : tool.isMain ? "text-fg" : "text-muted"
+          }`}
+        >
           <span className={tool.isMain ? "text-accent" : "text-transparent"} aria-hidden="true">
             ●{" "}
           </span>
           {tool.name}
-        </span>
+        </button>
         <span className="h-1.5 overflow-hidden rounded-full bg-line">
           <motion.span
             className={`block h-full origin-left rounded-full bg-gradient-to-r transition-[box-shadow] duration-500 ${
@@ -116,17 +133,21 @@ const RatedReport = ({ tools, isBuffed }) => (
 // laid out like nvim's :checkhealth so the current stack reads as "all green"
 const StackHealth = ({ mainStack, skillLevels, isBuffed }) => {
   const ratedTools = markMainStack(skillLevels, mainStack);
+  const pickedTech = usePickedTech();
 
   return (
     <TerminalWindow title="~/skills · nvim">
       <div className="flex flex-col gap-6 font-mono text-xs">
-        <p className="text-muted">
-          <span className="text-signal">:</span>checkhealth stack
+        <p className="flex flex-wrap justify-between gap-2 text-muted">
+          <span>
+            <span className="text-signal">:</span>checkhealth stack
+          </span>
+          <span className="text-faint">pick a tool to grep ~/work for it</span>
         </p>
         {ratedTools.length > 0 && (
           <div className="flex flex-col gap-4">
             <HealthHeading>stack ~</HealthHeading>
-            <RatedReport tools={ratedTools} isBuffed={isBuffed} />
+            <RatedReport tools={ratedTools} isBuffed={isBuffed} pickedTech={pickedTech} />
           </div>
         )}
       </div>
@@ -147,14 +168,14 @@ const Skills = () => {
         {isLoading && <SkeletonLines lines={4} />}
         {isError && <LoadError what="skills" />}
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div id="skill-cards" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {skills.map((skill, index) => (
             <CapabilityCard key={skill.title} skill={skill} index={index} isBuffed={isBuffed} />
           ))}
         </div>
 
         {about && (
-          <div>
+          <div id="checkhealth">
             {/* the hat sits on the line that opens the skills, right above the cards she turns into duel monsters */}
             <div className="mb-3 flex items-center justify-end gap-1">
               <p className="font-mono text-xs text-faint">

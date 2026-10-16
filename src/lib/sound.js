@@ -1,5 +1,40 @@
+import { useSyncExternalStore } from "react";
+
 // every egg gets a tiny synth jingle built on the fly, so we ship zero audio files
 let audioContext = null;
+
+// the statusline can mute every jingle, and the choice sticks between visits
+const MUTE_KEY = "sound-muted";
+const muteListeners = new Set();
+
+const readMuted = () => {
+  try {
+    return localStorage.getItem(MUTE_KEY) === "true";
+  } catch {
+    return false;
+  }
+};
+
+let isMuted = readMuted();
+
+export const getMuted = () => isMuted;
+
+export const setMuted = (muted) => {
+  isMuted = muted;
+  try {
+    localStorage.setItem(MUTE_KEY, String(muted));
+  } catch {
+    // private windows can block storage, the choice still holds for this visit
+  }
+  muteListeners.forEach((listener) => listener());
+};
+
+const subscribeToMute = (listener) => {
+  muteListeners.add(listener);
+  return () => muteListeners.delete(listener);
+};
+
+export const useMuted = () => useSyncExternalStore(subscribeToMute, getMuted);
 
 const getAudioContext = () => {
   const AudioContextClass = globalThis.AudioContext ?? globalThis.webkitAudioContext;
@@ -336,7 +371,7 @@ const playNoise = (context, [start, length, { filter, frequency, sweepTo, volume
 
 export const playSound = (name) => {
   const sound = SOUNDS[name];
-  if (!sound) return;
+  if (!sound || isMuted) return;
 
   try {
     const context = getAudioContext();

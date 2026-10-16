@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import { easeOutExpo } from "../../lib/motion";
 
-const Reveal = ({ children, delay = 0, className = "" }) => (
+const Reveal = ({ children, delay = 0, className = "", id }) => (
   <motion.div
+    id={id}
     initial={{ opacity: 0, y: 32, filter: "blur(6px)" }}
     whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
     viewport={{ once: true, margin: "-80px" }}
