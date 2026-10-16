@@ -14,7 +14,17 @@ export const startSmoothScroll = () => {
   };
 };
 
+// a section that moves things sideways (the pinned side quests) can say where down the page one of its parts shows up
+const scrollTargets = new Map();
+
+export const registerScrollTarget = (id, findY) => {
+  scrollTargets.set(id, findY);
+  return () => scrollTargets.delete(id);
+};
+
 export const scrollToSection = (id) => {
+  const customY = scrollTargets.get(id)?.();
+  if (customY != null) return scrollToY(customY);
   const section = document.getElementById(id);
   if (!section) return;
   if (lenis) lenis.scrollTo(section, { offset: NAV_OFFSET });
@@ -24,6 +34,11 @@ export const scrollToSection = (id) => {
 export const scrollByAmount = (delta) => {
   if (lenis) lenis.scrollTo(lenis.targetScroll + delta);
   else window.scrollBy({ top: delta });
+};
+
+export const scrollToY = (top) => {
+  if (lenis) lenis.scrollTo(top);
+  else window.scrollTo({ top, behavior: "smooth" });
 };
 
 export const scrollToEdge = (edge) => {

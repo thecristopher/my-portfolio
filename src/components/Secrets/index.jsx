@@ -5,6 +5,8 @@ import { SECRETS, SECRET_IDS, readFound, secretTooltip, useSecret } from "../../
 import { MAGIC_BLUE, MAGIC_PINK, castMagic } from "../../lib/magic";
 import { playSound } from "../../lib/sound";
 import { easeOutExpo } from "../../lib/motion";
+import { PERCEPTION_DC, localRoll, verdictFor } from "../../lib/dice";
+import { useLazyGetRollQuery } from "../../api/rollApi";
 import darkMagicianGirl from "../../assets/images/dark-magician-girl.png";
 
 const GOLD = "#e8c35a";
@@ -1153,6 +1155,186 @@ export const Bat = ({ className }) => {
       </SecretButton>
       <Flourish isShown={isSpinning}>
         <BatTransition />
+      </Flourish>
+    </>
+  );
+};
+
+const D20_GOLD = "#d8b25a";
+const D20_CRIMSON = "#c8443c";
+// how long the die tumbles before it may settle, and how long the verdict stays up after it does
+const D20_TUMBLE_MS = 1300;
+const D20_VERDICT_MS = 3800;
+// the API gets this long to answer before the page rolls the check itself
+const D20_PATIENCE_MS = 1200;
+
+// a d20 seen face on: the hexagon outline, the front triangle, and the edges running out to the rim
+const D20_OUTLINE = "M50 4 L90 27 L90 73 L50 96 L10 73 L10 27 Z";
+const D20_FACE = "M50 30 L72 66 L28 66 Z";
+const D20_EDGES = "M50 30 L50 4 M50 30 L90 27 M50 30 L10 27 M72 66 L90 27 M72 66 L90 73 M72 66 L50 96 M28 66 L10 27 M28 66 L10 73 M28 66 L50 96";
+
+const VERDICT_COLORS = { critical: D20_GOLD, success: D20_GOLD, failure: D20_CRIMSON, fumble: D20_CRIMSON };
+
+const D20Shape = ({ className, children, fill = "none" }) => (
+  <svg viewBox="0 0 100 100" className={className} aria-hidden="true">
+    <path d={D20_OUTLINE} fill={fill} stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
+    <path d={D20_EDGES} fill="none" stroke="currentColor" strokeWidth="1.6" strokeOpacity="0.6" />
+    <path d={D20_FACE} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
+    {children}
+  </svg>
+);
+
+// numbers flicker across the face while the die tumbles, like the real roll in camp
+const useFlicker = (isRolling) => {
+  const [face, setFace] = useState(20);
+  useEffect(() => {
+    if (!isRolling) return undefined;
+    const timer = setInterval(() => setFace(Math.floor(Math.random() * 20) + 1), 70);
+    return () => clearInterval(timer);
+  }, [isRolling]);
+  return face;
+};
+
+// gold sparks thrown off a natural 20
+const CRIT_SPARKS = Array.from({ length: 14 }, (_, index) => (index / 14) * Math.PI * 2);
+
+// Baldur's Gate's ability check: the DC up top, the die tumbling in the middle, and the verdict stamped under it
+const AbilityCheck = ({ result }) => {
+  const isRolling = !result;
+  const flicker = useFlicker(isRolling);
+  const verdict = result ? verdictFor(result) : null;
+  const color = verdict ? VERDICT_COLORS[verdict.tone] : D20_GOLD;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 px-4 text-[#efe3c4]"
+      style={{ background: "radial-gradient(ellipse at center, rgba(28,22,14,0.94), rgba(5,4,3,0.97) 70%)" }}
+      aria-hidden="true"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: -14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: easeOutExpo }}
+        className="flex flex-col items-center gap-3 font-serif"
+      >
+        <p className="flex items-center gap-3 text-[11px] tracking-[0.45em] uppercase" style={{ color: D20_GOLD }}>
+          <span className="h-px w-10 bg-current opacity-60" />◆ Perception Check ◆<span className="h-px w-10 bg-current opacity-60" />
+        </p>
+        <p className="text-xs tracking-[0.3em] text-[#b9ab8a] uppercase">Difficulty Class</p>
+        <p className="text-5xl leading-none" style={{ color: D20_GOLD, textShadow: `0 0 24px ${D20_GOLD}66` }}>
+          {PERCEPTION_DC}
+        </p>
+      </motion.div>
+
+      <div className="relative grid size-[min(52vw,15rem)] place-items-center">
+        {verdict?.tone === "critical" &&
+          CRIT_SPARKS.map((angle) => (
+            <motion.span
+              key={angle}
+              className="absolute top-1/2 left-1/2 h-0.5 w-10 origin-left rounded-full"
+              style={{ background: D20_GOLD, rotate: `${(angle * 180) / Math.PI}deg`, boxShadow: `0 0 10px ${D20_GOLD}` }}
+              initial={{ opacity: 0, x: 40, scaleX: 0.2 }}
+              animate={{ opacity: [0, 1, 0], x: 150, scaleX: 1 }}
+              transition={{ duration: 1, ease: easeOutExpo }}
+            />
+          ))}
+        <motion.div
+          className="size-full"
+          style={{ color, filter: `drop-shadow(0 0 ${result ? 28 : 12}px ${color}88)` }}
+          initial={{ rotate: -540, scale: 0.4, y: -80 }}
+          animate={
+            result
+              ? { rotate: 0, scale: [1.12, 1], y: 0, x: verdict.tone === "fumble" ? [0, -10, 9, -6, 4, 0] : 0 }
+              : { rotate: [-540, 30], scale: [0.4, 1.05, 0.95], y: [-80, 12, -6] }
+          }
+          transition={result ? { duration: 0.6, ease: easeOutExpo } : { duration: D20_TUMBLE_MS / 1000, ease: "easeOut" }}
+        >
+          <D20Shape className="size-full" fill="rgba(20,16,10,0.85)">
+            <text x="50" y="59" textAnchor="middle" fontSize="20" fontFamily="Georgia, serif" fill="currentColor" stroke="none">
+              {result ? result.roll : flicker}
+            </text>
+          </D20Shape>
+        </motion.div>
+      </div>
+
+      <div className="flex min-h-24 flex-col items-center gap-3 text-center font-serif">
+        {verdict && (
+          <>
+            <motion.p
+              initial={{ opacity: 0, scale: 1.4, letterSpacing: "0.6em" }}
+              animate={{ opacity: 1, scale: 1, letterSpacing: "0.25em" }}
+              transition={{ duration: 0.7, ease: easeOutExpo }}
+              className="text-[clamp(1.6rem,6vw,3rem)] uppercase"
+              style={{ color, textShadow: `0 0 30px ${color}88` }}
+            >
+              {verdict.label}
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="text-sm text-[#b9ab8a] italic"
+            >
+              {result.roll} vs DC {result.dc}. {result.message}
+            </motion.p>
+          </>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// the API's roll if it answers in time, the page's own if it doesn't
+const rollPerception = async (requestRoll) => {
+  const fallback = new Promise((resolve) => setTimeout(() => resolve(null), D20_PATIENCE_MS));
+  const fromApi = requestRoll().unwrap().catch(() => null);
+  return (await Promise.race([fromApi, fallback])) ?? localRoll();
+};
+
+// a d20 at the very end of the page, under the logout. throw it and the camp rolls a perception check
+export const D20 = ({ className }) => {
+  const [isFound, find, caption] = useSecret("d20");
+  const [requestRoll] = useLazyGetRollQuery();
+  const [isShown, setIsShown] = useState(false);
+  const [result, setResult] = useState(null);
+  const timers = useRef([]);
+
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+
+  const later = (run, ms) => timers.current.push(setTimeout(run, ms));
+
+  const roll = async () => {
+    if (isShown) return;
+    const startedAt = Date.now();
+    setResult(null);
+    setIsShown(true);
+    find({ countAfterMs: D20_TUMBLE_MS + D20_VERDICT_MS + 400 });
+    const rolled = await rollPerception(() => requestRoll(undefined, false));
+    later(() => {
+      setResult(rolled);
+      later(() => setIsShown(false), D20_VERDICT_MS);
+    }, Math.max(0, D20_TUMBLE_MS - (Date.now() - startedAt)));
+  };
+
+  return (
+    <>
+      <SecretButton id="d20" isFound={isFound} label="A twenty sided die" caption={caption} className={className} onClick={roll}>
+        <motion.span
+          className="block"
+          initial={false}
+          animate={{ rotate: isFound ? 360 : 0 }}
+          transition={{ duration: 0.9, ease: easeOutExpo }}
+          style={isFound ? { color: D20_GOLD } : undefined}
+        >
+          <D20Shape className="size-4" fill={isFound ? `${D20_GOLD}33` : "none"} />
+        </motion.span>
+      </SecretButton>
+      <Flourish isShown={isShown}>
+        <AbilityCheck result={result} />
       </Flourish>
     </>
   );

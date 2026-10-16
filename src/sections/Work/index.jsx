@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import { ArrowUpRight, ChevronDown, X } from "lucide-react";
 import SectionHeader from "../../components/SectionHeader";
 import TerminalWindow from "../../components/TerminalWindow";
@@ -58,6 +58,11 @@ const COMMIT_TONES = { promote: "text-string", join: "text-signal", init: "text-
 // every title I held as a commit, newest on top. each one jumps to the card that tells its story
 const CareerLog = ({ projects }) => {
   const commits = careerCommits(projects);
+  const listRef = useRef(null);
+  const prefersReducedMotion = useReducedMotion();
+  // the work section's signature: the branch line draws itself down the log as you read it
+  const { scrollYProgress } = useScroll({ target: listRef, offset: ["start 0.85", "end 0.55"] });
+  const drawn = useSpring(scrollYProgress, { stiffness: 90, damping: 26 });
 
   return (
     <div id="career-log">
@@ -66,7 +71,13 @@ const CareerLog = ({ projects }) => {
           <p className="text-muted">
             <span className="text-accent">$</span> git log --graph --oneline --all
           </p>
-          <ol className="flex flex-col">
+          <ol ref={listRef} className="relative flex flex-col">
+            <span className="absolute top-3 bottom-3 left-[5px] w-px bg-line" aria-hidden="true" />
+            <motion.span
+              style={prefersReducedMotion ? undefined : { scaleY: drawn }}
+              className="absolute top-3 bottom-3 left-[5px] w-px origin-top bg-gradient-to-b from-accent via-signal to-error"
+              aria-hidden="true"
+            />
             {commits.map((commit, index) => (
               <motion.li
                 key={commit.hash}
@@ -76,9 +87,6 @@ const CareerLog = ({ projects }) => {
                 transition={{ duration: 0.6, delay: index * 0.07, ease: easeOutExpo }}
                 className="relative"
               >
-                {index < commits.length - 1 && (
-                  <span className="absolute top-3 bottom-0 left-[5px] w-px bg-line-strong" aria-hidden="true" />
-                )}
                 <button
                   type="button"
                   onClick={() => scrollToSection(commit.targetId)}
@@ -275,17 +283,22 @@ const Work = () => {
   return (
     <section id="work" className="relative py-24 sm:py-36">
       <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <SectionHeader index="03" label="work.json" title="Where the systems shipped." />
-          {projects.length > 0 && (
-            <div className="flex items-center gap-1">
-              <p className="font-mono text-xs text-faint">
-                <span className="text-accent">$</span> ls -t ~/work <span className="text-fg">→ newest first</span>
-              </p>
-              <Umbrella className="-my-2" />
-            </div>
-          )}
-        </div>
+        <SectionHeader
+          id="work"
+          index="03"
+          label="work.json"
+          title="Where the systems shipped."
+          aside={
+            projects.length > 0 && (
+              <div className="flex items-center gap-1">
+                <p className="font-mono text-xs text-faint">
+                  <span className="text-accent">$</span> ls -t ~/work <span className="text-fg">→ newest first</span>
+                </p>
+                <Umbrella className="-my-2" />
+              </div>
+            )
+          }
+        />
 
         {isLoading && <SkeletonLines lines={5} />}
         {isError && <LoadError what="projects" />}

@@ -7,5 +7,15 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
     outDir: "dist",
+    rollupOptions: {
+      output: {
+        // the libraries change far less often than the site, so they get their own files and stay cached between deploys
+        manualChunks: {
+          react: ["react", "react-dom", "react-dom/client"],
+          motion: ["framer-motion", "lenis"],
+          data: ["@reduxjs/toolkit", "react-redux"],
+        },
+      },
+    },
   },
 });

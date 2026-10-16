@@ -323,6 +323,25 @@ export const SOUNDS = {
       [2.7, 0.16, { filter: "lowpass", frequency: 1400, volume: 0.45 }],
     ],
   },
+  // Baldur's Gate 3: the die clatters across the table, slows and settles, then a low harp chord rings out
+  d20: {
+    wave: "triangle",
+    volume: 0.06,
+    notes: [
+      [-21, 1.3, 1.6, { volume: 0.05 }],
+      [-14, 1.36, 1.5],
+      [-9, 1.42, 1.4],
+      [-5, 1.48, 1.3],
+      [-2, 1.54, 1.2, { volume: 0.05 }],
+      [3, 1.6, 1.1, { volume: 0.04 }],
+    ],
+    // each knock comes a little later and a little softer than the last, the way a die runs out of steam
+    noises: [0, 0.09, 0.2, 0.34, 0.52, 0.74, 0.98, 1.16].map((start, index) => [
+      start,
+      0.04,
+      { filter: "bandpass", frequency: 1900 - index * 140, volume: 0.55 - index * 0.05 },
+    ]),
+  },
 };
 
 const playNote = (context, sound, [semitones, start, length, tweaks = {}]) => {

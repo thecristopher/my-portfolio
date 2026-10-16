@@ -11,11 +11,13 @@ const ScrubbedWord = ({ progress, range, children }) => {
   );
 };
 
-// words light up one by one as the paragraph scrolls through the viewport
-const ScrollText = ({ text, className = "" }) => {
+// words light up one by one as the paragraph scrolls through the viewport. a pinned parent can drive it with its
+// own progress instead, since a pinned paragraph never moves through the viewport
+const ScrollText = ({ text, progress, className = "" }) => {
   const ref = useRef(null);
   const prefersReducedMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "end 0.45"] });
+  const { scrollYProgress: ownProgress } = useScroll({ target: ref, offset: ["start 0.85", "end 0.45"] });
+  const scrollYProgress = progress ?? ownProgress;
   const words = splitWords(text);
 
   if (prefersReducedMotion) return <p className={className}>{text}</p>;

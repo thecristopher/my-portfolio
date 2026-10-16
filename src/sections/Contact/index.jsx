@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useRef, useState } from "react";
+import { motion, useMotionTemplate, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowUpRight, Check, Copy, SkipForward } from "lucide-react";
 import TextReveal from "../../components/TextReveal";
 import TerminalWindow from "../../components/TerminalWindow";
 import TypeLine from "../../components/TypeLine";
+import Seal from "../../components/Seal";
 import { Bat, Grace } from "../../components/Secrets";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetContactQuery } from "../../api/contactApi";
@@ -159,6 +160,27 @@ const ContactTerminal = ({ contact }) => {
   );
 };
 
+// the promise fills with the sunset as you scroll toward it, left to right, the way the light goes down over the water
+const SunsetHeadline = () => {
+  const ref = useRef(null);
+  const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "end 0.45"] });
+  const unlit = useTransform(scrollYProgress, [0, 1], [100, 0]);
+  const clipPath = useMotionTemplate`inset(0 ${unlit}% 0 0)`;
+
+  return (
+    <h2 ref={ref} className="text-[clamp(2.75rem,9vw,7.5rem)] leading-[0.92] font-medium tracking-[-0.05em]">
+      <TextReveal text="Let's build" className="block" />
+      <span className="relative block">
+        <TextReveal text="something that lasts." delay={0.15} className="block text-muted" />
+        <motion.span aria-hidden="true" data-search-skip className="absolute inset-0" style={{ clipPath: prefersReducedMotion ? "none" : clipPath }}>
+          <TextReveal text="something that lasts." delay={0.15} className="block text-accent" />
+        </motion.span>
+      </span>
+    </h2>
+  );
+};
+
 const Contact = () => {
   const { data: contact, isLoading, isError } = useGetContactQuery();
 
@@ -174,14 +196,14 @@ const Contact = () => {
       </div>
 
       <div className="relative mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
-        <div className="flex flex-col gap-6">
-          <p className="font-mono text-xs tracking-[0.15em] text-muted">
-            <span className="text-accent">07</span> <span className="text-faint">/</span> contact.sh
-          </p>
-          <h2 className="text-[clamp(2.75rem,9vw,7.5rem)] leading-[0.92] font-medium tracking-[-0.05em]">
-            <TextReveal text="Let's build" className="block" />
-            <TextReveal text="something that lasts." delay={0.15} className="block text-muted" />
-          </h2>
+        <div className="flex items-end justify-between gap-8">
+          <div className="flex flex-col gap-6">
+            <p className="font-mono text-xs tracking-[0.15em] text-muted">
+              <span className="text-accent">07</span> <span className="text-faint">/</span> contact.sh
+            </p>
+            <SunsetHeadline />
+          </div>
+          <Seal id="contact" label="contact.sh" index="07" className="mb-3 hidden shrink-0 lg:block" />
         </div>
 
         {isLoading && <SkeletonLines lines={2} />}

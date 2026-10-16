@@ -239,8 +239,8 @@ describe("resolveTheme", () => {
     expect(resolveTheme("rose-pine")).toBe("rose-pine");
   });
 
-  it("falls back to kanagawa for anything else", () => {
-    expect(resolveTheme("lordran")).toBe("kanagawa");
+  it("falls back to rosarito for anything else", () => {
+    expect(resolveTheme("lordran")).toBe("rosarito");
   });
 
   it("picks the light colorscheme for a light system when nothing is saved", () => {

@@ -77,6 +77,13 @@ export const SECRETS = {
     where: "contact.sh",
     riddle: "Someone is watching the email, waiting to be called.",
   },
+  d20: {
+    color: "#d8b25a",
+    name: "The d20",
+    quip: "Persuasion check passed. You're one message away from a party member who's already rolled initiative.",
+    where: "contact.sh",
+    riddle: "Past the logout, at the very end of the buffer, the dice wait to be thrown.",
+  },
 };
 export const SECRET_IDS = Object.keys(SECRETS);
 

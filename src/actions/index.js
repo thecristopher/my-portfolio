@@ -100,8 +100,9 @@ const FILE_TYPES = { tsx: "typescriptreact", md: "markdown", json: "json", lua: 
 // what nvim would print as the filetype in the statusline
 export const fileTypeFor = (bufferName = "") => FILE_TYPES[bufferName.split(".").pop()] ?? "text";
 
-export const THEMES = ["kanagawa", "catppuccin", "rose-pine", "ember", "lotus"];
-export const DEFAULT_THEME = "kanagawa";
+export const THEMES = ["rosarito", "kanagawa", "catppuccin", "rose-pine", "ember", "lotus"];
+// home: the Pacific at night with the sunset still in the accent
+export const DEFAULT_THEME = "rosarito";
 // the one light colorscheme, picked for anyone whose system is set to light until they choose another
 export const LIGHT_THEME = "lotus";
 

@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, AtSign, Check, Copy, CornerDownLeft, FileText, HelpCircle, Palette, Printer, Sparkles, Volume2 } from "lucide-react";
+import { ArrowRight, AtSign, Check, Copy, CornerDownLeft, FileText, FolderTree, HelpCircle, Palette, Printer, Search, SearchX, Sparkles, Volume2 } from "lucide-react";
 import { useGetNavBarQuery } from "../../api/navBarApi";
 import { useGetContactQuery } from "../../api/contactApi";
 import { THEMES, bufferNameFor, filterCommands, findCommandByAlias, sectionIdFromUrl, withManifesto } from "../../actions";
 import { pauseSmoothScroll, resumeSmoothScroll, scrollToSection } from "../../lib/smoothScroll";
 import { echo } from "../../lib/echo";
 import { getMuted, setMuted } from "../../lib/sound";
+import { clearSearch } from "../../lib/search";
+import { focusFileTree } from "../../lib/fileTree";
+import { HELP_TEXT } from "../../hooks/useVimKeys";
 import { easeOutExpo } from "../../lib/motion";
 
-const HELP_TEXT = "j/k scroll · d/u half page · gg/G top/bottom · : commands · need a copy? :resume · stuck? :quests";
 
 // only typed exactly, never listed. a few nods to raccoon city
 const SECRET_COMMANDS = [
@@ -23,7 +25,7 @@ const SECRET_COMMANDS = [
   { alias: "merchant", label: "Merchant", run: () => echo("What're ya buyin'? Scroll down, stranger, the good stuff is in contact.sh", "success") },
 ].map((command) => ({ ...command, id: `secret-${command.alias}`, group: "Secrets", icon: HelpCircle, hidden: true }));
 
-const buildCommands = ({ links, contact, colorscheme, onSetColorscheme, onOpenQuestLog }) => {
+const buildCommands = ({ links, contact, colorscheme, onSetColorscheme, onOpenQuestLog, onOpenSearch }) => {
   const buffers = withManifesto(links.map((link) => sectionIdFromUrl(link.url))).map((sectionId) => {
     const link = links.find((item) => sectionIdFromUrl(item.url) === sectionId);
     return {
@@ -75,6 +77,12 @@ const buildCommands = ({ links, contact, colorscheme, onSetColorscheme, onOpenQu
     { id: "resume", group: "Resume", label: "Save resume as PDF", alias: "resume", keywords: "cv print pdf", icon: Printer, run: () => setTimeout(() => window.print(), 350) },
   ];
 
+  const finding = [
+    { id: "search", group: "Find", label: "Search the page", alias: "search", keywords: "find grep /", icon: Search, run: onOpenSearch },
+    { id: "noh", group: "Find", label: "Clear search highlights", alias: "noh", keywords: "nohlsearch clear", icon: SearchX, run: clearSearch },
+    { id: "tree", group: "Find", label: "Focus the file tree", alias: "tree", keywords: "nvimtree sidebar explorer", icon: FolderTree, run: () => setTimeout(focusFileTree, 0) },
+  ];
+
   const extras = [
     { id: "help", group: "Extras", label: "Show keybindings", alias: "help", icon: HelpCircle, run: () => echo(HELP_TEXT) },
     { id: "quests", group: "Extras", label: "Open the quest log", alias: "quests", keywords: "secrets easter eggs hints", icon: Sparkles, run: onOpenQuestLog },
@@ -102,16 +110,16 @@ const buildCommands = ({ links, contact, colorscheme, onSetColorscheme, onOpenQu
     run: () => onSetColorscheme(theme),
   }));
 
-  return [...shortcuts, ...buffers, ...reachOut, ...colorschemes, ...extras, ...SECRET_COMMANDS];
+  return [...shortcuts, ...buffers, ...finding, ...reachOut, ...colorschemes, ...extras, ...SECRET_COMMANDS];
 };
 
-const Cmdline = ({ onClose, colorscheme, onSetColorscheme, onOpenQuestLog }) => {
+const Cmdline = ({ onClose, colorscheme, onSetColorscheme, onOpenQuestLog, onOpenSearch }) => {
   const { data: links = [] } = useGetNavBarQuery();
   const { data: contact } = useGetContactQuery();
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const commands = buildCommands({ links, contact, colorscheme, onSetColorscheme, onOpenQuestLog });
+  const commands = buildCommands({ links, contact, colorscheme, onSetColorscheme, onOpenQuestLog, onOpenSearch });
   const results = filterCommands(commands, query);
 
   const runCommand = (command) => {
@@ -211,7 +219,7 @@ const Cmdline = ({ onClose, colorscheme, onSetColorscheme, onOpenQuestLog }) => 
   );
 };
 
-const CommandMenu = ({ isOpen, onClose, colorscheme, onSetColorscheme, onOpenQuestLog }) => {
+const CommandMenu = ({ isOpen, onClose, colorscheme, onSetColorscheme, onOpenQuestLog, onOpenSearch }) => {
   useEffect(() => {
     if (!isOpen) return;
     pauseSmoothScroll();
@@ -234,7 +242,13 @@ const CommandMenu = ({ isOpen, onClose, colorscheme, onSetColorscheme, onOpenQue
           onClick={onClose}
           className="fixed inset-0 z-50 bg-ink/60 px-4 pt-[16vh] backdrop-blur-sm"
         >
-          <Cmdline onClose={onClose} colorscheme={colorscheme} onSetColorscheme={onSetColorscheme} onOpenQuestLog={onOpenQuestLog} />
+          <Cmdline
+            onClose={onClose}
+            colorscheme={colorscheme}
+            onSetColorscheme={onSetColorscheme}
+            onOpenQuestLog={onOpenQuestLog}
+            onOpenSearch={onOpenSearch}
+          />
         </motion.div>
       )}
     </AnimatePresence>

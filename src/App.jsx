@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { MotionConfig, motion, useScroll, useSpring } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion, useScroll, useSpring } from "framer-motion";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import CommandMenu from "./components/CommandMenu";
@@ -7,6 +7,7 @@ import Resume from "./components/Resume";
 import Statusline from "./components/Statusline";
 import FileTree from "./components/FileTree";
 import QuestLog from "./components/QuestLog";
+import SearchLine from "./components/SearchLine";
 import Hero from "./sections/Hero";
 import Manifesto from "./sections/Manifesto";
 import About from "./sections/About";
@@ -31,6 +32,7 @@ const ScrollProgress = () => {
 const App = () => {
   const [isCmdlineOpen, setIsCmdlineOpen] = useState(false);
   const [isQuestLogOpen, setIsQuestLogOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { colorscheme, applyColorscheme } = useColorscheme();
   const { data: links = [] } = useGetNavBarQuery();
   const activeSectionId = useActiveSection(withManifesto(links.map((link) => sectionIdFromUrl(link.url))));
@@ -39,9 +41,11 @@ const App = () => {
   const closeCmdline = useCallback(() => setIsCmdlineOpen(false), []);
   const openQuestLog = useCallback(() => setIsQuestLogOpen(true), []);
   const closeQuestLog = useCallback(() => setIsQuestLogOpen(false), []);
+  const openSearch = useCallback(() => setIsSearchOpen(true), []);
+  const closeSearch = useCallback(() => setIsSearchOpen(false), []);
 
   useEffect(() => startSmoothScroll(), []);
-  useVimKeys({ onOpenCmdline: openCmdline, isPaused: isCmdlineOpen || isQuestLogOpen });
+  useVimKeys({ onOpenCmdline: openCmdline, onOpenSearch: openSearch, isPaused: isCmdlineOpen || isQuestLogOpen || isSearchOpen });
 
   useEffect(() => {
     const toggleOnShortcut = (event) => {
@@ -92,7 +96,9 @@ const App = () => {
         colorscheme={colorscheme}
         onSetColorscheme={applyColorscheme}
         onOpenQuestLog={openQuestLog}
+        onOpenSearch={openSearch}
       />
+      <AnimatePresence>{isSearchOpen && <SearchLine onClose={closeSearch} />}</AnimatePresence>
       <QuestLog isOpen={isQuestLogOpen} onClose={closeQuestLog} />
       <Resume />
     </MotionConfig>

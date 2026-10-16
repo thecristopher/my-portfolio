@@ -1,7 +1,8 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { flushSync } from "react-dom";
 import { resolveTheme, revealCircle } from "../../actions";
 import { echo } from "../../lib/echo";
+import { syncBrowserChrome } from "../../lib/browserChrome";
 
 const STORAGE_KEY = "colorscheme";
 
@@ -42,6 +43,9 @@ const withThemeReveal = (paint) => {
 
 export const useColorscheme = () => {
   const [colorscheme, setColorscheme] = useState(readSavedTheme);
+
+  // the browser bar and tab icon follow the colorscheme, including the one picked before the first paint
+  useEffect(() => syncBrowserChrome(), [colorscheme]);
 
   const applyColorscheme = useCallback((name) => {
     const theme = resolveTheme(name);

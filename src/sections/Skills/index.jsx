@@ -52,12 +52,13 @@ const CapabilityCard = ({ skill, index, isBuffed }) => {
   const isDuelMonster = isBuffed && Boolean(skill.effect);
 
   return (
+    // skills' signature: the cards stand up out of the page, tipped back like a deck being dealt onto the table
     <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 60, rotateX: 28, scale: 0.94 }}
+      whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 1, delay: (index % 3) * 0.1, ease: easeOutExpo }}
-      style={{ perspective: 1200 }}
+      transition={{ duration: 1.2, delay: (index % 3) * 0.1 + Math.floor(index / 3) * 0.08, ease: easeOutExpo }}
+      style={{ perspective: 1200, transformPerspective: 1200, transformOrigin: "50% 100%" }}
     >
       {/* a returning visitor's cards are already monsters, so only a fresh cast plays the flip */}
       <motion.div
@@ -163,7 +164,7 @@ const Skills = () => {
   return (
     <section id="skills" className="relative py-24 sm:py-36">
       <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
-        <SectionHeader index="06" label="skills.lua" title="How I lead, and the tools I reach for." />
+        <SectionHeader id="skills" index="06" label="skills.lua" title="How I lead, and the tools I reach for." />
 
         {isLoading && <SkeletonLines lines={4} />}
         {isError && <LoadError what="skills" />}
