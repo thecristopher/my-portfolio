@@ -72,6 +72,7 @@ export const filterCommands = (commands, query = "") => {
 
 const BUFFER_NAMES = {
   home: "index.tsx",
+  manifesto: "philosophy.md",
   about: "about.md",
   work: "work.json",
   education: "education.toml",
@@ -82,6 +83,10 @@ const BUFFER_NAMES = {
 
 export const bufferNameFor = (sectionId = "") => BUFFER_NAMES[sectionId] ?? `${sectionId}.md`;
 
+// the other way around, so a secret's hint can jump to the buffer it hides in
+export const sectionIdForBuffer = (bufferName) =>
+  Object.keys(BUFFER_NAMES).find((sectionId) => BUFFER_NAMES[sectionId] === bufferName) ?? null;
+
 // the same Top / Bot / percent readout nvim shows in its ruler
 export const scrollPosition = (scrollY, maxScroll) => {
   if (maxScroll <= 0) return "All";
@@ -90,25 +95,20 @@ export const scrollPosition = (scrollY, maxScroll) => {
   return `${Math.round((scrollY / maxScroll) * 100)}%`;
 };
 
-// relativenumber style: the middle row shows the real line, every other row its distance from it
-export const gutterLines = (currentLine, count) => {
-  const middle = Math.floor(count / 2);
-  return Array.from({ length: count }, (_, row) => {
-    const distance = Math.abs(row - middle);
-    const isCurrent = distance === 0;
-    return { row, label: isCurrent ? currentLine : distance, isCurrent };
-  });
-};
-
 const FILE_TYPES = { tsx: "typescriptreact", md: "markdown", json: "json", lua: "lua", sh: "sh", yml: "yaml", toml: "toml" };
 
 // what nvim would print as the filetype in the statusline
 export const fileTypeFor = (bufferName = "") => FILE_TYPES[bufferName.split(".").pop()] ?? "text";
 
-export const THEMES = ["kanagawa", "catppuccin", "rose-pine", "ember"];
+export const THEMES = ["kanagawa", "catppuccin", "rose-pine", "ember", "lotus"];
 export const DEFAULT_THEME = "kanagawa";
+// the one light colorscheme, picked for anyone whose system is set to light until they choose another
+export const LIGHT_THEME = "lotus";
 
-export const resolveTheme = (saved) => (THEMES.includes(saved) ? saved : DEFAULT_THEME);
+export const resolveTheme = (saved, prefersLight = false) => {
+  if (THEMES.includes(saved)) return saved;
+  return prefersLight ? LIGHT_THEME : DEFAULT_THEME;
+};
 
 export const isMaxLevel = (level, maxLevel) => level >= maxLevel;
 
@@ -177,3 +177,104 @@ export const revealCircle = ({ x, y }, { width, height }) => ({
 
 // the hero stat reads "2x" so it counts up like the others but still says certifications, not companies
 export const timesCertified = (certifications = []) => (certifications.length > 0 ? `${certifications.length}x` : null);
+
+export const formatYears = (start, end) => {
+  if (start && end) return start === end ? `${start}` : `${start} – ${end}`;
+  return start ? `${start} – present` : null;
+};
+
+// a stable fake sha per commit, so the career log reads like git without changing between visits
+export const shortHash = (text = "") => {
+  let hash = 0x811c9dc5;
+  for (const char of text) hash = Math.imul(hash ^ char.codePointAt(0), 0x01000193) >>> 0;
+  return hash.toString(16).padStart(8, "0").slice(-7);
+};
+
+// every title I held becomes a commit, newest on top like `git log`. the first title at a company is a join,
+// the next ones are promotions, and the very first job is the root commit
+export const careerCommits = (projects = []) => {
+  const commits = projects.flatMap((project) => {
+    const roles = project.roles?.length ? project.roles : [null];
+    const years = formatYears(project.start_year, project.end_year);
+    return roles
+      .map((role, step) => ({
+        hash: shortHash(`${project.title}:${role ?? step}`),
+        type: step === 0 ? "join" : "promote",
+        message: step === 0 ? [role, project.title].filter(Boolean).join(" @ ") : role,
+        company: project.title,
+        targetId: `work-${slugify(project.title)}`,
+      }))
+      .reverse()
+      .map((commit, index) => ({ ...commit, years: index === 0 ? years : null, isNewestAtCompany: index === 0 }));
+  });
+  if (commits.length > 0) commits[commits.length - 1].type = "init";
+  return commits.map((commit, index) => ({ ...commit, isHead: index === 0 }));
+};
+
+// whether a project shipped with a tool, used to light up the work cards for one skill
+export const usesTech = (project, tech) => !tech || (project.technologies ?? []).some((name) => cleanTechName(name) === tech);
+
+export const countUsing = (projects = [], tech) => projects.filter((project) => usesTech(project, tech)).length;
+
+// the hour and weekday where I live, whatever timezone the visitor is in
+export const localClock = (date, timeZone) => {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", { timeZone, hour: "2-digit", minute: "2-digit", weekday: "short", hourCycle: "h23" })
+      .formatToParts(date)
+      .map((part) => [part.type, part.value])
+  );
+  return { hour: Number(parts.hour), time: `${parts.hour}:${parts.minute}`, isWeekend: ["Sat", "Sun"].includes(parts.weekday) };
+};
+
+const WEEKDAY_STATUS = [
+  [7, "asleep. the pipeline isn't"],
+  [9, "coffee, then standup"],
+  [13, "in 1:1s and code reviews"],
+  [14, "lunch break"],
+  [18, "shipping with the team"],
+  [21, "working out, then family time"],
+  [24, "reading manga or losing to a boss"],
+];
+
+const WEEKEND_STATUS = [
+  [8, "asleep, it's the weekend"],
+  [20, "off the clock with the family"],
+  [24, "probably in a boss fight"],
+];
+
+// a guess at what I'm up to right now, for the statusline
+export const nowStatus = ({ hour, isWeekend }) =>
+  (isWeekend ? WEEKEND_STATUS : WEEKDAY_STATUS).find(([until]) => hour < until)[1];
+
+// the nav from the api skips the philosophy, but it is a buffer too, right after the hero
+export const withManifesto = (sectionIds = []) =>
+  sectionIds.includes("home") ? ["home", "manifesto", ...sectionIds.filter((id) => id !== "home")] : sectionIds;
+
+const file = (name, targetId) => ({ name, targetId });
+
+// what each section holds when the file tree opens it as a directory. a section left out stays a single file
+const SECTION_FILES = {
+  about: () => [file("about.md", "bio"), file("profile.json", "profile")],
+  work: ({ projects }) => {
+    const { featured, earlier } = splitFeatured(projects);
+    return [
+      file("career.log", "career-log"),
+      ...featured.map((project, index) => file(`${formatIndex(index)}-${slugify(project.title)}.json`, `work-${slugify(project.title)}`)),
+      ...(earlier.length > 0 ? [file("earlier.log", "work-earlier")] : []),
+    ];
+  },
+  education: ({ hasCertifications }) => [file("degree.toml", "degree"), ...(hasCertifications ? [file("aws-certs.toml", "certifications")] : [])],
+  github: ({ repos }) => repos.map((repo) => file(`${repo.name}.git`, `repo-${slugify(repo.name)}`)),
+  skills: () => [file("cards.lua", "skill-cards"), file("checkhealth", "checkhealth")],
+};
+
+const DIRECTORY_NAMES = { github: "side-quests" };
+
+// the sidebar like nvim-tree draws it: the hero and the philosophy as files up top, each section with
+// something inside as a directory, and the rest as plain files in nav order
+export const buildFileTree = (sectionIds = [], { projects = [], repos = [], hasCertifications = false } = {}) =>
+  withManifesto(sectionIds).map((sectionId) => {
+    const children = SECTION_FILES[sectionId]?.({ projects, repos, hasCertifications }) ?? [];
+    if (children.length === 0) return { sectionId, name: bufferNameFor(sectionId), isDirectory: false, children };
+    return { sectionId, name: `${DIRECTORY_NAMES[sectionId] ?? sectionId}/`, isDirectory: true, children };
+  });

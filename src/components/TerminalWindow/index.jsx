@@ -1,5 +1,5 @@
 const TerminalWindow = ({ title, children, className = "", bodyClassName = "p-5 sm:p-6" }) => (
-  <div className={`overflow-hidden rounded-2xl border border-line bg-panel shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] ${className}`}>
+  <div className={`overflow-hidden rounded-2xl border border-line bg-panel shadow-[0_30px_80px_-20px_color-mix(in_oklab,var(--color-shadow)_70%,transparent)] ${className}`}>
     <div className="flex items-center gap-2 border-b border-line bg-ink/40 px-4 py-3">
       <span className="size-2.5 rounded-full bg-[#ff5f57]/80" />
       <span className="size-2.5 rounded-full bg-[#febc2e]/80" />

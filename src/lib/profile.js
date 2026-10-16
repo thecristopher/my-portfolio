@@ -3,3 +3,5 @@
 export const FULL_NAME = "Cristopher Cervantes";
 export const HOME = "Rosarito, Mexico";
 export const TIMEZONE = "Pacific Time";
+// what the statusline clock reads, Rosarito keeps Tijuana's time
+export const HOME_TIMEZONE = "America/Tijuana";

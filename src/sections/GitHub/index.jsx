@@ -6,6 +6,7 @@ import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { Triforce } from "../../components/Secrets";
 import { GITHUB_USER, useGetReposQuery } from "../../api/githubApi";
 import { easeOutExpo } from "../../lib/motion";
+import { slugify } from "../../actions";
 
 // the same dots GitHub paints next to each language
 const LANGUAGE_COLORS = {
@@ -24,6 +25,7 @@ const formatPushed = (pushedAt) =>
 
 const RepoCard = ({ repo, index }) => (
   <motion.a
+    id={`repo-${slugify(repo.name)}`}
     href={repo.url}
     target="_blank"
     rel="noreferrer"

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Check, Copy } from "lucide-react";
+import { ArrowUpRight, Check, Copy, SkipForward } from "lucide-react";
 import TextReveal from "../../components/TextReveal";
 import TerminalWindow from "../../components/TerminalWindow";
 import TypeLine from "../../components/TypeLine";
@@ -54,16 +54,52 @@ const printedLine = (delay) => ({
   transition: { duration: 0.6, delay, ease: easeOutExpo },
 });
 
+// once the session has played through, later visits print it straight away instead of making you wait again
+const SEEN_KEY = "contact-seen";
+
+const readSeen = () => {
+  try {
+    return localStorage.getItem(SEEN_KEY) === "true";
+  } catch {
+    return false;
+  }
+};
+
+const markSeen = () => {
+  try {
+    localStorage.setItem(SEEN_KEY, "true");
+  } catch {
+    // private windows can block storage, it just plays again next time
+  }
+};
+
 const ContactTerminal = ({ contact }) => {
+  const [isInstant, setIsInstant] = useState(readSeen);
   const [isEmailPrinted, setIsEmailPrinted] = useState(false);
   const [isSocialsPrinted, setIsSocialsPrinted] = useState(false);
   const [hasExited, setHasExited] = useState(false);
 
+  const logOut = () => {
+    setHasExited(true);
+    markSeen();
+  };
+
   return (
     <TerminalWindow title="~/contact · zsh" bodyClassName="p-6 sm:p-10">
       <div className="flex flex-col gap-4 font-mono text-sm">
-        <p className="text-faint"># what're ya buyin', stranger?</p>
-        <TypeLine text="echo $EMAIL" delay={0.3} onDone={() => setIsEmailPrinted(true)} />
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-faint"># what're ya buyin', stranger?</p>
+          {!hasExited && !isInstant && (
+            <button
+              type="button"
+              onClick={() => setIsInstant(true)}
+              className="flex shrink-0 items-center gap-1.5 text-xs text-faint transition-colors hover:text-fg"
+            >
+              <SkipForward size={12} aria-hidden="true" /> skip
+            </button>
+          )}
+        </div>
+        <TypeLine text="echo $EMAIL" delay={0.3} instant={isInstant} onDone={() => setIsEmailPrinted(true)} />
         {isEmailPrinted && (
           <motion.div {...printedLine(0)} className="flex flex-col gap-4 pb-4">
             <a
@@ -82,7 +118,7 @@ const ContactTerminal = ({ contact }) => {
         )}
 
         {isEmailPrinted && (
-          <TypeLine text="ls ./elsewhere" delay={0.4} onDone={() => setIsSocialsPrinted(true)} />
+          <TypeLine text="ls ./elsewhere" delay={0.4} instant={isInstant} onDone={() => setIsSocialsPrinted(true)} />
         )}
         {isSocialsPrinted && (
           <ul className="flex flex-wrap gap-x-8 gap-y-3">
@@ -106,7 +142,7 @@ const ContactTerminal = ({ contact }) => {
           </ul>
         )}
 
-        {isSocialsPrinted && <TypeLine text="exit" delay={0.8} onDone={() => setHasExited(true)} className="pt-4" />}
+        {isSocialsPrinted && <TypeLine text="exit" delay={0.8} instant={isInstant} onDone={logOut} className="pt-4" />}
         {hasExited && (
           <motion.div {...printedLine(0)} className="flex flex-col gap-1 text-faint">
             <p>logout</p>

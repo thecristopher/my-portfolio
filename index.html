@@ -25,10 +25,12 @@
       rel="stylesheet"
     />
     <script>
-      // apply the saved colorscheme before paint so there is no flash of the default theme
+      // apply the saved colorscheme before paint so there is no flash of the default theme.
+      // with nothing saved, a light system gets the light colorscheme
       try {
         var savedTheme = localStorage.getItem("colorscheme");
         if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+        else if (matchMedia("(prefers-color-scheme: light)").matches) document.documentElement.dataset.theme = "lotus";
       } catch (error) {}
     </script>
   </head>

@@ -14,7 +14,6 @@ import { extractYearsOfExperience, timesCertified } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 
 const WHOAMI = ["tech lead", "engineering manager", "full stack", "aws certified"];
-const PRINT_KEYS = /Mac|iPhone|iPad/.test(globalThis.navigator?.userAgent ?? "") ? "⌘P" : "Ctrl+P";
 
 // the sprite drops in once the name has landed, so he doesn't steal its moment
 const AVATAR_ENTERS_AT_S = 1.2;
@@ -128,10 +127,6 @@ const Hero = () => {
               </a>
             </Magnetic>
           </motion.div>
-
-          <motion.p {...riseIn(1.2)} className="-mt-3 hidden font-mono text-xs text-faint sm:block">
-            need a copy? press <kbd className="rounded border border-line px-1 text-muted">{PRINT_KEYS}</kbd> for a resume
-          </motion.p>
 
           <motion.dl {...riseIn(1.3)} className="grid max-w-lg grid-cols-3 gap-4 pt-6">
             {years && <Stat value={years} label="Years coding" delay={1.4} />}

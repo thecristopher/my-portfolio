@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { SECRETS, SECRET_IDS, isComplete, migrateFound, secretCount, secretTooltip } from "./secrets";
+import { HINT_UNLOCK_MS, SECRETS, SECRET_IDS, hintFor, isComplete, migrateFound, secretCount, secretTooltip } from "./secrets";
+import { bufferNameFor } from "../actions";
 
 describe("migrateFound", () => {
   it("turns an old lit bonfire into a discovered grace", () => {
@@ -35,5 +36,30 @@ describe("secretTooltip", () => {
     expect(isComplete(SECRET_IDS)).toBe(true);
     expect(secretTooltip("grace", SECRET_IDS).quip).toMatch(/100% completion/);
     expect(secretTooltip("grace", ["grace"]).quip).not.toMatch(/100% completion/);
+  });
+});
+
+describe("quest log entries", () => {
+  it("names every secret and says where it hides", () => {
+    const buffers = ["home", "manifesto", "about", "work", "education", "github", "skills", "contact"].map(bufferNameFor);
+    for (const id of SECRET_IDS) {
+      expect(SECRETS[id].name).toBeTruthy();
+      expect(SECRETS[id].riddle).toBeTruthy();
+      expect(buffers).toContain(SECRETS[id].where);
+    }
+  });
+});
+
+describe("hintFor", () => {
+  it("keeps the riddle locked at first and counts down", () => {
+    expect(hintFor("bat", 0)).toEqual({ isLocked: true, secondsLeft: HINT_UNLOCK_MS / 1000 });
+  });
+
+  it("gives the riddle away once the wait is over", () => {
+    expect(hintFor("bat", HINT_UNLOCK_MS)).toMatchObject({ isLocked: false, where: "contact.sh" });
+  });
+
+  it("knows nothing about a secret that doesn't exist", () => {
+    expect(hintFor("hollow-knight", HINT_UNLOCK_MS)).toBeNull();
   });
 });

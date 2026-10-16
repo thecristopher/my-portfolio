@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SECRET_IDS } from "./secrets";
-import { SOUNDS, noteFrequency, playSound } from "./sound";
+import { SOUNDS, getMuted, noteFrequency, playSound, setMuted } from "./sound";
 
 describe("noteFrequency", () => {
   it("tunes zero semitones to A4", () => {
@@ -29,5 +29,15 @@ describe("playSound", () => {
 
   it("ignores a sound it does not know", () => {
     expect(() => playSound("hollow-knight")).not.toThrow();
+  });
+});
+
+describe("setMuted", () => {
+  it("flips the mute and keeps playSound quiet", () => {
+    setMuted(true);
+    expect(getMuted()).toBe(true);
+    expect(() => playSound("grace")).not.toThrow();
+    setMuted(false);
+    expect(getMuted()).toBe(false);
   });
 });

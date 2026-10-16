@@ -18,6 +18,8 @@
   --color-signal: #7e9cd8;
   --color-string: #98bb6c;
   --color-error: #e46876;
+  /* what every drop shadow is mixed from. pure black on the dark schemes, a soft brown on the light one */
+  --color-shadow: #000;
 }
 
 :root[data-theme="catppuccin"] {
@@ -64,6 +66,24 @@
   --color-signal: #6b9bff;
   --color-string: #a5e2a0;
   --color-error: #ff5f57;
+}
+
+/* kanagawa lotus, the one light colorscheme. a light system gets it until the visitor picks another */
+:root[data-theme="lotus"] {
+  color-scheme: light;
+  --color-ink: #f2ecbc;
+  --color-panel: #e7e0b3;
+  --color-raised: #dcd5ac;
+  --color-line: #d5cea3;
+  --color-line-strong: #c3ba8c;
+  --color-fg: #43436c;
+  --color-muted: #625f55;
+  --color-faint: #8a8980;
+  --color-accent: #cc6d00;
+  --color-signal: #4d699b;
+  --color-string: #6f894e;
+  --color-error: #c84053;
+  --color-shadow: rgb(110 95 40 / 0.35);
 }
 
 /* nothing may ever make the page wider than the screen. iOS Safari zooms the whole page out the moment something
