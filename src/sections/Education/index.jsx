@@ -92,6 +92,8 @@ const CertBadge = ({ cert, index }) => {
     >
       <SpotlightCard className="group flex items-center gap-5 rounded-2xl border border-line bg-panel p-5 transition-colors duration-500 hover:border-line-strong sm:p-6">
         <div className={`relative grid size-20 shrink-0 place-items-center ${tone}`}>
+          {/* education's signature: light glints across each badge like a foil seal, once on arrival and again on hover */}
+          <span className="badge-sheen pointer-events-none absolute inset-0" aria-hidden="true" />
           <svg viewBox="0 0 100 100" className="absolute inset-0 size-full" aria-hidden="true">
             <path d={HEXAGON} fill="currentColor" fillOpacity="0.1" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" />
             <path d="M50 12 L84 31 L84 69 L50 88 L16 69 L16 31 Z" fill="none" stroke="currentColor" strokeOpacity="0.35" strokeWidth="1" />
@@ -134,7 +136,7 @@ const Education = () => {
   return (
     <section id="education" className="relative py-24 sm:py-36">
       <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
-        <SectionHeader index="04" label="education.toml" title="Where it started, and what's certified." />
+        <SectionHeader id="education" index="04" label="education.toml" title="Where it started, and what's certified." />
 
         {isLoading && <SkeletonLines lines={4} />}
         {isError && <LoadError what="education" />}

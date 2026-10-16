@@ -6,13 +6,18 @@ Live at [cristophercervantes.com](https://cristophercervantes.com). The content 
 
 ## What's in it
 
-- **Hero** with the pixel avatar, a blueprint grid that lights up under your cursor and buttons that lean toward it. He drops in, bounces on his toes in a fighting stance, blinks, glances around, waves hello, hops when you scroll and throws a jab when you poke him.
-- **Manifesto**, followed by an endless ribbon of every tool I've shipped with. It speeds up, flips and leans with your scroll.
-- **About** with the bio, a portrait and a `profile.json` that types itself out.
-- **Work**, opened by a `git log --graph` of my career (every title I've held is a commit, the first job is the root commit), then a stack of cards for every place I've shipped software. Click any tool in a card's stack, or in the skills' `:checkhealth`, and the jobs that never used it fade back.
-- **Side quests**, my public GitHub repos pulled live from the GitHub API. Repos without a description show the first paragraph of their README instead.
-- **Skills**, how I lead and the tools I reach for. Every tool in the report greps the work history for it.
-- **Contact**, a terminal that logs you in and out. It can be skipped, and it prints straight away on a return visit.
+Every section has its own seal (its buffer name running around a ring that turns as you scroll, with a mark that draws itself in the middle) and its own way of moving:
+
+- **Hero** with the pixel avatar, a blueprint grid that lights up under your cursor and buttons that lean toward it. He drops in, bounces on his toes in a fighting stance, blinks, glances around, waves hello, hops when you scroll and throws a jab when you poke him. Scroll away and the grid tips back into a floor running off to the horizon.
+- **Philosophy**, which holds the page still while the sentence lights up word by word, with a reading line filling underneath.
+- **About** with the bio, a portrait that drifts inside its frame as you scroll, and a `profile.json` that types itself out.
+- **Work**, opened by a `git log --graph` of my career whose branch line draws itself as you read (every title I've held is a commit, the first job is the root commit), then a stack of cards for every place I've shipped software. Click any tool in a card's stack, or in the skills' `:checkhealth`, and the jobs that never used it fade back.
+- **Education**, the degree and the AWS badges, with light glinting across each badge like a foil seal.
+- **Side quests**, my public GitHub repos pulled live from the GitHub API. On wide screens the page pins and the repos slide past sideways as you keep scrolling. Repos without a description show the first paragraph of their README instead.
+- **Skills**, how I lead and the tools I reach for, dealt onto the page like cards. Every tool in the report greps the work history for it.
+- **Contact**, where the closing line fills with the sunset as you scroll to it, and a terminal logs you in and out. It can be skipped, and it prints straight away on a return visit.
+
+The page paints with real content straight away: every build saves what the API serves into `src/data/snapshot.json`, the page starts from that, and then asks the API for anything newer.
 
 ### The editor bits
 
@@ -21,17 +26,19 @@ Live at [cristophercervantes.com](https://cristophercervantes.com). The content 
 | `j` / `k` | Scroll down / up |
 | `d` / `u` | Half page down / up |
 | `gg` / `G` | Jump to top / bottom |
+| `/` | Search the page. `n` / `N` step through the matches, `esc` or `:noh` clears them |
+| `\e` | Focus the file tree. In it, `j` / `k` move, `l` opens, `h` closes or climbs to the folder, `esc` goes back |
 | `:` or `⌘K` | Open the command line |
 
-From the command line you can jump to any section, copy my email, mute the sound, open the quest log, or switch between five colorschemes (`kanagawa`, `catppuccin`, `rose-pine`, `ember` and the light `lotus`, which a light system gets by default). In browsers with View Transitions, the new colorscheme spreads out in a circle from wherever you clicked.
+From the command line you can jump to any section, search, copy my email, mute the sound, open the quest log, or switch between six colorschemes. The default is `rosarito`, the Pacific after dark with the sunset in the accent, made for this site; a light system gets the light `lotus` instead, and `kanagawa`, `catppuccin`, `rose-pine` and `ember` are there too. In browsers with View Transitions, the new colorscheme spreads out in a circle from wherever you clicked, and the browser bar and tab icon follow it.
 
-On wide screens the sections live in a file tree down the left edge, drawn like nvim-tree: the folder for the section you're reading opens by itself and the cursorline follows the file on screen. Narrower screens keep the floating buffer tabs at the top.
+On wide screens the sections live in a file tree down the left edge, drawn like nvim-tree: the folder for the section you're reading opens by itself and the cursorline follows the file on screen. On smaller screens the menu up top opens the same tree.
 
-The statusline at the bottom shows the current mode, buffer and scroll position, my local time in Rosarito with a guess at what I'm doing, and a sound toggle. On a phone, tapping the mode opens the command line.
+The statusline at the bottom shows the current mode, buffer and scroll position, the search and its match count, my local time in Rosarito with a guess at what I'm doing, and a sound toggle. On a phone, tapping the mode opens the command line.
 
 ### Secrets
 
-There are 10 of them hidden around the page, each with its own full screen moment and a little synth jingle generated on the fly (no audio files shipped). The page remembers which ones you found, and each one leaves behind a tooltip that mashes its franchise up with my career, plus a row of pips in every secret's color so you can see how many are left. After the first find, the score shows up in the statusline and opens a quest log (`:quests`). Its riddles stay locked for the first minute and a half, so the hunt stays a hunt. Some commands are hidden too, if you know what to type. I'm not saying where any of them are.
+There are 11 of them hidden around the page, each with its own full screen moment and a little synth jingle generated on the fly (no audio files shipped). The page remembers which ones you found, and each one leaves behind a tooltip that mashes its franchise up with my career, plus a row of pips in every secret's color so you can see how many are left. After the first find, the score shows up in the statusline and opens a quest log (`:quests`). Its riddles stay locked for the first minute and a half, so the hunt stays a hunt. One of them asks the API to roll for you. Some commands are hidden too, if you know what to type. I'm not saying where any of them are.
 
 ## Stack
 
@@ -59,6 +66,7 @@ The app runs at `http://localhost:5173`, which is the origin the backend allows 
 | `yarn dev` | Start the dev server |
 | `yarn test` | Run the test suite |
 | `yarn lint` | Lint everything |
+| `yarn snapshot` | Save what the API serves into `src/data/snapshot.json` (also runs before every build) |
 | `yarn build` | Build for production into `dist/` |
 | `yarn preview` | Serve the production build locally |
 

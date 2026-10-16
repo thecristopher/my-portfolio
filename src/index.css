@@ -5,7 +5,25 @@
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
 
-  /* kanagawa wave is the default colorscheme, the others override these below */
+  /* rosarito is the default colorscheme: the Pacific after dark, sand for text and the sunset for the accent.
+     the others override these below */
+  --color-ink: #0e1219;
+  --color-panel: #141a24;
+  --color-raised: #1b2330;
+  --color-line: #1e2633;
+  --color-line-strong: #2c3747;
+  --color-fg: #efe7d8;
+  --color-muted: #a3abb8;
+  --color-faint: #66707f;
+  --color-accent: #ff8f5e;
+  --color-signal: #6fc6d6;
+  --color-string: #a6d49a;
+  --color-error: #ff6b81;
+  /* what every drop shadow is mixed from. pure black on the dark schemes, a soft brown on the light one */
+  --color-shadow: #000;
+}
+
+:root[data-theme="kanagawa"] {
   --color-ink: #1f1f28;
   --color-panel: #252531;
   --color-raised: #2a2a37;
@@ -18,8 +36,6 @@
   --color-signal: #7e9cd8;
   --color-string: #98bb6c;
   --color-error: #e46876;
-  /* what every drop shadow is mixed from. pure black on the dark schemes, a soft brown on the light one */
-  --color-shadow: #000;
 }
 
 :root[data-theme="catppuccin"] {
@@ -108,6 +124,17 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* every match of a `/` search, and the one the cursor is on */
+::highlight(search) {
+  background-color: color-mix(in oklab, var(--color-signal) 30%, transparent);
+  color: var(--color-fg);
+}
+
+::highlight(search-current) {
+  background-color: var(--color-accent);
+  color: var(--color-ink);
 }
 
 ::selection {
@@ -225,6 +252,38 @@ body::after {
   opacity: 1;
 }
 
+/* a band of light that sweeps across a certification badge, clipped to the badge's hexagon */
+.badge-sheen {
+  clip-path: polygon(50% 2%, 93% 26%, 93% 74%, 50% 98%, 7% 74%, 7% 26%);
+  background: linear-gradient(105deg, transparent 35%, color-mix(in oklab, white 55%, transparent) 50%, transparent 65%);
+  background-size: 250% 100%;
+  background-position: 130% 0;
+  animation: badge-sheen 1.6s 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.group:hover .badge-sheen {
+  animation: badge-sheen-hover 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes badge-sheen {
+  from {
+    background-position: 130% 0;
+  }
+  to {
+    background-position: -30% 0;
+  }
+}
+
+/* the same sweep under a second name, so hovering restarts it */
+@keyframes badge-sheen-hover {
+  from {
+    background-position: 130% 0;
+  }
+  to {
+    background-position: -30% 0;
+  }
+}
+
 /* the pill above each found secret gets a thin edge of light in that secret's color */
 .secret-tooltip::before {
   content: "";
@@ -242,6 +301,11 @@ body::after {
 
   .spotlight {
     transform: none;
+  }
+
+  .badge-sheen,
+  .group:hover .badge-sheen {
+    animation: none;
   }
 }
 

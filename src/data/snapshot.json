@@ -1,0 +1,351 @@
+{
+  "getNavBar": [
+    {
+      "title": "Home",
+      "url": "/#home"
+    },
+    {
+      "title": "About",
+      "url": "/#about"
+    },
+    {
+      "title": "Work",
+      "url": "/#work"
+    },
+    {
+      "title": "Education",
+      "url": "/#education"
+    },
+    {
+      "title": "Side quests",
+      "url": "/#github"
+    },
+    {
+      "title": "Skills",
+      "url": "/#skills"
+    },
+    {
+      "title": "Contact",
+      "url": "/#contact"
+    }
+  ],
+  "getAbout": {
+    "title": "About",
+    "description": "I started like everyone else, as an intern who could barely scratch out a few lines of code. Over 9+ years I climbed one step at a time, until I became one of the key developers at every company I've worked for.\n\nI challenge myself every day and I'm always after continuous improvement, both in myself and in the products I help build.\n\nToday I'm a mix of Engineering Manager and Tech Lead. I don't just set the priorities for my products, I also suggest alternatives and solutions to the code my developers propose, and push them so that together we always land a better result.\n\nOff the clock I love working out, spending time with my family, and every now and then reading some manga or playing video games. By the way, have you tried finding the easter eggs scattered around here?",
+    "role": "Tech Lead & Engineering Manager",
+    "main_stack": [
+      "TypeScript",
+      "Next.js",
+      "React",
+      "Node.js",
+      "AWS",
+      "Serverless",
+      "Bedrock",
+      "LLMs"
+    ],
+    "editor": "Neovim",
+    "skill_levels": [
+      {
+        "name": "TypeScript",
+        "level": 5
+      },
+      {
+        "name": "Next.js",
+        "level": 5
+      },
+      {
+        "name": "React",
+        "level": 5
+      },
+      {
+        "name": "Node.js",
+        "level": 5
+      },
+      {
+        "name": "AWS",
+        "level": 5
+      },
+      {
+        "name": "Serverless",
+        "level": 5
+      },
+      {
+        "name": "Bedrock",
+        "level": 5
+      },
+      {
+        "name": "LLMs",
+        "level": 5
+      },
+      {
+        "name": "C#",
+        "level": 5
+      },
+      {
+        "name": "JavaScript",
+        "level": 5
+      },
+      {
+        "name": "Lambda",
+        "level": 5
+      },
+      {
+        "name": "DynamoDB",
+        "level": 5
+      },
+      {
+        "name": "Aurora",
+        "level": 4
+      },
+      {
+        "name": "OpenSearch",
+        "level": 4
+      },
+      {
+        "name": "Terraform",
+        "level": 4
+      },
+      {
+        "name": "Kubernetes",
+        "level": 4
+      },
+      {
+        "name": "GitHub Actions",
+        "level": 4
+      },
+      {
+        "name": "Docker",
+        "level": 4
+      },
+      {
+        "name": "PostgreSQL",
+        "level": 4
+      },
+      {
+        "name": "SQL",
+        "level": 4
+      },
+      {
+        "name": "MVC",
+        "level": 4
+      },
+      {
+        "name": "PHP",
+        "level": 4
+      },
+      {
+        "name": "Python",
+        "level": 4
+      },
+      {
+        "name": "Azure",
+        "level": 3
+      }
+    ],
+    "education": [
+      {
+        "school": "Instituto Tecnológico de Tijuana",
+        "url": "https://www.tijuana.tecnm.mx/",
+        "location": "Tijuana, Mexico",
+        "degree": "B.S. in Computer Systems Engineering",
+        "original_name": "Ingeniería en Sistemas Computacionales",
+        "start_year": null,
+        "end_year": null,
+        "highlights": [
+          "Where I learned the fundamentals I still lean on: algorithms, data structures, databases, networks and software engineering.",
+          "Part of TecNM, Mexico's national network of public engineering schools."
+        ]
+      }
+    ],
+    "certifications": [
+      {
+        "name": "AWS Certified Developer – Associate",
+        "issuer": "Amazon Web Services",
+        "level": "Associate",
+        "verify_url": null
+      },
+      {
+        "name": "AWS Certified Cloud Practitioner",
+        "issuer": "Amazon Web Services",
+        "level": "Foundational",
+        "verify_url": null
+      }
+    ]
+  },
+  "getProjects": [
+    {
+      "title": "PSL Group",
+      "description": "I run engineering for four of PSL Group's products: DGPL, AMI, IDH and MEC. I set the priorities, lead the team and still review and write plenty of the code.",
+      "detailed_description": "I joined as Tech Lead on FirstWord, PSL's pharma and healthcare intelligence platform, and grew into managing engineering across the group's products.\n\nOn FirstWord I built one React codebase serving three brands, FirstWord Manager (the Next.js workspace the team runs everything from) and FirstWord AI, versioned Claude agents on Bedrock with streaming and guardrails.\n\nToday I split my week between product and code: planning the roadmap for DGPL, AMI, IDH and MEC, running 1:1s, and pushing back on pull requests with alternatives until the team lands something better. I also own the shared deploy pipelines and the infrastructure as code, and set up the Claude Code tooling the whole team works with.",
+      "url": "https://www.pslgroup.com/",
+      "technologies": [
+        "TypeScript",
+        "Next.js",
+        "React",
+        "Node.js",
+        "AWS",
+        "Serverless",
+        "Bedrock",
+        "LLMs",
+        "Lambda",
+        "DynamoDB",
+        "Aurora",
+        "OpenSearch",
+        "Terraform",
+        "Kubernetes",
+        "GitHub Actions",
+        "PHP"
+      ],
+      "roles": [
+        "Tech Lead",
+        "Engineering Manager"
+      ],
+      "start_year": null,
+      "end_year": null,
+      "featured": true
+    },
+    {
+      "title": "Grupo Tress",
+      "description": "Payroll and HR software used by companies across Mexico, the U.S. and Canada. I joined as a developer and grew into a Senior Developer leading features end to end.",
+      "detailed_description": "As Senior Developer I led the self service app where employees track their own attendance, owning it from the first screens to production.\n\nI also built GTI Controls, the React component library behind Interis Works, Tress's cloud payroll product, so every team shipped screens that looked and behaved the same.\n\nAlong the way I worked across the C# and Node.js services, the PostgreSQL databases and the cloud deployments on AWS and Azure.",
+      "url": "https://www.tress.com.mx/",
+      "technologies": [
+        "React",
+        "C#",
+        "Node.js",
+        "PostgreSQL",
+        "SQL",
+        "AWS",
+        "Azure",
+        "Docker"
+      ],
+      "roles": [
+        "Developer",
+        "Senior Developer"
+      ],
+      "start_year": null,
+      "end_year": null,
+      "featured": true
+    },
+    {
+      "title": "Hisense México",
+      "description": "Internal tools for the corporate office and the factory floor, including the IT ticketing system.",
+      "detailed_description": "I built the IT ticketing system from scratch in C#, ASP.NET MVC and SQL, and it became how the whole office asked for help.\n\nI also worked on the corporate website and wrote tools that connected to internal systems so managers could follow manufacturing performance in real time.",
+      "url": "https://www.hisense.com.mx/",
+      "technologies": [
+        "C#",
+        "MVC",
+        "SQL"
+      ],
+      "roles": [],
+      "start_year": null,
+      "end_year": null,
+      "featured": false
+    },
+    {
+      "title": "Umbrella Seguros",
+      "description": "Rebuilt the school insurance workflows on their management platform.",
+      "detailed_description": "I worked on Umbrella's insurance platform with C#, MVC, SQL, Python and JavaScript. I rebuilt the school insurance workflows from the ground up.\n\nAs more customers came on I kept extending the core features, fixing UX problems and tightening the business logic so the platform could grow with them.",
+      "url": "https://www.umbrella-seguros.com/",
+      "technologies": [
+        "C#",
+        "MVC",
+        "SQL",
+        "Python",
+        "JavaScript"
+      ],
+      "roles": [],
+      "start_year": null,
+      "end_year": null,
+      "featured": false
+    },
+    {
+      "title": "Systems Communications",
+      "description": "Internship. Built the truck log for the Tijuana customs office, my first code in daily use.",
+      "detailed_description": "During my internship I built an inventory system for the Tijuana customs office that logged trucks coming in and out, written in PHP, C# and SQL.\n\nIt was the first time something I wrote got used every day by real people, and the reason I never looked back.",
+      "url": "https://www.systemscomm.net/es/inicio/",
+      "technologies": [
+        "PHP",
+        "C#",
+        "SQL"
+      ],
+      "roles": [
+        "Intern"
+      ],
+      "start_year": null,
+      "end_year": null,
+      "featured": false
+    }
+  ],
+  "getSkills": [
+    {
+      "title": "Leading Teams",
+      "icon": "TbUserCode",
+      "description": "I mentor engineers, run 1:1s and code reviews, set priorities and keep releases on a steady schedule. I'd rather unblock five people than write the clever thing myself.",
+      "attack": 2500,
+      "defense": 2100,
+      "effect": "Once per sprint: every engineer on your side of the field is unblocked."
+    },
+    {
+      "title": "AI & LLMs",
+      "icon": "TbSparkles",
+      "description": "LLM features are still features: they need guardrails, tests and a fallback for when the model gets it wrong. I've shipped AI that people use every day, and I'd take a boring correct answer over a flashy wrong one.",
+      "attack": 2800,
+      "defense": 1700,
+      "effect": "When a model hallucinates, negate it and return a grounded answer instead."
+    },
+    {
+      "title": "Cloud & Infra",
+      "icon": "FaAws",
+      "description": "Functions when traffic is spiky, containers when it isn't. Every environment lives in code and every repo ships through the same pipeline, so deploys are boring in the best way.",
+      "attack": 2300,
+      "defense": 2800,
+      "effect": "Cannot be destroyed by a Friday deploy."
+    },
+    {
+      "title": "Frontend & UX",
+      "icon": "TbLayoutDashboard",
+      "description": "Design systems and component libraries a whole product, or several brands, can share. I sweat the small stuff too: loading states, dark mode, i18n and copy that sounds like a person wrote it.",
+      "attack": 2400,
+      "defense": 2000,
+      "effect": "Flip every loading spinner on the field into a skeleton."
+    },
+    {
+      "title": "Data & Search",
+      "icon": "TbDatabase",
+      "description": "I model data around how it gets read, then make sure the indexes agree. NoSQL when the access patterns are known, SQL when the data has real relationships, and a search engine when people need to find things fast.",
+      "attack": 2200,
+      "defense": 2500,
+      "effect": "Search your deck for any record and add it to your hand. Indexed, of course."
+    },
+    {
+      "title": "Quality & Security",
+      "icon": "TbTestPipe",
+      "description": "Unit tests for the logic, end to end tests for the flows people actually click, and CI that blocks the merge when they fail. Logging, alerts and locked down secrets go in before launch, not after the first incident.",
+      "attack": 1900,
+      "defense": 3000,
+      "effect": "Negate any attack that skipped CI."
+    }
+  ],
+  "getContact": {
+    "email": "contact@cristophercervantes.com",
+    "mailto": "mailto:contact@cristophercervantes.com",
+    "socials": [
+      {
+        "id": 1,
+        "name": "LinkedIn",
+        "url": "https://www.linkedin.com/in/thecristopher/"
+      },
+      {
+        "id": 2,
+        "name": "GitHub",
+        "url": "https://github.com/thecristopher"
+      },
+      {
+        "id": 3,
+        "name": "Instagram",
+        "url": "https://www.instagram.com/thecristopher/"
+      }
+    ]
+  }
+}

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useRef, useState } from "react";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import portrait from "../../assets/images/portrait.jpg";
 import SectionHeader from "../../components/SectionHeader";
 import Reveal from "../../components/Reveal";
@@ -71,40 +71,51 @@ const PORTRAIT_WIPE = {
 };
 const PORTRAIT_ZOOM = {
   hidden: { scale: 1.35 },
-  shown: { scale: 1, transition: { duration: 2.2, ease: easeOutExpo } },
+  // it settles a touch zoomed in, so the scroll drift never shows the frame's edge
+  shown: { scale: 1.12, transition: { duration: 2.2, ease: easeOutExpo } },
 };
 const PORTRAIT_GLOW = {
   hidden: { opacity: 0 },
   shown: { opacity: 1, transition: { duration: 1, delay: 0.6 } },
 };
 
-const Portrait = () => (
-  <motion.figure
-    initial="hidden"
-    whileInView="shown"
-    viewport={{ once: true, amount: 0.3 }}
-    className="relative mx-auto w-full max-w-sm lg:max-w-none"
-  >
-    <motion.div variants={PORTRAIT_WIPE} className="relative overflow-hidden rounded-3xl bg-panel">
-      <motion.img
-        src={portrait}
-        alt="Portrait of Cristopher Cervantes"
-        variants={PORTRAIT_ZOOM}
-        className="aspect-[4/5] w-full object-cover object-center"
+// about's signature: the photo drifts inside its frame as the bio scrolls by, like looking through a window
+const Portrait = () => {
+  const ref = useRef(null);
+  const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const drift = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
+
+  return (
+    <motion.figure
+      ref={ref}
+      initial="hidden"
+      whileInView="shown"
+      viewport={{ once: true, amount: 0.3 }}
+      className="relative mx-auto w-full max-w-sm lg:max-w-none"
+    >
+      <motion.div variants={PORTRAIT_WIPE} className="relative overflow-hidden rounded-3xl bg-panel">
+        <motion.img
+          src={portrait}
+          alt="Portrait of Cristopher Cervantes"
+          variants={PORTRAIT_ZOOM}
+          style={prefersReducedMotion ? undefined : { y: drift }}
+          className="aspect-[4/5] w-full object-cover object-center"
+        />
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
+        <figcaption className="absolute right-5 bottom-5 flex gap-2 font-mono text-[11px] text-muted">
+          <span className="text-accent">fig.01</span>
+          <span>portrait.jpg</span>
+        </figcaption>
+      </motion.div>
+      <motion.div
+        variants={PORTRAIT_GLOW}
+        className="absolute -inset-px -z-10 rounded-3xl bg-gradient-to-br from-accent/50 via-transparent to-signal/50 blur-sm"
+        aria-hidden="true"
       />
-      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
-      <figcaption className="absolute right-5 bottom-5 flex gap-2 font-mono text-[11px] text-muted">
-        <span className="text-accent">fig.01</span>
-        <span>portrait.jpg</span>
-      </figcaption>
-    </motion.div>
-    <motion.div
-      variants={PORTRAIT_GLOW}
-      className="absolute -inset-px -z-10 rounded-3xl bg-gradient-to-br from-accent/50 via-transparent to-signal/50 blur-sm"
-      aria-hidden="true"
-    />
-  </motion.figure>
-);
+    </motion.figure>
+  );
+};
 
 const About = () => {
   const { data: about, isLoading, isError } = useGetAboutQuery();
@@ -113,7 +124,7 @@ const About = () => {
   return (
     <section id="about" className="relative py-24 sm:py-36">
       <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
-        <SectionHeader index="02" label="about.md" title="From the editor to the org chart." />
+        <SectionHeader id="about" index="02" label="about.md" title="From the editor to the org chart." />
 
         <div className="grid gap-14 lg:grid-cols-12">
           <div className="lg:col-span-5">

@@ -7,6 +7,7 @@ import { cursorLineAt } from "../../lib/editor";
 import { HOME_TIMEZONE } from "../../lib/profile";
 import { SECRET_IDS, useFoundSecrets } from "../../lib/secrets";
 import { setMuted, useMuted } from "../../lib/sound";
+import { searchCount, useSearchState } from "../../lib/search";
 
 const MODE_STYLES = {
   NORMAL: "bg-accent text-ink",
@@ -39,6 +40,7 @@ const Statusline = ({ mode, colorscheme, activeId, onOpenCmdline, onOpenQuestLog
   const { time, status } = useHomeClock();
   const isMuted = useMuted();
   const found = useFoundSecrets();
+  const searchState = useSearchState();
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -48,7 +50,6 @@ const Statusline = ({ mode, colorscheme, activeId, onOpenCmdline, onOpenQuestLog
 
   return (
     <div
-      role="status"
       className="fixed inset-x-0 bottom-0 z-40 flex h-7 items-stretch border-t border-line bg-panel/95 font-mono text-[11px] backdrop-blur-xl"
     >
       {/* tapping the mode is the way into the command line on a phone, where there is no ":" key to press */}
@@ -62,7 +63,8 @@ const Statusline = ({ mode, colorscheme, activeId, onOpenCmdline, onOpenQuestLog
       </button>
       <span className="flex items-center px-3 text-fg">{bufferName}</span>
 
-      <span className="flex min-w-0 flex-1 items-center px-2">
+      {/* only the :echo line is a live region. the clock ticking and the scroll readout would be noise read aloud */}
+      <span role="status" className="flex min-w-0 flex-1 items-center px-2">
         <AnimatePresence mode="wait">
           {message && (
             <motion.span
@@ -79,6 +81,11 @@ const Statusline = ({ mode, colorscheme, activeId, onOpenCmdline, onOpenQuestLog
         </AnimatePresence>
       </span>
 
+      {searchState.total > 0 && (
+        <span className="hidden items-center px-3 text-signal tabular-nums sm:flex">
+          /{searchState.query} {searchCount(searchState)}
+        </span>
+      )}
       {/* the score only shows up after the first find, so nobody knows there is a hunt until they stumble into it */}
       {found.length > 0 && (
         <button

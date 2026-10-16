@@ -5,6 +5,7 @@ import { useGetNavBarQuery } from "../../api/navBarApi";
 import { useActiveSection } from "../../hooks/useActiveSection";
 import { bufferNameFor, sectionIdFromUrl } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
+import { TreeList } from "../FileTree";
 
 const BufferTab = ({ sectionId, number, isActive }) => (
   <li className="relative">
@@ -94,22 +95,21 @@ const Navbar = ({ onOpenCmdline }) => {
 
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.ul
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+          // on small screens the menu opens the same file tree the sidebar shows on wide ones, with roomier rows for thumbs
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
             transition={{ duration: 0.4, ease: easeOutExpo }}
-            className="mt-2 rounded-3xl border border-line-strong bg-panel/95 px-5 py-2 font-mono backdrop-blur-xl lg:hidden"
+            data-lenis-prevent
+            data-search-skip
+            className="mt-2 max-h-[70svh] origin-top overflow-y-auto rounded-3xl border border-line-strong bg-panel/95 p-3 font-mono text-sm backdrop-blur-xl lg:hidden [&_button]:py-2.5"
           >
-            {sectionIds.map((sectionId, index) => (
-              <li key={sectionId} className="border-b border-line last:border-0">
-                <a href={`#${sectionId}`} onClick={closeMenu} className="flex items-baseline gap-3 py-4 text-base">
-                  <span className="text-xs text-accent">{index + 1}</span>
-                  {bufferNameFor(sectionId)}
-                </a>
-              </li>
-            ))}
-          </motion.ul>
+            <p className="flex items-center gap-2 px-2 pb-2 text-xs text-muted">
+              <span className="text-accent">~/</span>cristopher
+            </p>
+            <TreeList group="menu" onNavigate={closeMenu} scrollsOnOpen={false} />
+          </motion.div>
         )}
       </AnimatePresence>
     </motion.header>

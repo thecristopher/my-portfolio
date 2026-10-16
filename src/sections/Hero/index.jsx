@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { motion, useMotionTemplate, useScroll, useTransform } from "framer-motion";
+import { motion, useMotionTemplate, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import TextReveal from "../../components/TextReveal";
 import TypeLine from "../../components/TypeLine";
@@ -58,6 +58,12 @@ const Hero = () => {
   const isSideBySide = useMediaQuery("(min-width: 1024px)");
   const avatarDrift = useTransform(scrollYProgress, [0, 1], [0, 140]);
   const avatarY = isSideBySide ? avatarDrift : 0;
+  // the hero's signature: as you scroll away, the blueprint grid lays down into a floor that runs off toward
+  // the horizon, the way a stage tips back at the end of a keynote
+  const prefersReducedMotion = useReducedMotion();
+  const floorTilt = useTransform(scrollYProgress, [0, 1], [0, 62]);
+  const floorScale = useTransform(scrollYProgress, [0, 1], [1, 1.6]);
+  const floor = prefersReducedMotion ? undefined : { rotateX: floorTilt, scale: floorScale, transformPerspective: 900, transformOrigin: "50% 100%" };
 
   const years = extractYearsOfExperience(about?.description);
   const certified = timesCertified(about?.certifications);
@@ -69,8 +75,8 @@ const Hero = () => {
       onPointerMove={trackGrid}
       className="hero relative flex min-h-svh items-center overflow-hidden pt-28 pb-16"
     >
-      <div className="blueprint pointer-events-none absolute inset-0" aria-hidden="true" />
-      <div className="blueprint-glow pointer-events-none absolute inset-0" aria-hidden="true" />
+      <motion.div style={floor} className="blueprint pointer-events-none absolute inset-0" aria-hidden="true" />
+      <motion.div style={floor} className="blueprint-glow pointer-events-none absolute inset-0" aria-hidden="true" />
       {/* the glows are gradients, not blurred circles. Safari crops a blur where a moving layer like the sprite sits
           on top of it, which left a hard edged box behind him */}
       <div className="pointer-events-none absolute -left-72 top-[calc(100%/3-8rem)] size-[52rem] bg-radial from-accent/10 to-transparent to-70%" aria-hidden="true" />
@@ -159,22 +165,6 @@ const Hero = () => {
         </motion.figure>
       </div>
 
-      <motion.a
-        href="#manifesto"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2.2, duration: 1 }}
-        className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-faint sm:flex"
-      >
-        scroll
-        <span className="relative h-10 w-px overflow-hidden bg-line">
-          <motion.span
-            className="absolute inset-x-0 top-0 h-1/2 bg-accent"
-            animate={{ y: ["-100%", "200%"] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </span>
-      </motion.a>
     </section>
   );
 };
