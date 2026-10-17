@@ -10,7 +10,6 @@ import {
   glowFalloff,
   softBeams,
   brandColorFor,
-  shelfEdges,
   wrapRange,
   scrambleFrame,
   letterWeight,
@@ -52,6 +51,7 @@ import {
   idleMoveDelay,
   markMainStack,
   splitFeatured,
+  activeSlide,
 } from "./index";
 
 describe("splitParagraphs", () => {
@@ -630,24 +630,6 @@ describe("wrapRange", () => {
   });
 });
 
-describe("shelfEdges", () => {
-  it("is at the start before anything scrolls", () => {
-    expect(shelfEdges({ scrollLeft: 0, scrollWidth: 1200, clientWidth: 600 })).toEqual({ isAtStart: true, isAtEnd: false });
-  });
-
-  it("is at the end once the last card is in view", () => {
-    expect(shelfEdges({ scrollLeft: 600, scrollWidth: 1200, clientWidth: 600 })).toEqual({ isAtStart: false, isAtEnd: true });
-  });
-
-  it("forgives the half pixel a zoomed screen lands on", () => {
-    expect(shelfEdges({ scrollLeft: 599.5, scrollWidth: 1200, clientWidth: 600 }).isAtEnd).toBe(true);
-  });
-
-  it("is at both ends when everything fits", () => {
-    expect(shelfEdges({ scrollLeft: 0, scrollWidth: 600, clientWidth: 600 })).toEqual({ isAtStart: true, isAtEnd: true });
-  });
-});
-
 describe("brandColorFor", () => {
   it("paints React in its own cyan", () => {
     expect(brandColorFor("React")).toBe("#61dafb");
@@ -807,5 +789,19 @@ describe("stepSection", () => {
 
   it("starts at the top when it can't tell where you are", () => {
     expect(stepSection(ids, "raccoon-city", 1)).toBe("home");
+  });
+});
+
+describe("activeSlide", () => {
+  it("rounds to the slide the gallery mostly shows", () => {
+    expect(activeSlide({ scrollLeft: 620, slideWidth: 400, count: 5 })).toBe(2);
+  });
+
+  it("never runs past the last slide", () => {
+    expect(activeSlide({ scrollLeft: 9000, slideWidth: 400, count: 5 })).toBe(4);
+  });
+
+  it("sits on the first slide before anything is measured", () => {
+    expect(activeSlide({ scrollLeft: 0, slideWidth: 0, count: 5 })).toBe(0);
   });
 });

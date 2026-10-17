@@ -249,6 +249,16 @@ body {
   mask-image: linear-gradient(to bottom, black 30%, transparent 85%);
 }
 
+/* the big words Apple fills with a gradient instead of a flat color, here running from the text color into the
+   colorscheme's sunset. the padding keeps descenders from getting cut off by the clip */
+.text-gradient {
+  padding-bottom: 0.08em;
+  background-image: linear-gradient(105deg, var(--color-fg) 15%, var(--color-accent) 65%, var(--color-error));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 /* the custom cursor takes over only once it's on screen, and text fields keep a real caret */
 .has-pointer,
 .has-pointer * {

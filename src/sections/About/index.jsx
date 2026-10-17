@@ -14,19 +14,6 @@ import { TIMEZONE } from "../../lib/profile";
 
 const JsonString = ({ children }) => <span className="text-string">"{children}"</span>;
 
-const JsonList = ({ items }) => (
-  <>
-    <span className="text-faint">[</span>
-    {items.map((item, index) => (
-      <span key={item}>
-        <JsonString>{item}</JsonString>
-        {index < items.length - 1 && <span className="text-faint">, </span>}
-      </span>
-    ))}
-    <span className="text-faint">]</span>
-  </>
-);
-
 const JsonLine = ({ name, children, isLast = false, index }) => (
   <motion.div
     initial={{ opacity: 0, x: -8 }}
@@ -41,7 +28,8 @@ const JsonLine = ({ name, children, isLast = false, index }) => (
   </motion.div>
 );
 
-const ProfileJson = ({ editor, certifications, skills }) => {
+// only what the rest of the page doesn't already say: the tools and certifications have their own sections
+const ProfileJson = ({ editor }) => {
   const [isPrinted, setIsPrinted] = useState(false);
 
   return (
@@ -51,10 +39,8 @@ const ProfileJson = ({ editor, certifications, skills }) => {
         {isPrinted && (
           <div className="overflow-x-auto">
             <span className="text-faint">{"{"}</span>
-            {certifications.length > 0 && <JsonLine index={0} name="certified"><JsonList items={certifications} /></JsonLine>}
-            {skills.length > 0 && <JsonLine index={1} name="skills"><JsonList items={skills} /></JsonLine>}
-            <JsonLine index={2} name="timezone"><JsonString>{TIMEZONE}</JsonString></JsonLine>
-            {editor && <JsonLine index={3} name="editor" isLast><JsonString>{editor}</JsonString></JsonLine>}
+            <JsonLine index={0} name="timezone" isLast={!editor}><JsonString>{TIMEZONE}</JsonString></JsonLine>
+            {editor && <JsonLine index={1} name="editor" isLast><JsonString>{editor}</JsonString></JsonLine>}
             <span className="text-faint">{"}"}</span>
           </div>
         )}
@@ -148,11 +134,7 @@ const About = () => {
             ))}
 
             <Reveal delay={0.15} className="mt-6" id="profile">
-              <ProfileJson
-                editor={about?.editor ?? "Neovim"}
-                certifications={(about?.certifications ?? []).map((cert) => cert.name)}
-                skills={(about?.skill_levels ?? []).map((skill) => skill.name)}
-              />
+              <ProfileJson editor={about?.editor ?? "Neovim"} />
               <div className="mt-3 flex justify-end">
                 <Airbender />
               </div>
