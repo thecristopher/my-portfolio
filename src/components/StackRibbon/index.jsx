@@ -15,16 +15,20 @@ import { wrapRange } from "../../actions";
 
 const CRAFT = ["lead teams", "ship AI people trust", "design systems", "own the pipeline", "review every PR", "write the tests too"];
 
-// one endless row: drifts on its own, races ahead when you scroll fast, turns around when you scroll back up,
+// how much faster than its drift a row may go on a hard scroll. any more and a flick blurs the names past reading
+const MAX_BOOST = 1.5;
+
+// one endless row: drifts on its own, picks up a little speed when you scroll, turns around when you scroll back up,
 // and leans into the motion like it has weight
 const Row = ({ items, speed, renderItem, className = "" }) => {
   const prefersReducedMotion = useReducedMotion();
   const offset = useMotionValue(0);
   const direction = useRef(speed > 0 ? 1 : -1);
   const { scrollY } = useScroll();
-  const velocity = useSpring(useVelocity(scrollY), { damping: 50, stiffness: 400 });
-  const boost = useTransform(velocity, [-2500, 0, 2500], [-6, 0, 6], { clamp: false });
-  const lean = useTransform(velocity, [-2500, 2500], [7, -7]);
+  // a soft spring, so a quick flick eases the row up to speed instead of yanking it
+  const velocity = useSpring(useVelocity(scrollY), { damping: 60, stiffness: 120 });
+  const boost = useTransform(velocity, [-3000, 0, 3000], [-MAX_BOOST, 0, MAX_BOOST]);
+  const lean = useTransform(velocity, [-3000, 3000], [4, -4]);
   // the items are laid out twice, so wrapping at half the width loops without a seam
   const x = useTransform(offset, (value) => `${wrapRange(-50, 0, value)}%`);
 

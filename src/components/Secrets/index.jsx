@@ -23,7 +23,7 @@ const GUSTS_MS = 3800;
 const WATER_SLASH_MS = 2800;
 const GOTCHA_MS = 3400;
 const GRACE_BANNER_MS = 3800;
-const WEB_MS = 4500;
+const WEB_MS = 5200;
 const BAT_TRANSITION_MS = 4400;
 
 // the button each secret hides behind. the effect it sets off does all the talking
@@ -1103,7 +1103,9 @@ export const Pokeball = ({ className }) => {
 };
 
 const SPIDER_RED = "#e23636";
-const BAT_YELLOW = "#f5c518";
+// detective mode paints the world in this blue, and whatever the scan locks on to in orange
+const DETECTIVE_BLUE = "#4fb6ff";
+const ARKHAM_ORANGE = "#ff9a3c";
 
 // the little spider from the chest of the suit: two body segments and four legs a side
 const SPIDER_LEGS = [
@@ -1141,54 +1143,75 @@ const SpiderGlyph = ({ fill }) => (
   </>
 );
 
-// our friendly neighbor's mask: a head that narrows to the chin, webbing that fans out from the nose,
-// and the classic lenses, wide and rounded at the temples, tapering to a point by the nose, with a thick black frame
-const MASK_HEAD = "M50 8 C73 8 86 26 86 50 C86 72 78 92 66 104 C60 110 55 113 50 113 C45 113 40 110 34 104 C22 92 14 72 14 50 C14 26 27 8 50 8 Z";
-const MASK_LEFT_EYE = "M45 65 C42.5 55 37 47 28 44 C22.5 42.2 18.5 44 18.5 49 C18.5 57 24 63.5 31 65.5 C37 67 41.5 67 45 65 Z";
-const MASK_CENTER = [50, 70];
-const MASK_SPOKES = Array.from({ length: 16 }, (_, index) => (index * Math.PI) / 8);
-const maskPoint = (angle, radius) => [MASK_CENTER[0] + radius * Math.cos(angle), MASK_CENTER[1] + radius * Math.sin(angle) * 1.1];
-const MASK_RINGS = [13, 25, 38, 52, 68].map((radius) =>
-  [...MASK_SPOKES, 2 * Math.PI]
+// our friendly neighbor's mask, traced from the classic comic mask: an egg shaped head narrowing to the chin, a web
+// fanning out from the bridge of the nose, and the big angular lenses in thick black frames sweeping up to the temples
+const MASK_HEAD = "M50.0 5.0 C73.2 5.0 88.8 23.9 89.6 55.9 C90.0 79.7 77.3 101.9 63.3 110.1 C57.6 113.4 53.4 113.9 50.0 113.9 C46.6 113.9 42.4 113.4 36.7 110.1 C22.7 101.9 10.0 79.7 10.4 55.9 C11.2 23.9 26.8 5.0 50.0 5.0 Z";
+const MASK_EYE_FRAME = "M53.0 77.7 L84.5 42.8 C87.5 47.7 89.2 59.2 86.1 68.2 C83.0 76.4 74.8 81.2 66.6 81.2 C61.7 81.2 57.6 79.9 53.0 77.7 Z";
+const MASK_EYE_LENS = "M60.8 78.2 L83.3 54.1 C85.0 59.6 84.5 66.6 80.9 71.5 C77.3 76.0 70.7 78.2 60.8 78.2 Z";
+const MASK_CENTER = [50, 77.7];
+const MASK_SPOKES = Array.from({ length: 12 }, (_, index) => ((index + 0.5) * Math.PI) / 6);
+// the web stretches a little taller than wide, the way it wraps around a head
+const maskPoint = (angle, radius) => [MASK_CENTER[0] + radius * Math.cos(angle), MASK_CENTER[1] + radius * Math.sin(angle) * 1.12];
+const MASK_RINGS = [4.5, 11, 19, 28, 38, 49, 61, 74].map((radius) =>
+  [...MASK_SPOKES, MASK_SPOKES[0] + 2 * Math.PI]
     .map((angle, index) => {
       const [x, y] = maskPoint(angle, radius).map((value) => value.toFixed(1));
       if (index === 0) return `M${x} ${y}`;
-      const [sagX, sagY] = maskPoint(angle - Math.PI / 16, radius * 0.9).map((value) => value.toFixed(1));
+      const [sagX, sagY] = maskPoint(angle - Math.PI / 12, radius * 0.84).map((value) => value.toFixed(1));
       return `Q${sagX} ${sagY} ${x} ${y}`;
     })
     .join(" ")
 );
 
-const SpiderFace = ({ className, style }) => (
+// Peter's classic red, and the black suit the symbiote grows over it in Spider-Man 2
+const SUITS = {
+  classic: { light: "#f0202a", dark: "#b3101a", webbing: "#111111" },
+  symbiote: { light: "#2b2f3a", dark: "#050608", webbing: "#5a6070" },
+};
+
+const SpiderFace = ({ className, style, suit = "classic" }) => (
   <svg viewBox="0 0 100 120" className={className} style={style}>
     <defs>
-      <clipPath id="spider-mask-head">
+      <clipPath id={`spider-mask-head-${suit}`}>
         <path d={MASK_HEAD} />
       </clipPath>
-      <radialGradient id="spider-mask-shade" cx="40%" cy="35%" r="75%">
-        <stop offset="0%" stopColor="#ef3b3b" />
-        <stop offset="100%" stopColor="#a5161b" />
+      <radialGradient id={`spider-mask-shade-${suit}`} cx="40%" cy="35%" r="75%">
+        <stop offset="0%" stopColor={SUITS[suit].light} />
+        <stop offset="100%" stopColor={SUITS[suit].dark} />
       </radialGradient>
     </defs>
-    <path d={MASK_HEAD} fill="url(#spider-mask-shade)" />
-    <g clipPath="url(#spider-mask-head)" fill="none" stroke="#1a0606" strokeWidth="0.9" opacity="0.6">
+    <path d={MASK_HEAD} fill={`url(#spider-mask-shade-${suit})`} />
+    <g clipPath={`url(#spider-mask-head-${suit})`} fill="none" stroke={SUITS[suit].webbing} strokeWidth="0.7">
       {MASK_SPOKES.map((angle) => {
-        const [x, y] = maskPoint(angle, 90).map((value) => value.toFixed(1));
-        const [startX, startY] = maskPoint(angle, 4).map((value) => value.toFixed(1));
-        return <path key={angle} d={`M${startX} ${startY} L${x} ${y}`} />;
+        const [x, y] = maskPoint(angle, 120).map((value) => value.toFixed(1));
+        return <path key={angle} d={`M${MASK_CENTER[0]} ${MASK_CENTER[1]} L${x} ${y}`} />;
       })}
       {MASK_RINGS.map((ring) => (
         <path key={ring} d={ring} />
       ))}
     </g>
-    <path d={MASK_HEAD} fill="none" stroke="#111111" strokeWidth="1.6" />
+    <path d={MASK_HEAD} fill="none" stroke="#111111" strokeWidth="1.4" />
     {[undefined, "translate(100 0) scale(-1 1)"].map((mirror) => (
-      <path key={mirror ?? "left"} d={MASK_LEFT_EYE} transform={mirror} fill="#f4f1ea" stroke="#111111" strokeWidth="5.5" strokeLinejoin="round" />
+      <g key={mirror ?? "right"} transform={mirror}>
+        <path d={MASK_EYE_FRAME} fill="#111111" />
+        <path d={MASK_EYE_LENS} fill="#f4f1ea" />
+      </g>
     ))}
   </svg>
 );
 
-// a "THWIP!", our friendly neighbor drops in on his thread, the web spins itself and a comic caption box names the hero
+// the symbiote's tendrils, reaching up the mask from the chin before the black suit swallows it
+const TENDRILS = [
+  "M50 118 C44 100 30 96 24 80",
+  "M50 118 C56 98 72 94 78 76",
+  "M50 118 C48 96 40 80 42 58",
+  "M50 118 C54 94 62 78 60 56",
+  "M50 118 C38 108 20 104 14 92",
+  "M50 118 C64 108 82 104 88 90",
+];
+
+// Spider-Man 2: a "THWIP!", Peter drops in on his thread and the web spins itself, then the symbiote climbs up
+// the mask and the black suit takes over. the caption box closes on the game's own tagline
 const WebSwing = () => (
   <motion.div
     initial={{ opacity: 0 }}
@@ -1200,6 +1223,7 @@ const WebSwing = () => (
     aria-hidden="true"
   >
     <Shockwave color={SPIDER_RED} delay={0.6} />
+    <Shockwave color="#f4f1ea" delay={2} />
     <div className="relative size-[min(70vw,20rem,48vh)]">
       {/* the thread hangs from above the screen down to the middle of the web, unrolling as the spider drops */}
       <motion.span
@@ -1238,7 +1262,7 @@ const WebSwing = () => (
       </svg>
       {/* he drops down his thread into the middle of the web and swings there for a moment */}
       <motion.div
-        className="absolute top-1/2 left-1/2 w-[34%] -translate-x-1/2 -translate-y-1/2"
+        className="absolute top-1/2 left-1/2 w-[42%] -translate-x-1/2 -translate-y-1/2"
         initial={{ y: "-50vh", opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, ease: easeOutExpo }}
@@ -1254,6 +1278,30 @@ const WebSwing = () => (
           className="relative"
         >
           <SpiderFace className="w-full" />
+          <svg viewBox="0 0 100 120" className="absolute inset-0 size-full overflow-visible">
+            {TENDRILS.map((tendril, index) => (
+              <motion.path
+                key={tendril}
+                d={tendril}
+                fill="none"
+                stroke="#050608"
+                strokeWidth="5"
+                strokeLinecap="round"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: [0, 1, 1, 0] }}
+                transition={{ duration: 0.9, delay: 1.5 + index * 0.05, ease: "easeIn" }}
+              />
+            ))}
+          </svg>
+          {/* the black suit rises from the chin and swallows the red */}
+          <motion.div
+            className="absolute inset-0"
+            initial={{ clipPath: "circle(0% at 50% 100%)" }}
+            animate={{ clipPath: "circle(140% at 50% 100%)" }}
+            transition={{ duration: 0.9, delay: 1.9, ease: [0.7, 0, 0.3, 1] }}
+          >
+            <SpiderFace className="w-full" suit="symbiote" />
+          </motion.div>
         </motion.div>
       </motion.div>
       <motion.p
@@ -1269,15 +1317,15 @@ const WebSwing = () => (
     <motion.p
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: 1.5 }}
+      transition={{ duration: 0.3, delay: 2.7 }}
       className="w-full max-w-md -rotate-1 border-2 border-black bg-[#ffe14d] px-5 py-3 text-center font-sans text-sm font-bold tracking-wide text-black uppercase shadow-[4px_4px_0_#000]"
     >
-      <TypedText text="Your friendly neighborhood developer." startAt={1.7} perLetter={0.035} />
+      <TypedText text="Be greater. Together." startAt={2.9} perLetter={0.05} />
     </motion.p>
   </motion.div>
 );
 
-// a spider hanging off the degree, Peter Parker was a student first. with great power comes great responsibility
+// a spider hanging off the degree, Peter Parker was a student first. Spider-Man 2 is about him learning to share the load
 export { SpiderFace };
 export const Spider = ({ className }) => {
   const [isFound, find] = useSecret("spider");
@@ -1309,104 +1357,144 @@ export const Spider = ({ className }) => {
   );
 };
 
-// the bat from the 1966 show's logo, sized for a 100 by 50 box
+// the Arkham bat: wide wings that hook up into horns, short square ears and two scallops a side, sized for a 100 by 50 box
 const BAT_PATH =
-  "M47 8 L48.6 13.5 L51.4 13.5 L53 8 L54.6 16 C59 16 63 13 64 8 C75 11 88 18 93 30 C87 26 81 27 77 31 C74 26 68 26 65 32 C61 29 54 31 50 41 C46 31 39 29 35 32 C32 26 26 26 23 31 C19 27 13 26 7 30 C12 18 25 11 36 8 C37 13 41 16 45.4 16 Z";
+  "M50.0 46.3 C53.1 39.7 58.9 34.3 65.1 33.2 C69.7 32.7 73.8 33.9 75.9 35.6 C75.9 29.8 82.1 26.3 88.7 26.1 C92.9 26.0 97.0 26.6 100.0 27.3 C99.5 22.3 95.4 16.5 91.2 13.0 C85.4 8.2 79.6 4.9 74.5 3.7 C76.7 5.9 77.6 7.0 77.4 9.1 C77.2 14.0 72.2 16.9 69.3 17.6 C64.7 19.0 59.8 19.2 56.0 19.2 L54.2 9.2 L52.1 14.2 L47.9 14.2 L45.8 9.2 L44.0 19.2 C40.2 19.2 35.3 19.0 30.7 17.6 C27.8 16.9 22.8 14.0 22.6 9.1 C22.4 7.0 23.3 5.9 25.5 3.7 C20.4 4.9 14.6 8.2 8.8 13.0 C4.6 16.5 0.5 22.3 0 27.3 C3.0 26.6 7.1 26.0 11.3 26.1 C17.9 26.3 24.1 29.8 24.1 35.6 C26.2 33.9 30.3 32.7 34.9 33.2 C41.1 34.3 46.9 39.7 50.0 46.3 Z";
 
-const BatEmblem = ({ className, oval = BAT_YELLOW, bat = "#111111", style }) => (
+const BatEmblem = ({ className, fill = "url(#arkham-steel)", style }) => (
   <svg viewBox="0 0 100 50" className={className} style={style} aria-hidden="true">
-    <ellipse cx="50" cy="25" rx="48" ry="23" fill={oval} stroke={bat} strokeWidth="2" />
-    <path d={BAT_PATH} fill={bat} />
+    <defs>
+      <linearGradient id="arkham-steel" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#3a4250" />
+        <stop offset="55%" stopColor="#14171d" />
+        <stop offset="100%" stopColor="#07080b" />
+      </linearGradient>
+    </defs>
+    <path d={BAT_PATH} fill={fill} stroke={DETECTIVE_BLUE} strokeWidth="0.6" strokeLinejoin="miter" />
   </svg>
 );
 
-// sixteen points around a center, the jagged balloon every "POW!" in the old show came in
-const BURST_POINTS = Array.from({ length: 32 }, (_, index) => {
-  const angle = (index * Math.PI) / 16;
-  const radius = index % 2 === 0 ? 48 : 32;
-  return `${(50 + radius * Math.cos(angle)).toFixed(1)},${(50 + radius * Math.sin(angle)).toFixed(1)}`;
-}).join(" ");
+// rain over Gotham, each streak with its own lane and pace so it never falls in rows
+const RAIN = Array.from({ length: 36 }, (_, index) => ({
+  left: (index * 37) % 100,
+  delay: (index * 0.13) % 0.9,
+  duration: 0.55 + ((index * 7) % 5) * 0.08,
+}));
 
-// each one lands on a syllable of "Bat-man!" in the jingle
-const BAT_BURSTS = [
-  { word: "POW!", at: 2.35, className: "top-[18%] left-[8%]", color: "#e23636", tilt: -14 },
-  { word: "BAM!", at: 2.65, className: "right-[8%] bottom-[18%]", color: "#2f6fdf", tilt: 10 },
+// the four corners of the scanner's lock on box
+const RETICLE_CORNERS = ["top-0 left-0 border-t-2 border-l-2", "top-0 right-0 border-t-2 border-r-2", "bottom-0 left-0 border-b-2 border-l-2", "bottom-0 right-0 border-b-2 border-r-2"];
+
+// the HUD readout that types out while the scan runs, the way the case files fill in
+const SCAN_LOG = [
+  { text: "DETECTIVE MODE", at: 0.45 },
+  { text: "SCANNING EVIDENCE...", at: 1.05 },
+  { text: "SUBJECT LOCATED: contact.sh", at: 1.9 },
 ];
 
-const Burst = ({ word, at, className, color, tilt }) => (
-  <motion.div
-    initial={{ scale: 0, rotate: tilt - 30 }}
-    animate={{ scale: [0, 1.25, 1], rotate: tilt }}
-    transition={{ duration: 0.35, delay: at, ease: easeOutExpo }}
-    className={`absolute grid size-[min(34vw,10rem)] place-items-center ${className}`}
-  >
-    <svg viewBox="0 0 100 100" className="absolute inset-0 size-full">
-      <polygon points={BURST_POINTS} fill={BAT_YELLOW} stroke="#111111" strokeWidth="2.5" strokeLinejoin="round" />
-    </svg>
-    <span className="relative font-sans text-[clamp(1.25rem,5vw,2.5rem)] font-black italic" style={{ color, WebkitTextStroke: "1.5px #111" }}>
-      {word}
-    </span>
-  </motion.div>
-);
-
-// the 1966 scene change: the bat logo spins out of nowhere to fill the screen, then the fight words land on the beat
-const BatTransition = () => (
+// Arkham's detective mode: the night goes blue under the rain, a scan line sweeps the screen, the lock on box snaps
+// around the emblem as it traces itself in, then the case closes
+const DetectiveMode = () => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
-    transition={{ duration: 0.3 }}
+    transition={{ duration: 0.35 }}
     className="pointer-events-none fixed inset-0 z-50 grid place-items-center overflow-hidden"
-    style={{ background: `${easedGlow("#1d2a5c", { shape: "ellipse", reach: 95 })}, #05060d` }}
+    style={{ background: `${easedGlow(DETECTIVE_BLUE, { strength: 0.18, shape: "ellipse", reach: 90 })}, #04070c` }}
     aria-hidden="true"
   >
+    {RAIN.map((drop) => (
+      <motion.span
+        key={drop.left}
+        className="absolute top-0 h-[14vh] w-px bg-gradient-to-b from-transparent to-white/30"
+        style={{ left: `${drop.left}%`, rotate: 12 }}
+        initial={{ y: "-20vh" }}
+        animate={{ y: "120vh" }}
+        transition={{ duration: drop.duration, delay: drop.delay, repeat: Infinity, ease: "linear" }}
+      />
+    ))}
+    {/* the blue wash and scanlines detective mode lays over the whole world */}
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.8, delay: 1 }}
-      className="absolute h-[min(60vw,22rem)] w-[min(100vw,40rem)] rounded-full"
-      style={{ background: easedGlow(BAT_YELLOW, { strength: 0.27 }) }}
+      transition={{ duration: 0.5, delay: 0.3 }}
+      className="absolute inset-0"
+      style={{
+        background: `repeating-linear-gradient(to bottom, ${DETECTIVE_BLUE}14 0 1px, transparent 1px 4px)`,
+        mixBlendMode: "screen",
+      }}
     />
-    {/* two searchlights sweeping the night sky behind the logo */}
-    {[-1, 1].map((side) => (
-      <motion.span
-        key={side}
-        className="absolute bottom-0 left-1/2 h-[140vh] w-[30vmax] origin-bottom -translate-x-1/2"
-        style={{ background: `linear-gradient(to top, ${BAT_YELLOW}40, transparent 80%)`, clipPath: "polygon(45% 100%, 55% 100%, 100% 0, 0 0)" }}
-        initial={{ rotate: side * 40, opacity: 0 }}
-        animate={{ rotate: [side * 40, side * -10, side * 20], opacity: [0, 1, 1] }}
-        transition={{ duration: 3, ease: "easeInOut" }}
-      />
-    ))}
-    <motion.div
-      initial={{ scale: 0.02, rotate: 0 }}
-      animate={{ scale: 1, rotate: 1080 }}
-      transition={{ duration: 1.8, ease: [0.3, 0, 0.2, 1] }}
-    >
-      <BatEmblem className="w-[min(80vw,30rem)]" />
-    </motion.div>
-    <Shockwave color={BAT_YELLOW} delay={1.75} />
-    {BAT_BURSTS.map((burst) => (
-      <Burst key={burst.word} {...burst} />
-    ))}
-    <div className="absolute inset-x-4 bottom-[9vh]">
-      <Payoff subtitle="same bat time, same bat channel" delay={3} className="font-sans">
-        <p className="text-[clamp(1.4rem,6vw,2.75rem)] font-black tracking-tight italic" style={{ color: BAT_YELLOW, WebkitTextStroke: "1px #111" }}>
-          TO THE BAT INBOX!
+    <motion.span
+      className="absolute inset-x-0 h-24"
+      style={{ background: `linear-gradient(to bottom, transparent, ${DETECTIVE_BLUE}55, transparent)` }}
+      initial={{ top: "-10%" }}
+      animate={{ top: "110%" }}
+      transition={{ duration: 1.4, delay: 0.4, ease: "easeInOut" }}
+    />
+
+    <div className="relative flex flex-col items-center gap-8 px-4">
+      <div className="relative px-6 py-8 sm:px-10 sm:py-12">
+        {/* the lock on box starts wide and snaps tight once the scan finds him */}
+        <motion.div
+          className="absolute inset-0"
+          initial={{ scale: 1.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: [0, 1, 1] }}
+          transition={{ duration: 0.6, delay: 1.6, ease: easeOutExpo }}
+        >
+          {RETICLE_CORNERS.map((corner) => (
+            <span key={corner} className={`absolute size-6 ${corner}`} style={{ borderColor: ARKHAM_ORANGE }} />
+          ))}
+        </motion.div>
+        <svg viewBox="0 0 100 50" className="w-[min(78vw,28rem)] overflow-visible">
+          <motion.path
+            d={BAT_PATH}
+            fill="none"
+            stroke={DETECTIVE_BLUE}
+            strokeWidth="0.7"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1.3, delay: 0.5, ease: "easeInOut" }}
+            style={{ filter: `drop-shadow(0 0 4px ${DETECTIVE_BLUE})` }}
+          />
+        </svg>
+        <motion.div
+          className="absolute inset-0 grid place-items-center px-6 sm:px-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 1.8 }}
+        >
+          <BatEmblem className="w-[min(78vw,28rem)]" style={{ filter: `drop-shadow(0 0 18px ${DETECTIVE_BLUE}88)` }} />
+        </motion.div>
+      </div>
+
+      <div className="flex min-h-16 flex-col items-center gap-1 font-mono text-[11px] tracking-[0.3em] uppercase">
+        {SCAN_LOG.map((line, index) => (
+          <p key={line.text} style={{ color: index === SCAN_LOG.length - 1 ? ARKHAM_ORANGE : DETECTIVE_BLUE }}>
+            <TypedText text={line.text} startAt={line.at} perLetter={0.025} />
+          </p>
+        ))}
+      </div>
+    </div>
+    <Shockwave color={DETECTIVE_BLUE} delay={1.8} />
+
+    <div className="absolute inset-x-4 bottom-[8vh]">
+      <Payoff subtitle="case closed · the inbox is watched" delay={2.7} className="font-sans">
+        <p className="text-[clamp(1.5rem,6.5vw,3rem)] font-black tracking-[0.12em] text-white uppercase" style={{ textShadow: `0 0 28px ${DETECTIVE_BLUE}` }}>
+          Be the Batman
         </p>
       </Payoff>
     </div>
   </motion.div>
 );
 
-// a bat next to the email, the closest thing to a Bat-Signal. on call at 3 a.m.
+// a bat perched by the email, watching it from the rooftops. on call at 3 a.m.
 export const Bat = ({ className }) => {
   const [isFound, find] = useSecret("bat");
-  const [isSpinning, spin] = useFlourish(BAT_TRANSITION_MS);
+  const [isScanning, scan] = useFlourish(BAT_TRANSITION_MS);
 
   const signal = () => {
     find();
-    spin();
+    scan();
   };
 
   return (
@@ -1415,20 +1503,16 @@ export const Bat = ({ className }) => {
         <motion.span
           className="block"
           initial={false}
-          animate={{ rotate: isFound ? 360 : 0 }}
-          transition={{ duration: 0.9, ease: easeOutExpo }}
+          animate={isFound ? { scaleX: [1, -1, 1] } : { scaleX: 1 }}
+          transition={{ duration: 0.7, ease: easeOutExpo }}
         >
-          {isFound ? (
-            <BatEmblem className="w-5" />
-          ) : (
-            <svg viewBox="0 0 100 50" className="w-5" aria-hidden="true">
-              <path d={BAT_PATH} fill="currentColor" />
-            </svg>
-          )}
+          <svg viewBox="0 0 100 50" className="w-5" aria-hidden="true" style={isFound ? { filter: `drop-shadow(0 0 3px ${DETECTIVE_BLUE})` } : undefined}>
+            <path d={BAT_PATH} fill="currentColor" stroke={isFound ? DETECTIVE_BLUE : "none"} strokeWidth="3" />
+          </svg>
         </motion.span>
       </SecretButton>
-      <Flourish isShown={isSpinning}>
-        <BatTransition />
+      <Flourish isShown={isScanning}>
+        <DetectiveMode />
       </Flourish>
     </>
   );
