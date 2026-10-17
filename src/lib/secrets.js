@@ -65,17 +65,17 @@ export const SECRETS = {
   },
   spider: {
     color: "#e23636",
-    name: "Spider",
-    quip: "With great power comes great responsibility. So I write the tests too.",
+    name: "Spider-Man 2",
+    quip: "Be greater. Together. Two Spider-Men share one city, and I'd rather share the load with my team too.",
     where: "education.toml",
     riddle: "Something got tangled in the graduation line.",
   },
   bat: {
-    color: "#f5c518",
-    name: "Bat-Signal",
-    quip: "Not the engineer this codebase deserves, but the one it needs on call at 3 a.m.",
+    color: "#4fb6ff",
+    name: "Arkham Bat",
+    quip: "Detective mode on. Every bug leaves evidence, and I'm the one perched on the inbox when Gotham pages at 3 a.m.",
     where: "contact.sh",
-    riddle: "Someone is watching the email, waiting to be called.",
+    riddle: "Someone is perched on the email, watching it from the rooftops.",
   },
   d20: {
     color: "#d8b25a",

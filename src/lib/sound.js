@@ -278,49 +278,51 @@ export const SOUNDS = {
       [0.12, 0.5, { filter: "bandpass", frequency: 2500, sweepTo: 400, volume: 0.25 }],
     ],
   },
-  // Spider-Man: a web shoots out with a thwip, then the 1967 cartoon theme sings
-  // "Spider-Man, Spider-Man, does whatever a spider can"
+  // Spider-Man 2: a web shoots out with a thwip, a heroic brass call climbs the way the Insomniac scores do,
+  // then the symbiote growls in underneath and the last chord lands in a darker key
   spider: {
-    wave: "square",
-    volume: 0.045,
-    notes: [
-      [3, 0.15, 0.24],
-      [6, 0.41, 0.12],
-      [10, 0.54, 0.42],
-      [9, 1.18, 0.24],
-      [6, 1.44, 0.12],
-      [3, 1.57, 0.42],
-      [3, 2.2, 0.24],
-      [6, 2.46, 0.12],
-      [10, 2.59, 0.24],
-      [11, 2.85, 0.12],
-      [10, 2.98, 0.24],
-      [9, 3.24, 0.24],
-      [6, 3.5, 0.12],
-      [3, 3.63, 0.55],
-      [-21, 0.15, 0.95, { wave: "triangle", volume: 0.12 }],
-      [-21, 2.2, 1.95, { wave: "triangle", volume: 0.12 }],
-    ],
-    noises: [[0, 0.14, { filter: "bandpass", frequency: 1200, sweepTo: 7000, volume: 0.35 }]],
-  },
-  // Batman: the 1966 show's surf guitar walks down and back up, "na na na na na na na na" twice, then "Batman!"
-  // lands with a comic book punch on each syllable
-  bat: {
     wave: "sawtooth",
-    volume: 0.05,
+    volume: 0.035,
     notes: [
-      ...[-16, -16, -17, -17, -18, -18, -17, -17].flatMap((semitones, index) => [
-        [semitones, index * 0.15, 0.13],
-        [semitones, 1.2 + index * 0.15, 0.13],
-      ]),
-      [-1, 2.4, 0.26, { wave: "square", volume: 0.06 }],
-      [-13, 2.4, 0.26],
-      [-1, 2.7, 0.7, { wave: "square", volume: 0.06 }],
-      [-13, 2.7, 0.7],
+      [-7, 0.2, 0.22],
+      [-2, 0.42, 0.22],
+      [0, 0.64, 0.5],
+      [-2, 1.14, 0.16],
+      [0, 1.3, 0.16],
+      [3, 1.46, 0.7],
+      [-19, 0.2, 1.1, { wave: "triangle", volume: 0.1 }],
+      [-14, 0.2, 1.1, { wave: "triangle", volume: 0.06 }],
+      [-31, 1.9, 1.3, { wave: "sawtooth", slideTo: -36, volume: 0.05, attack: 0.3 }],
+      [-1, 2.2, 1.2, { volume: 0.03, attack: 0.08 }],
+      [2, 2.2, 1.2, { volume: 0.03, attack: 0.08 }],
+      [-13, 2.2, 1.4, { wave: "triangle", volume: 0.1 }],
     ],
     noises: [
-      [2.4, 0.12, { filter: "lowpass", frequency: 1600, volume: 0.4 }],
-      [2.7, 0.16, { filter: "lowpass", frequency: 1400, volume: 0.45 }],
+      [0, 0.14, { filter: "bandpass", frequency: 1200, sweepTo: 7000, volume: 0.35 }],
+      [1.9, 0.6, { filter: "lowpass", frequency: 300, sweepTo: 90, volume: 0.4 }],
+    ],
+  },
+  // Batman: Arkham's detective mode switches on with a low digital whoosh and a scanner ping, a dark string
+  // ostinato pulses under the rain, and a minor brass chord lands as the case closes
+  bat: {
+    wave: "sawtooth",
+    volume: 0.04,
+    notes: [
+      [-36, 0, 0.5, { wave: "sine", slideTo: -24, volume: 0.25 }],
+      [27, 0.45, 0.12, { wave: "sine", volume: 0.05 }],
+      [27, 1.05, 0.12, { wave: "sine", volume: 0.05 }],
+      ...[-31, -31, -31, -28, -31, -31, -31, -26].map((semitones, index) => [semitones, 0.5 + index * 0.17, 0.14, { volume: 0.06 }]),
+      [34, 1.9, 0.3, { wave: "sine", volume: 0.06 }],
+      [-31, 2.2, 1.6, { attack: 0.06, volume: 0.05 }],
+      [-19, 2.2, 1.6, { attack: 0.06 }],
+      [-16, 2.2, 1.6, { attack: 0.06 }],
+      [-12, 2.2, 1.6, { attack: 0.06, volume: 0.03 }],
+      [-43, 2.2, 1.2, { wave: "sine", slideTo: -48, volume: 0.25 }],
+    ],
+    noises: [
+      [0, 0.6, { filter: "bandpass", frequency: 300, sweepTo: 3200, volume: 0.25 }],
+      [0.4, 2.2, { filter: "highpass", frequency: 5000, volume: 0.04 }],
+      [2.2, 0.2, { filter: "lowpass", frequency: 900, volume: 0.35 }],
     ],
   },
   // Baldur's Gate 3: the die clatters across the table, slows and settles, then a low harp chord rings out
