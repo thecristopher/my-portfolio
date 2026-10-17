@@ -52,9 +52,11 @@ const DuelStats = ({ skill }) => (
   </motion.div>
 );
 
+// the first card takes a big square of the grid, the bento layout Apple lays its feature tiles out in
 const CapabilityCard = ({ skill, index, isBuffed }) => {
   const Icon = iconMap[skill.icon];
   const isDuelMonster = isBuffed && Boolean(skill.effect);
+  const isLead = index === 0;
 
   return (
     // skills' signature: the cards stand up out of the page, tipped back like a deck being dealt onto the table
@@ -64,6 +66,7 @@ const CapabilityCard = ({ skill, index, isBuffed }) => {
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 1.2, delay: (index % 3) * 0.1 + Math.floor(index / 3) * 0.08, ease: easeOutExpo }}
       style={{ perspective: 1200, transformPerspective: 1200, transformOrigin: "50% 100%" }}
+      className={isLead ? "lg:col-span-2 lg:row-span-2" : ""}
     >
       {/* a returning visitor's cards are already monsters, so only a fresh cast plays the flip */}
       <motion.div
@@ -94,8 +97,19 @@ const CapabilityCard = ({ skill, index, isBuffed }) => {
               <span className="font-mono text-[11px] text-faint">{formatIndex(index)}</span>
             )}
           </div>
-          <h3 className="text-xl font-medium tracking-tight">{skill.title}</h3>
-          <p className="text-sm leading-relaxed text-muted text-pretty">{skill.description}</p>
+          {isLead && Icon && (
+            <Icon
+              aria-hidden="true"
+              strokeWidth={0.8}
+              className="mx-auto my-auto hidden size-48 text-line-strong transition-colors duration-700 group-hover:text-accent/40 lg:block"
+            />
+          )}
+          <div className="flex flex-col gap-4">
+            <h3 className={isLead ? "text-gradient text-3xl font-semibold tracking-[-0.03em] sm:text-5xl" : "text-xl font-medium tracking-tight"}>
+              {skill.title}
+            </h3>
+            <p className={`leading-relaxed text-muted text-pretty ${isLead ? "max-w-lg text-base sm:text-lg" : "text-sm"}`}>{skill.description}</p>
+          </div>
           {isDuelMonster && <DuelStats skill={skill} />}
         </SpotlightCard>
       </motion.div>

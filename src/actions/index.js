@@ -300,12 +300,6 @@ export const wrapRange = (min, max, value) => {
   return ((((value - min) % span) + span) % span) + min;
 };
 
-// whether a sideways scroller is resting against either end. a pixel of slack, since zoomed screens land on fractions
-export const shelfEdges = ({ scrollLeft, scrollWidth, clientWidth }) => ({
-  isAtStart: scrollLeft <= 1,
-  isAtEnd: scrollLeft + clientWidth >= scrollWidth - 1,
-});
-
 // each tool in the color its own logo uses. the ones whose logo is plain black follow the text color instead
 const TECH_COLORS = {
   React: "#61dafb",
@@ -336,6 +330,11 @@ const TECH_COLORS = {
   MVC: "#512bd4",
   Azure: "#0089d6",
   LLMs: "#d97757",
+  Rust: "#dea584",
+  Lua: "#51a0cf",
+  Go: "#00add8",
+  Swift: "#f05138",
+  Shell: "#89e051",
 };
 
 export const brandColorFor = (tech = "") => TECH_COLORS[cleanTechName(tech)] ?? null;
@@ -433,3 +432,8 @@ export const stepSection = (ids = [], currentId, direction) => {
   if (at === -1) return ids[0] ?? null;
   return ids[Math.min(ids.length - 1, Math.max(0, at + direction))];
 };
+
+
+// which slide a sideways gallery is resting on, from how far it has scrolled
+export const activeSlide = ({ scrollLeft, slideWidth, count }) =>
+  slideWidth > 0 ? Math.min(count - 1, Math.max(0, Math.round(scrollLeft / slideWidth))) : 0;

@@ -3,14 +3,12 @@ import { motion, useMotionTemplate, useReducedMotion, useScroll, useTransform } 
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import KineticName from "../../components/KineticName";
 import TypeLine from "../../components/TypeLine";
-import CountUp from "../../components/CountUp";
 import PixelAvatar from "../../components/PixelAvatar";
 import Magnetic from "../../components/Magnetic";
 import { Pokeball } from "../../components/Secrets";
 import { useGetAboutQuery } from "../../api/aboutApi";
-import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
-import { easedGlow, extractYearsOfExperience, timesCertified } from "../../actions";
+import { easedGlow, extractYearsOfExperience } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 import { INTRO_S } from "../../lib/intro";
 
@@ -29,15 +27,6 @@ const riseIn = (delay) => ({
   transition: { duration: 1.2, delay: INTRO_S + delay, ease: easeOutExpo },
 });
 
-const Stat = ({ value, label, delay }) => (
-  <div className="flex flex-col gap-1.5 border-l border-line pl-4">
-    <dd className="text-3xl font-medium tracking-tight sm:text-4xl">
-      <CountUp value={value} delay={delay} />
-    </dd>
-    <dt className="order-last font-mono text-[11px] uppercase tracking-[0.15em] text-muted">{label}</dt>
-  </div>
-);
-
 // moves the lit patch of the grid under the cursor through css vars, so react never re-renders for it
 const trackGrid = (event) => {
   if (event.pointerType !== "mouse") return;
@@ -51,7 +40,6 @@ const Hero = () => {
   const sectionRef = useRef(null);
   const [isBooted, setIsBooted] = useState(false);
   const { data: about } = useGetAboutQuery();
-  const { data: projects = [] } = useGetProjectsQuery();
 
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end start"] });
   const contentY = useTransform(scrollYProgress, [0, 1], [0, -120]);
@@ -71,7 +59,6 @@ const Hero = () => {
   const floor = prefersReducedMotion ? undefined : { rotateX: floorTilt, scale: floorScale, transformPerspective: 900, transformOrigin: "50% 100%" };
 
   const years = extractYearsOfExperience(about?.description);
-  const certified = timesCertified(about?.certifications);
 
   return (
     <section
@@ -137,11 +124,6 @@ const Hero = () => {
             </Magnetic>
           </motion.div>
 
-          <motion.dl {...riseIn(1.3)} className="grid max-w-lg grid-cols-3 gap-4 pt-6">
-            {years && <Stat value={years} label="Years coding" delay={INTRO_S + 1.4} />}
-            {certified && <Stat value={certified} label="AWS Certified" delay={INTRO_S + 1.5} />}
-            {projects.length > 0 && <Stat value={projects.length} label="Companies" delay={INTRO_S + 1.6} />}
-          </motion.dl>
         </motion.div>
 
         <motion.figure style={{ y: avatarY }} className="relative mx-auto flex flex-col items-center gap-6 lg:col-span-5">
