@@ -92,7 +92,9 @@ const KineticName = ({ lines, delay = 0, className = "" }) => {
           {[...line.text].map((letter) => {
             const at = position++;
             return (
-              <span key={at} className="inline-block overflow-hidden pb-[0.1em] align-top">
+              // the mask only cuts along the bottom. clipping the sides too shaved the heavy letters, since the tight
+              // tracking lets every glyph spill a little past its own box
+              <span key={at} className="inline-block pb-[0.1em] align-top [clip-path:inset(-0.5em_-0.5em_0_-0.5em)]">
                 <motion.span
                   ref={(node) => (lettersRef.current[at] = node)}
                   className="inline-block"

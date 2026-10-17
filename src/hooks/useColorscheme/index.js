@@ -6,13 +6,11 @@ import { syncBrowserChrome } from "../../lib/browserChrome";
 
 const STORAGE_KEY = "colorscheme";
 
-const prefersLight = () => window.matchMedia?.("(prefers-color-scheme: light)").matches ?? false;
-
 const readSavedTheme = () => {
   try {
-    return resolveTheme(localStorage.getItem(STORAGE_KEY), prefersLight());
+    return resolveTheme(localStorage.getItem(STORAGE_KEY));
   } catch {
-    return resolveTheme(null, prefersLight());
+    return resolveTheme(null);
   }
 };
 

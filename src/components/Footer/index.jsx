@@ -14,7 +14,7 @@ const Footer = ({ onOpenCmdline }) => (
     </div>
     <div className="mx-auto flex max-w-6xl flex-col gap-4 border-t border-line px-4 py-6 font-mono text-xs text-faint sm:flex-row sm:items-center sm:justify-between sm:px-6">
       <p className="flex items-center gap-1">
-        <span>© {new Date().getFullYear()} Cristopher Cervantes · written in neovim</span>
+        <span>© {new Date().getFullYear()} Cristopher Cervantes</span>
         <D20 className="-my-2" />
       </p>
       <button type="button" onClick={onOpenCmdline} className="w-fit transition-colors hover:text-fg">

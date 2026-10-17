@@ -10,9 +10,12 @@ import { Pokeball } from "../../components/Secrets";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
-import { extractYearsOfExperience, timesCertified } from "../../actions";
+import { easedGlow, extractYearsOfExperience, timesCertified } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 import { INTRO_S } from "../../lib/intro";
+
+// the soft shadow the sprite stands on
+const FLOOR_SHADOW = easedGlow("var(--color-fg)", { strength: 0.1, shape: "ellipse" });
 
 const WHOAMI = ["tech lead", "engineering manager", "full stack", "aws certified"];
 
@@ -79,10 +82,6 @@ const Hero = () => {
     >
       <motion.div style={floor} className="blueprint pointer-events-none absolute inset-0" aria-hidden="true" />
       <motion.div style={floor} className="blueprint-glow pointer-events-none absolute inset-0" aria-hidden="true" />
-      {/* the glows are gradients, not blurred circles. Safari crops a blur where a moving layer like the sprite sits
-          on top of it, which left a hard edged box behind him */}
-      <div className="pointer-events-none absolute -left-72 top-[calc(100%/3-8rem)] size-[52rem] bg-radial from-accent/10 to-transparent to-70%" aria-hidden="true" />
-      <div className="pointer-events-none absolute -right-72 top-[calc(25%-8rem)] size-[52rem] bg-radial from-signal/10 to-transparent to-70%" aria-hidden="true" />
 
       <div className="relative mx-auto grid w-full max-w-6xl gap-14 px-4 sm:px-6 lg:grid-cols-12 lg:items-center lg:gap-8">
         <motion.div style={{ y: contentY, opacity: contentOpacity, filter: contentFilter }} className="flex flex-col gap-8 lg:col-span-7">
@@ -154,7 +153,7 @@ const Hero = () => {
               firstWaveAfterMs={(AVATAR_ENTERS_AT_S + 1) * 1000}
             />
             {/* a soft floor shadow so he's standing somewhere. a gradient, because Safari paints a blurred div solid black */}
-            <div className="absolute inset-x-[12.5%] -bottom-1 -z-10 h-3 bg-[radial-gradient(closest-side,var(--color-fg),transparent)] opacity-10" aria-hidden="true" />
+            <div className="absolute inset-x-[12.5%] -bottom-1 -z-10 h-3" style={{ background: FLOOR_SHADOW }} aria-hidden="true" />
           </div>
           <motion.figcaption
             initial={{ opacity: 0 }}

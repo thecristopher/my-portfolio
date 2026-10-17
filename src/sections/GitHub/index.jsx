@@ -1,15 +1,14 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
-import { ArrowUpRight, GitFork, Star } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { motion, useScroll } from "framer-motion";
+import { ArrowLeft, ArrowRight, ArrowUpRight, GitFork, Star } from "lucide-react";
 import SectionHeader from "../../components/SectionHeader";
 import SpotlightCard from "../../components/SpotlightCard";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { Triforce } from "../../components/Secrets";
 import { GITHUB_USER, useGetReposQuery } from "../../api/githubApi";
 import { easeOutExpo } from "../../lib/motion";
-import { slugify } from "../../actions";
-import { useMediaQuery } from "../../hooks/useMediaQuery";
-import { registerScrollTarget } from "../../lib/smoothScroll";
+import { shelfEdges, slugify } from "../../actions";
+import { slideShelf } from "../../lib/smoothScroll";
 
 // the same dots GitHub paints next to each language
 const LANGUAGE_COLORS = {
@@ -26,17 +25,17 @@ const LANGUAGE_COLORS = {
 const formatPushed = (pushedAt) =>
   new Date(pushedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
-// on the shelf the slide is the entrance, so a card that arrives by sliding in never waits on its own reveal
-const RepoCard = ({ repo, index, revealsOnView = true }) => (
+// each card rises in as it comes into view, whether the page brought it there or the shelf did
+const RepoCard = ({ repo, index }) => (
   <motion.a
     id={`repo-${slugify(repo.name)}`}
     href={repo.url}
     target="_blank"
     rel="noreferrer"
-    initial={revealsOnView ? { opacity: 0, y: 24 } : false}
+    initial={{ opacity: 0, y: 24 }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true, amount: 0.3 }}
-    transition={{ duration: 0.8, delay: index * 0.08, ease: easeOutExpo }}
+    transition={{ duration: 0.8, delay: (index % 3) * 0.08, ease: easeOutExpo }}
     className="group block h-full"
   >
     <SpotlightCard className="flex h-full flex-col gap-5 rounded-2xl border border-line bg-panel/60 p-6 transition-colors group-hover:border-line-strong">
@@ -72,130 +71,127 @@ const RepoCard = ({ repo, index, revealsOnView = true }) => (
   </motion.a>
 );
 
-// the track only pins on screens with room for the header and a full row of cards at once
-const PIN_QUERY = "(min-width: 1024px) and (min-height: 680px)";
-// the shelf holds still for a moment at both ends of the pin before and after it slides
-const SHELF = [0.04, 0.96];
-const SHELF_SPAN = SHELF[1] - SHELF[0];
+// which ends of the shelf can still scroll, so the arrows and the edge fades only show where there's more
+const useShelfEdges = (shelfRef, deps) => {
+  const [edges, setEdges] = useState({ isAtStart: true, isAtEnd: true });
 
-// how far the row of cards has to slide for the last one to land at the right edge
-const useOverflow = (viewportRef, trackRef, deps) => {
-  const [distance, setDistance] = useState(0);
-
-  useLayoutEffect(() => {
-    const viewport = viewportRef.current;
-    const track = trackRef.current;
-    if (!viewport || !track) return undefined;
-    const measure = () => setDistance(Math.max(0, track.scrollWidth - viewport.clientWidth));
+  useEffect(() => {
+    const shelf = shelfRef.current;
+    if (!shelf) return undefined;
+    const measure = () => setEdges(shelfEdges(shelf));
     measure();
+    shelf.addEventListener("scroll", measure, { passive: true });
     const observer = new ResizeObserver(measure);
-    observer.observe(viewport);
-    observer.observe(track);
-    return () => observer.disconnect();
+    observer.observe(shelf);
+    return () => {
+      shelf.removeEventListener("scroll", measure);
+      observer.disconnect();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  return distance;
+  return edges;
 };
 
-// the side quests: whatever I build after hours, pulled live from my public GitHub. their signature: on wide
-// screens the page pins and the repos slide past sideways as you keep scrolling down, like flipping through a shelf
+const SHELF_FADE = {
+  both: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)",
+  start: "linear-gradient(to right, transparent, black 4%)",
+  end: "linear-gradient(to right, black 96%, transparent)",
+};
+
+const fadeFor = ({ isAtStart, isAtEnd }) => {
+  if (!isAtStart && !isAtEnd) return SHELF_FADE.both;
+  if (!isAtStart) return SHELF_FADE.start;
+  if (!isAtEnd) return SHELF_FADE.end;
+  return undefined;
+};
+
+const ShelfArrow = ({ direction, isDisabled, onClick }) => {
+  const Icon = direction < 0 ? ArrowLeft : ArrowRight;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={isDisabled}
+      aria-label={direction < 0 ? "Previous repos" : "More repos"}
+      className="grid size-9 place-items-center rounded-full border border-line-strong bg-ink/40 text-muted transition-all hover:border-faint hover:text-fg disabled:pointer-events-none disabled:opacity-30"
+    >
+      <Icon size={15} aria-hidden="true" />
+    </button>
+  );
+};
+
+// the side quests: whatever I build after hours, pulled live from my public GitHub. they sit on a shelf that scrolls
+// sideways the way a trackpad, a shift and wheel or a thumb already expect, while scrolling down keeps moving the page
 const GitHub = () => {
   const { data: repos = [], isLoading, isError } = useGetReposQuery();
-  const sectionRef = useRef(null);
-  const viewportRef = useRef(null);
-  const trackRef = useRef(null);
-  const prefersReducedMotion = useReducedMotion();
-  const hasRoom = useMediaQuery(PIN_QUERY);
-  const distance = useOverflow(viewportRef, trackRef, [repos.length, hasRoom]);
-  const isPinned = hasRoom && !prefersReducedMotion && distance > 0;
+  const shelfRef = useRef(null);
+  const edges = useShelfEdges(shelfRef, [repos.length]);
+  const { scrollXProgress } = useScroll({ container: shelfRef });
+  const canScroll = !(edges.isAtStart && edges.isAtEnd);
 
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
-  const slide = useSpring(useTransform(scrollYProgress, SHELF, [0, -distance]), { stiffness: 140, damping: 30, mass: 0.4 });
-  const shelf = useTransform(scrollYProgress, SHELF, [0, 1]);
-
-  // the file tree jumps to a repo by scrolling down to the point where the shelf has slid it into view
-  useEffect(() => {
-    if (!isPinned) return undefined;
-    const ids = repos.map((repo) => `repo-${slugify(repo.name)}`);
-    const unregister = ids.map((id) =>
-      registerScrollTarget(id, () => {
-        const section = sectionRef.current;
-        const card = document.getElementById(id);
-        if (!section || !card) return null;
-        const top = section.getBoundingClientRect().top + window.scrollY;
-        const pinnedFor = distance / SHELF_SPAN;
-        return top + pinnedFor * SHELF[0] + Math.min(distance, card.offsetLeft);
-      })
-    );
-    return () => unregister.forEach((release) => release());
-  }, [isPinned, repos, distance]);
+  const flip = (direction) => slideShelf(shelfRef.current, direction);
 
   return (
-    <section
-      id="github"
-      ref={sectionRef}
-      className={`relative ${isPinned ? "" : "py-24 sm:py-36"}`}
-      style={isPinned ? { height: `calc(100svh + ${distance / SHELF_SPAN}px)` } : undefined}
-    >
-      <div className={isPinned ? "sticky top-0 flex h-svh flex-col justify-center overflow-hidden py-16" : ""}>
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 sm:px-6">
-          <SectionHeader
-            id="github"
-            index="05"
-            label="repos.yml"
-            title="Side quests, shipped after hours."
-            aside={
-              repos.length > 0 && (
-                <div className="flex shrink-0 items-center gap-1">
-                  <p className="font-mono text-xs whitespace-nowrap text-faint">
-                    <span className="text-accent">$</span> gh repo list {GITHUB_USER} | wc -l{" "}
-                    <span className="text-fg">→ {repos.length}</span>
-                  </p>
-                  <Triforce className="-my-2" />
-                </div>
-              )
-            }
-          />
+    <section id="github" className="relative py-24 sm:py-36">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 sm:px-6">
+        <SectionHeader
+          id="github"
+          index="05"
+          label="repos.yml"
+          title="Side quests, shipped after hours."
+          aside={
+            repos.length > 0 && (
+              <div className="flex shrink-0 items-center gap-1">
+                <p className="font-mono text-xs whitespace-nowrap text-faint">
+                  <span className="text-accent">$</span> gh repo list {GITHUB_USER} | wc -l{" "}
+                  <span className="text-fg">→ {repos.length}</span>
+                </p>
+                <Triforce className="-my-2" />
+              </div>
+            )
+          }
+        />
 
-          {isLoading && <SkeletonLines lines={4} />}
-          {isError && <LoadError what="the repos" />}
+        {isLoading && <SkeletonLines lines={4} />}
+        {isError && <LoadError what="the repos" />}
 
-          {/* the shelf is clipped to the column with soft edges, so repos slide in and out of view instead of under the tree */}
-          <div
-            ref={viewportRef}
-            className={hasRoom && !prefersReducedMotion ? "-mx-4 overflow-hidden px-4 py-2" : ""}
-            style={isPinned ? { maskImage: "linear-gradient(to right, transparent, black 3%, black 97%, transparent)" } : undefined}
+        {/* lenis keeps smoothing the page's vertical scroll, and hands every sideways swipe straight to the shelf */}
+        <div
+          ref={shelfRef}
+          data-shelf
+          data-lenis-prevent-horizontal
+          className="relative -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-5 overflow-x-auto overscroll-x-contain px-4 py-2 [scrollbar-width:none] sm:-mx-6 sm:scroll-px-6 sm:px-6 [&::-webkit-scrollbar]:hidden"
+          style={{ maskImage: fadeFor(edges) }}
+        >
+          {repos.map((repo, index) => (
+            <div key={repo.name} className="w-[min(85vw,26rem)] shrink-0 snap-start">
+              <RepoCard repo={repo} index={index} />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-between gap-6">
+          <a
+            href={`https://github.com/${GITHUB_USER}`}
+            target="_blank"
+            rel="noreferrer"
+            className="group flex w-fit shrink-0 items-center gap-1.5 font-mono text-xs text-muted transition-colors hover:text-accent"
           >
-            <motion.div
-              ref={trackRef}
-              style={isPinned ? { x: slide } : undefined}
-              className={hasRoom && !prefersReducedMotion ? "flex w-max gap-5" : "grid gap-5 md:grid-cols-2"}
-            >
-              {repos.map((repo, index) => (
-                <div key={repo.name} className={hasRoom && !prefersReducedMotion ? "w-[26rem] shrink-0" : ""}>
-                  <RepoCard repo={repo} index={index} revealsOnView={!(hasRoom && !prefersReducedMotion)} />
-                </div>
-              ))}
-            </motion.div>
-          </div>
-
-          <div className="flex items-center justify-between gap-6">
-            <a
-              href={`https://github.com/${GITHUB_USER}`}
-              target="_blank"
-              rel="noreferrer"
-              className="group flex w-fit shrink-0 items-center gap-1.5 font-mono text-xs text-muted transition-colors hover:text-accent"
-            >
-              <span className="text-accent">$</span> open github.com/{GITHUB_USER}
-              <ArrowUpRight size={13} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-            </a>
-            {isPinned && (
-              <span className="relative h-px w-full max-w-xs overflow-hidden bg-line" aria-hidden="true">
-                <motion.span style={{ scaleX: shelf }} className="absolute inset-0 origin-left bg-accent" />
+            <span className="text-accent">$</span> open github.com/{GITHUB_USER}
+            <ArrowUpRight size={13} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+          </a>
+          {canScroll && (
+            <div className="flex w-full max-w-sm items-center gap-4">
+              <span className="relative h-px flex-1 overflow-hidden bg-line" aria-hidden="true">
+                <motion.span style={{ scaleX: scrollXProgress }} className="absolute inset-0 origin-left bg-accent" />
               </span>
-            )}
-          </div>
+              <div className="flex gap-2">
+                <ShelfArrow direction={-1} isDisabled={edges.isAtStart} onClick={() => flip(-1)} />
+                <ShelfArrow direction={1} isDisabled={edges.isAtEnd} onClick={() => flip(1)} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>

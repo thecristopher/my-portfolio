@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
-import { ChevronRight, FileClock, FileCode, FileCog, FileJson, FileTerminal, FileText, Folder, FolderOpen, GitBranch } from "lucide-react";
+import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
+import { ChevronRight, FileClock, FileCode, FileCog, FileJson, FileTerminal, FileText, Folder, FolderOpen, FolderTree, GitBranch, X } from "lucide-react";
 import { useGetNavBarQuery } from "../../api/navBarApi";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useGetReposQuery } from "../../api/githubApi";
@@ -9,19 +9,20 @@ import { useActiveSection } from "../../hooks/useActiveSection";
 import { buildFileTree, sectionIdFromUrl } from "../../actions";
 import { scrollToSection } from "../../lib/smoothScroll";
 import { easeOutExpo } from "../../lib/motion";
-import { INTRO_S } from "../../lib/intro";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
+import { closeFileTree, toggleFileTree, useFileTreeOpen } from "../../lib/fileTree";
 
-// the colors nvim-web-devicons gives each filetype, mapped onto the colorscheme
+// every filetype in the color it's known by, the way nvim-web-devicons paints them
 const FILE_ICONS = {
-  tsx: [FileCode, "text-signal"],
-  md: [FileText, "text-muted"],
-  json: [FileJson, "text-accent"],
-  toml: [FileCog, "text-string"],
-  yml: [FileCog, "text-string"],
-  lua: [FileCode, "text-signal"],
-  sh: [FileTerminal, "text-string"],
-  log: [FileClock, "text-muted"],
-  git: [GitBranch, "text-error"],
+  tsx: [FileCode, "text-ft-react"],
+  md: [FileText, "text-ft-markdown"],
+  json: [FileJson, "text-ft-json"],
+  toml: [FileCog, "text-ft-toml"],
+  yml: [FileCog, "text-ft-yaml"],
+  lua: [FileCode, "text-ft-lua"],
+  sh: [FileTerminal, "text-ft-shell"],
+  log: [FileClock, "text-ft-log"],
+  git: [GitBranch, "text-ft-git"],
 };
 
 const iconFor = (name) => FILE_ICONS[name.split(".").pop()] ?? [FileText, "text-faint"];
@@ -76,6 +77,7 @@ const DirectoryRow = ({ node, isOpen, isActive, activeChildId, onToggle, onOpenF
         <ChevronRight size={12} className={`shrink-0 text-faint transition-transform duration-300 ${isOpen ? "rotate-90" : ""}`} aria-hidden="true" />
         <FolderIcon size={13} className="shrink-0 text-signal" aria-hidden="true" />
         <span className={`truncate ${isActive ? "text-fg" : ""}`}>{node.name}</span>
+        <span className="ml-auto pl-2 text-[10px] tabular-nums text-faint">{node.children.length}</span>
       </Row>
       <AnimatePresence initial={false}>
         {isOpen && (
@@ -108,7 +110,7 @@ const DirectoryRow = ({ node, isOpen, isActive, activeChildId, onToggle, onOpenF
 };
 
 // nvim-tree's own keys while a row has focus: j/k walk the rows, l opens, h closes or climbs to the parent folder,
-// and esc hands focus back to the page
+// q closes the tree and esc hands focus back to the page
 const walkTree = (event, { toggleDirectory }) => {
   const rows = [...event.currentTarget.querySelectorAll("button")];
   const row = event.target.closest("button");
@@ -129,6 +131,8 @@ const walkTree = (event, { toggleDirectory }) => {
     h: () => (directory ? isOpen && toggleDirectory(directory, false) : rows.find((each) => each.dataset.dir === row.dataset.parent)?.focus()),
     ArrowLeft: () => (directory ? isOpen && toggleDirectory(directory, false) : rows.find((each) => each.dataset.dir === row.dataset.parent)?.focus()),
     Escape: () => row.blur(),
+    // nvim-tree's own key for closing the tree
+    q: () => closeFileTree(),
   };
 
   const action = keys[event.key];
@@ -138,9 +142,9 @@ const walkTree = (event, { toggleDirectory }) => {
   action();
 };
 
-// the tree itself, shared by the sidebar on wide screens and the menu on small ones. the folder for the section
-// on screen opens by itself, the way follow_current_file does, and the cursorline tracks the file you're reading
-export const TreeList = ({ group, onNavigate, scrollsOnOpen = true, ...props }) => {
+// the tree itself. every folder starts open, so the whole site reads at a glance, and the cursorline tracks the
+// file you're reading the way follow_current_file does
+const TreeList = ({ group, onNavigate, scrollsOnOpen = true, ...props }) => {
   const { data: links = [] } = useGetNavBarQuery();
   const { data: projects = [] } = useGetProjectsQuery();
   const { data: repos = [] } = useGetReposQuery();
@@ -157,7 +161,7 @@ export const TreeList = ({ group, onNavigate, scrollsOnOpen = true, ...props }) 
   const childId = useActiveSection(tree.flatMap((node) => node.children.map((child) => child.targetId)));
   const activeChildId = activeNode?.children.some((child) => child.targetId === childId) ? childId : null;
 
-  const isOpen = (node) => toggled[node.sectionId] ?? node.sectionId === activeSectionId;
+  const isOpen = (node) => toggled[node.sectionId] ?? true;
   const setDirectory = (sectionId, open) => setToggled((current) => ({ ...current, [sectionId]: open }));
   const toggle = (node) => {
     const willOpen = !isOpen(node);
@@ -198,41 +202,154 @@ export const TreeList = ({ group, onNavigate, scrollsOnOpen = true, ...props }) 
   );
 };
 
-// the section nav on wide screens, drawn as nvim-tree down the left edge
-const FileTree = ({ onOpenCmdline }) => (
-  <motion.aside
-    initial={{ x: -24, opacity: 0 }}
-    animate={{ x: 0, opacity: 1 }}
-    transition={{ duration: 1, delay: INTRO_S + 0.2, ease: easeOutExpo }}
-    aria-label="Sections"
-    data-search-skip
-    className="fixed top-0 bottom-7 left-0 z-40 hidden w-64 flex-col border-r border-line bg-panel/60 font-mono text-xs backdrop-blur-xl xl:flex"
-  >
-    <a href="#home" className="flex items-center gap-2 border-b border-line px-4 py-4 text-muted transition-colors hover:text-fg">
-      <FolderOpen size={14} className="text-accent" aria-hidden="true" />
-      <span>
-        <span className="text-accent">~/</span>cristopher
-      </span>
-    </a>
+// the tree folded down to a rail while it's closed, drawn like the statusline but standing on its edge. one icon per
+// section, lit for the one you're reading, so it reads as the tree and says there's more behind it
+const TreeRail = () => {
+  const { data: links = [] } = useGetNavBarQuery();
+  const tree = buildFileTree(links.map((link) => sectionIdFromUrl(link.url)));
+  const activeSectionId = useActiveSection(tree.map((node) => node.sectionId));
 
-    <nav className="flex-1 overflow-y-auto px-2 py-3" data-lenis-prevent data-file-tree>
-      <TreeList group="sidebar" />
-    </nav>
-
-    <div className="flex items-center justify-between gap-2 border-t border-line px-4 py-3 text-[11px] text-faint">
-      <span>
-        <kbd className="text-muted">{"\\e"}</kbd> focus · <kbd className="text-muted">/</kbd> search
-      </span>
+  return (
+    <motion.nav
+      initial={{ x: "-100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "-100%" }}
+      transition={{ type: "spring", stiffness: 380, damping: 38 }}
+      aria-label="Sections"
+      data-search-skip
+      className="fixed top-0 bottom-7 left-0 z-40 flex w-10 flex-col items-center border-r border-line bg-panel/95 py-2 font-mono text-[11px] backdrop-blur-xl"
+    >
       <button
         type="button"
-        onClick={onOpenCmdline}
-        className="rounded-full border border-line-strong bg-ink/50 px-3 py-1 text-muted transition-colors hover:text-fg"
-        aria-label="Open command line"
+        onClick={() => toggleFileTree({ focus: true })}
+        aria-label="Open the file tree"
+        title="Open the file tree (\e)"
+        className="grid size-8 place-items-center rounded-md text-accent transition-colors hover:bg-raised"
       >
-        <span className="text-signal">:</span>cmd
+        <FolderTree size={15} aria-hidden="true" />
       </button>
-    </div>
-  </motion.aside>
-);
+      <span className="my-2 h-px w-5 bg-line" aria-hidden="true" />
+
+      <ul className="flex flex-col items-center gap-0.5">
+        {tree.map((node) => {
+          const isActive = node.sectionId === activeSectionId;
+          const [Icon, tone] = node.isDirectory ? [isActive ? FolderOpen : Folder, "text-signal"] : iconFor(node.name);
+          return (
+            <li key={node.sectionId} className="relative">
+              {isActive && (
+                <motion.span
+                  layoutId="rail-cursorline"
+                  className="absolute inset-0 rounded-md bg-raised"
+                  transition={{ type: "spring", stiffness: 420, damping: 36 }}
+                />
+              )}
+              <button
+                type="button"
+                onClick={() => scrollToSection(node.sectionId)}
+                aria-label={node.name}
+                aria-current={isActive ? "true" : undefined}
+                title={node.name}
+                className={`relative grid size-8 place-items-center rounded-md transition-opacity hover:opacity-100 ${isActive ? "opacity-100" : "opacity-55"}`}
+              >
+                <Icon size={14} className={tone} aria-hidden="true" />
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* the key that opens it, written down the rail the way a vertical tab label reads */}
+      <button
+        type="button"
+        onClick={() => toggleFileTree({ focus: true })}
+        className="mt-auto py-2 text-faint transition-colors [writing-mode:vertical-rl] hover:text-fg"
+        tabIndex={-1}
+        aria-hidden="true"
+      >
+        <span className="rotate-180 inline-block">
+          <span className="text-muted">\e</span> NvimTree
+        </span>
+      </button>
+    </motion.nav>
+  );
+};
+
+// nvim-tree as a split down the left edge, toggled by \e, :tree, the statusline or the phone menu. on wide screens the
+// page moves over to make room, the way a split does. on smaller ones it slides over the page and a pick closes it
+const FileTree = ({ onOpenCmdline }) => {
+  const isOpen = useFileTreeOpen();
+  const isWide = useMediaQuery("(min-width: 80rem)");
+  const prefersReducedMotion = useReducedMotion();
+  const slide = prefersReducedMotion ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 38 };
+
+  return (
+    <AnimatePresence>
+      {!isOpen && isWide && <TreeRail key="rail" />}
+      {isOpen && (
+        <>
+          {!isWide && (
+            <motion.button
+              key="scrim"
+              type="button"
+              aria-label="Close the file tree"
+              onClick={closeFileTree}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-ink/60 backdrop-blur-sm"
+            />
+          )}
+          <motion.aside
+            key="tree"
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={slide}
+            aria-label="Sections"
+            data-search-skip
+            className="fixed top-0 bottom-7 left-0 z-50 flex w-[min(20rem,85vw)] flex-col border-r border-line bg-panel/95 font-mono text-sm backdrop-blur-xl xl:z-40 xl:w-64 xl:bg-panel/80 xl:text-xs"
+          >
+            <div className="flex items-center justify-between gap-2 border-b border-line py-2 pr-2 pl-4">
+              <a href="#home" onClick={() => !isWide && closeFileTree()} className="flex items-center gap-2 py-1.5 text-muted transition-colors hover:text-fg">
+                <FolderOpen size={14} className="text-accent" aria-hidden="true" />
+                <span>
+                  <span className="text-accent">~/</span>cristopher
+                </span>
+              </a>
+              <button
+                type="button"
+                onClick={closeFileTree}
+                aria-label="Close the file tree"
+                className="grid size-8 place-items-center rounded-md text-faint transition-colors hover:bg-raised hover:text-fg"
+              >
+                <X size={14} aria-hidden="true" />
+              </button>
+            </div>
+
+            {/* roomier rows for thumbs below xl */}
+            <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-2 max-xl:[&_button]:py-2" data-lenis-prevent data-file-tree>
+              <TreeList group="tree" onNavigate={isWide ? undefined : closeFileTree} scrollsOnOpen={isWide} />
+            </nav>
+
+            <div className="flex items-center justify-between gap-2 border-t border-line px-4 py-2.5 text-[11px] text-faint">
+              <span className="hidden xl:inline">
+                <kbd className="text-muted">{"\\e"}</kbd> toggle · <kbd className="text-muted">q</kbd> close
+              </span>
+              <span className="xl:hidden">tap a file to jump</span>
+              <button
+                type="button"
+                onClick={onOpenCmdline}
+                className="rounded-full border border-line-strong bg-ink/50 px-3 py-1 text-muted transition-colors hover:text-fg"
+                aria-label="Open command line"
+              >
+                <span className="text-signal">:</span>cmd
+              </button>
+            </div>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
 
 export default FileTree;

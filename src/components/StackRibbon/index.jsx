@@ -10,7 +10,7 @@ import {
   useVelocity,
 } from "framer-motion";
 import { useGetAboutQuery } from "../../api/aboutApi";
-import { techIconMap } from "../../lib/techIconMap";
+import TechIcon from "../TechIcon";
 import { wrapRange } from "../../actions";
 
 const CRAFT = ["lead teams", "ship AI people trust", "design systems", "own the pipeline", "review every PR", "write the tests too"];
@@ -68,10 +68,9 @@ const StackRibbon = () => {
         items={tools}
         speed={-2.4}
         renderItem={(tool) => {
-          const Icon = techIconMap[tool];
           return (
             <span className="flex items-center gap-4 px-6 text-[clamp(2rem,6vw,4.5rem)] leading-none font-medium tracking-[-0.04em] text-fg/90">
-              {Icon && <Icon className="size-[0.6em] text-accent" />}
+              <TechIcon tech={tool} className="size-[0.6em]" />
               {tool}
               <span className="pl-6 text-faint">/</span>
             </span>
