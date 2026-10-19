@@ -14,6 +14,20 @@ import { TIMEZONE } from "../../lib/profile";
 
 const JsonString = ({ children }) => <span className="text-string">"{children}"</span>;
 
+// one item per line, so a long list wraps down the terminal instead of scrolling it sideways
+const JsonList = ({ items }) => (
+  <>
+    <span className="text-faint">[</span>
+    {items.map((item, index) => (
+      <div key={item} className="pl-5">
+        <JsonString>{item}</JsonString>
+        {index < items.length - 1 && <span className="text-faint">,</span>}
+      </div>
+    ))}
+    <span className="text-faint">]</span>
+  </>
+);
+
 const JsonLine = ({ name, children, isLast = false, index }) => (
   <motion.div
     initial={{ opacity: 0, x: -8 }}
@@ -28,8 +42,9 @@ const JsonLine = ({ name, children, isLast = false, index }) => (
   </motion.div>
 );
 
-// only what the rest of the page doesn't already say: the tools and certifications have their own sections
-const ProfileJson = ({ editor }) => {
+// only what the rest of the page doesn't already say: the tools and certifications have their own sections,
+// so the expertise here is what I'm good at, not what I use
+const ProfileJson = ({ expertise, editor }) => {
   const [isPrinted, setIsPrinted] = useState(false);
 
   return (
@@ -39,8 +54,9 @@ const ProfileJson = ({ editor }) => {
         {isPrinted && (
           <div className="overflow-x-auto">
             <span className="text-faint">{"{"}</span>
-            <JsonLine index={0} name="timezone" isLast={!editor}><JsonString>{TIMEZONE}</JsonString></JsonLine>
-            {editor && <JsonLine index={1} name="editor" isLast><JsonString>{editor}</JsonString></JsonLine>}
+            {expertise.length > 0 && <JsonLine index={0} name="expertise"><JsonList items={expertise} /></JsonLine>}
+            <JsonLine index={1} name="timezone" isLast={!editor}><JsonString>{TIMEZONE}</JsonString></JsonLine>
+            {editor && <JsonLine index={2} name="editor" isLast><JsonString>{editor}</JsonString></JsonLine>}
             <span className="text-faint">{"}"}</span>
           </div>
         )}
@@ -134,7 +150,7 @@ const About = () => {
             ))}
 
             <Reveal delay={0.15} className="mt-6" id="profile">
-              <ProfileJson editor={about?.editor ?? "Neovim"} />
+              <ProfileJson expertise={about?.expertise ?? []} editor={about?.editor ?? "Neovim"} />
               <div className="mt-3 flex justify-end">
                 <Airbender />
               </div>
