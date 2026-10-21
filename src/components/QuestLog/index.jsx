@@ -1,71 +1,48 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Lock, MapPin } from "lucide-react";
-import { COMPLETION_QUIP, SECRETS, SECRET_IDS, hintFor, isComplete, secretCount, useFoundSecrets } from "../../lib/secrets";
-import { sectionIdForBuffer } from "../../actions";
+import { MapPin } from "lucide-react";
+import { COMPLETION_QUIP, RELICS, RELIC_IDS, isComplete, relicCount, useFoundRelics } from "../../lib/relics";
+import { bufferNameFor } from "../../actions";
 import { pauseSmoothScroll, resumeSmoothScroll, scrollToSection } from "../../lib/smoothScroll";
 import { easeOutExpo } from "../../lib/motion";
 
-// the riddles count from the moment the page opened, not from when the log did
-const OPENED_AT = Date.now();
-
-const formatCountdown = (seconds) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-
-const useElapsed = () => {
-  const [elapsed, setElapsed] = useState(() => Date.now() - OPENED_AT);
-  useEffect(() => {
-    const timer = setInterval(() => setElapsed(Date.now() - OPENED_AT), 1000);
-    return () => clearInterval(timer);
-  }, []);
-  return elapsed;
-};
+const Dot = ({ color }) => <span className="mt-1 size-2 shrink-0 rounded-full" style={color ? { background: color, boxShadow: `0 0 8px ${color}` } : undefined} />;
 
 const FoundQuest = ({ id }) => (
   <>
-    <span className="mt-1 size-2 shrink-0 rounded-full" style={{ background: SECRETS[id].color, boxShadow: `0 0 8px ${SECRETS[id].color}` }} />
+    <Dot color={RELICS[id].color} />
     <span className="flex min-w-0 flex-col gap-1">
-      <span className="text-fg">{SECRETS[id].name}</span>
-      <span className="leading-relaxed text-pretty text-muted">{SECRETS[id].quip}</span>
+      <span className="text-fg">
+        {RELICS[id].franchise} <span className="text-faint">· {RELICS[id].name}</span>
+      </span>
+      <span className="leading-relaxed text-pretty text-muted">{RELICS[id].quip}</span>
     </span>
   </>
 );
 
-const OpenQuest = ({ id, elapsed, onGo }) => {
-  const hint = hintFor(id, elapsed);
-  return (
-    <>
-      <span className="mt-1 size-2 shrink-0 rounded-full bg-line-strong" />
-      <span className="flex min-w-0 flex-col gap-1">
-        <span className="text-faint">???</span>
-        {!hint.isLocked && (
-          <>
-            <span className="leading-relaxed text-pretty text-muted">{hint.riddle}</span>
-            <button
-              type="button"
-              onClick={() => onGo(hint.where)}
-              className="flex w-fit items-center gap-1.5 text-signal transition-colors hover:text-accent"
-            >
-              <MapPin size={11} aria-hidden="true" /> :e {hint.where}
-            </button>
-          </>
-        )}
-      </span>
-    </>
-  );
-};
+// the relics are out in the open now, so the log says where each one waits instead of hiding it behind a riddle
+const OpenQuest = ({ id, onGo }) => (
+  <>
+    <span className="mt-1 size-2 shrink-0 rounded-full bg-line-strong" />
+    <span className="flex min-w-0 flex-col gap-1">
+      <span className="text-muted">{RELICS[id].franchise}</span>
+      <button type="button" onClick={() => onGo(RELICS[id].section)} className="flex w-fit items-center gap-1.5 text-accent transition-colors hover:text-fg">
+        <MapPin size={11} aria-hidden="true" /> :e {bufferNameFor(RELICS[id].section)} · {RELICS[id].touch}
+      </button>
+    </span>
+  </>
+);
 
 const Log = ({ onClose }) => {
-  const found = useFoundSecrets();
-  const elapsed = useElapsed();
-  // found ones float to the top, in the order the secrets are listed
-  const ordered = [...SECRET_IDS.filter((id) => found.includes(id)), ...SECRET_IDS.filter((id) => !found.includes(id))];
-  const lock = hintFor(SECRET_IDS[0], elapsed);
+  const found = useFoundRelics();
+  // found ones float to the top, in page order
+  const ordered = [...RELIC_IDS.filter((id) => found.includes(id)), ...RELIC_IDS.filter((id) => !found.includes(id))];
 
-  const goTo = (bufferName) => {
+  const goTo = (sectionId) => {
     onClose();
-    // lenis drops scrollTo calls while stopped, same as the command line
+    // lenis drops scrollTo calls while stopped, same as telescope
     resumeSmoothScroll();
-    scrollToSection(sectionIdForBuffer(bufferName));
+    scrollToSection(sectionId);
   };
 
   return (
@@ -82,35 +59,29 @@ const Log = ({ onClose }) => {
     >
       <div className="flex items-center justify-between gap-4 border-b border-line px-5 py-4">
         <p className="text-sm text-fg">
-          <span className="text-signal">:</span>quests
+          <span className="text-accent">:</span>quests
         </p>
         <span className="flex items-center gap-3">
           <span className="flex gap-1" aria-hidden="true">
-            {SECRET_IDS.map((id) => (
+            {RELIC_IDS.map((id) => (
               <span
                 key={id}
                 className="size-1.5 rounded-full bg-line-strong"
-                style={found.includes(id) ? { background: SECRETS[id].color } : undefined}
+                style={found.includes(id) ? { background: RELICS[id].color } : undefined}
               />
             ))}
           </span>
-          <span className="text-faint tabular-nums">{secretCount(found)}</span>
+          <span className="text-faint tabular-nums">{relicCount(found)}</span>
           <kbd className="rounded border border-line px-1.5 py-0.5 text-[10px] text-faint">esc</kbd>
         </span>
       </div>
 
       {isComplete(found) && <p className="border-b border-line px-5 py-3 text-string">✦ {COMPLETION_QUIP}</p>}
-      {/* every riddle unlocks at the same moment, so the countdown is said once instead of on every row */}
-      {lock?.isLocked && !isComplete(found) && (
-        <p className="flex items-center gap-1.5 border-b border-line px-5 py-3 text-faint">
-          <Lock size={11} aria-hidden="true" /> riddles unlock in {formatCountdown(lock.secondsLeft)}. keep poking around
-        </p>
-      )}
 
       <ul className="flex flex-col divide-y divide-line overflow-y-auto px-5" data-lenis-prevent>
         {ordered.map((id) => (
           <li key={id} className="flex gap-3 py-3.5">
-            {found.includes(id) ? <FoundQuest id={id} /> : <OpenQuest id={id} elapsed={elapsed} onGo={goTo} />}
+            {found.includes(id) ? <FoundQuest id={id} /> : <OpenQuest id={id} onGo={goTo} />}
           </li>
         ))}
       </ul>
@@ -118,7 +89,7 @@ const Log = ({ onClose }) => {
   );
 };
 
-// every secret on the page: what each found one said, and for the rest a riddle that unlocks after a while
+/** Every relic on the page: what each found one said, and where the rest are waiting. */
 const QuestLog = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (!isOpen) return;

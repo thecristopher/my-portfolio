@@ -16,7 +16,7 @@ const prefersReducedMotion = () => globalThis.matchMedia?.("(prefers-reduced-mot
 export const SHOWS_SPLASH = typeof window !== "undefined" && !hasBooted() && !prefersReducedMotion();
 
 // how long the boot screen holds before it hands over to the hero, in seconds
-export const SPLASH_HOLD_S = 1.55;
+export const SPLASH_HOLD_S = 2.4;
 export const INTRO_S = SHOWS_SPLASH ? SPLASH_HOLD_S + 0.35 : 0;
 
 export const markBooted = () => {

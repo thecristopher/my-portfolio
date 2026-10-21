@@ -9,20 +9,24 @@
       "url": "/#about"
     },
     {
-      "title": "Work",
+      "title": "Experience",
       "url": "/#work"
     },
     {
-      "title": "Education",
-      "url": "/#education"
+      "title": "Projects",
+      "url": "/#projects"
+    },
+    {
+      "title": "Skills",
+      "url": "/#skills"
     },
     {
       "title": "Side quests",
       "url": "/#github"
     },
     {
-      "title": "Skills",
-      "url": "/#skills"
+      "title": "Education",
+      "url": "/#education"
     },
     {
       "title": "Contact",
@@ -31,8 +35,26 @@
   ],
   "getAbout": {
     "title": "About",
-    "description": "I started like everyone else, as an intern who could barely scratch out a few lines of code. Over 9+ years I climbed one step at a time, until I became one of the key developers at every company I've worked for.\n\nI challenge myself every day and I'm always after continuous improvement, both in myself and in the products I help build.\n\nToday I'm a mix of Engineering Manager and Tech Lead. I don't just set the priorities for my products, I also suggest alternatives and solutions to the code my developers propose, and push them so that together we always land a better result.\n\nOff the clock I love working out, spending time with my family, and every now and then reading some manga or playing video games. By the way, have you tried finding the easter eggs scattered around here?",
+    "name": "Cristopher Cervantes",
+    "headline": "Engineering Manager & Tech Lead. AI products, serverless AWS and the teams that ship them.",
+    "summary": "Engineering Manager and Tech Lead with 9+ years shipping production software. At PSL Group I run engineering for four products, and shipped Claude agents on AWS Bedrock, a React codebase serving three brands and the pipelines every team deploys through. I lead through 1:1s and code reviews, and I still write plenty of the code.",
+    "description": "I started like everyone else, as an intern who could barely scratch out a few lines of code. Over 9+ years I climbed one step at a time, until I became one of the key developers at every company I've worked for.\n\nI challenge myself every day and I'm always after continuous improvement, both in myself and in the products I help build.\n\nToday I'm a mix of Engineering Manager and Tech Lead. I don't just set the priorities for my products, I also suggest alternatives and solutions to the code my developers propose, and push them so that together we always land a better result.\n\nOff the clock I love working out, spending time with my family, and every now and then reading some manga or playing video games. Some of them left relics on this page, and every one of them wants to be touched.",
     "role": "Tech Lead & Engineering Manager",
+    "years_of_experience": 9,
+    "location": "Rosarito, Mexico",
+    "timezone": "Pacific Time",
+    "open_to": null,
+    "work_modes": [],
+    "languages": [
+      {
+        "name": "Spanish",
+        "level": null
+      },
+      {
+        "name": "English",
+        "level": null
+      }
+    ],
     "main_stack": [
       "TypeScript",
       "Next.js",
@@ -44,102 +66,153 @@
       "LLMs"
     ],
     "editor": "Neovim",
+    "expertise": [
+      "Engineering management",
+      "Technical leadership",
+      "AI agents and LLM products",
+      "Serverless architecture",
+      "Design systems",
+      "Infrastructure as code",
+      "CI/CD and release pipelines"
+    ],
+    "principles": [
+      {
+        "title": "Unblock first",
+        "body": "A blocked engineer costs more than any clever code I could write myself, so their questions jump my queue."
+      },
+      {
+        "title": "Push back with an alternative",
+        "body": "A review that only says no teaches nothing. I bring another way to do it, and we pick the better one together."
+      },
+      {
+        "title": "Boring and correct",
+        "body": "Especially with AI. A plain answer that's right beats a brilliant one that's wrong, every time."
+      },
+      {
+        "title": "Readable at 2 AM",
+        "body": "Whoever gets paged tonight should understand the code without me in the room."
+      }
+    ],
     "skill_levels": [
       {
         "name": "TypeScript",
-        "level": 5
+        "level": 5,
+        "category": "Languages"
       },
       {
         "name": "Next.js",
-        "level": 5
+        "level": 5,
+        "category": "Frontend"
       },
       {
         "name": "React",
-        "level": 5
+        "level": 5,
+        "category": "Frontend"
       },
       {
         "name": "Node.js",
-        "level": 5
+        "level": 5,
+        "category": "Backend"
       },
       {
         "name": "AWS",
-        "level": 5
+        "level": 5,
+        "category": "Cloud & DevOps"
       },
       {
         "name": "Serverless",
-        "level": 5
+        "level": 5,
+        "category": "Cloud & DevOps"
       },
       {
         "name": "Bedrock",
-        "level": 5
+        "level": 5,
+        "category": "AI"
       },
       {
         "name": "LLMs",
-        "level": 5
+        "level": 5,
+        "category": "AI"
       },
       {
         "name": "C#",
-        "level": 5
+        "level": 5,
+        "category": "Languages"
       },
       {
         "name": "JavaScript",
-        "level": 5
+        "level": 5,
+        "category": "Languages"
       },
       {
         "name": "Lambda",
-        "level": 5
+        "level": 5,
+        "category": "Cloud & DevOps"
       },
       {
         "name": "DynamoDB",
-        "level": 5
+        "level": 5,
+        "category": "Data"
       },
       {
         "name": "Aurora",
-        "level": 4
+        "level": 4,
+        "category": "Data"
       },
       {
         "name": "OpenSearch",
-        "level": 4
+        "level": 4,
+        "category": "Data"
       },
       {
         "name": "Terraform",
-        "level": 4
+        "level": 4,
+        "category": "Cloud & DevOps"
       },
       {
         "name": "Kubernetes",
-        "level": 4
+        "level": 4,
+        "category": "Cloud & DevOps"
       },
       {
         "name": "GitHub Actions",
-        "level": 4
+        "level": 4,
+        "category": "Cloud & DevOps"
       },
       {
         "name": "Docker",
-        "level": 4
+        "level": 4,
+        "category": "Cloud & DevOps"
       },
       {
         "name": "PostgreSQL",
-        "level": 4
+        "level": 4,
+        "category": "Data"
       },
       {
         "name": "SQL",
-        "level": 4
+        "level": 4,
+        "category": "Data"
       },
       {
         "name": "MVC",
-        "level": 4
+        "level": 4,
+        "category": "Backend"
       },
       {
         "name": "PHP",
-        "level": 4
+        "level": 4,
+        "category": "Languages"
       },
       {
         "name": "Python",
-        "level": 4
+        "level": 4,
+        "category": "Languages"
       },
       {
         "name": "Azure",
-        "level": 3
+        "level": 3,
+        "category": "Cloud & DevOps"
       }
     ],
     "education": [
@@ -162,12 +235,14 @@
         "name": "AWS Certified Developer – Associate",
         "issuer": "Amazon Web Services",
         "level": "Associate",
+        "year": null,
         "verify_url": null
       },
       {
         "name": "AWS Certified Cloud Practitioner",
         "issuer": "Amazon Web Services",
         "level": "Foundational",
+        "year": null,
         "verify_url": null
       }
     ]
@@ -200,8 +275,19 @@
         "Tech Lead",
         "Engineering Manager"
       ],
-      "start_year": null,
-      "end_year": null,
+      "highlights": [
+        "Grew from Tech Lead on FirstWord into Engineering Manager for DGPL, AMI, IDH and MEC",
+        "Shipped FirstWord AI: versioned Claude agents on AWS Bedrock with streaming answers and guardrails",
+        "Built a single React codebase that serves three FirstWord brands",
+        "Built FirstWord Manager, the Next.js workspace the team works from every day",
+        "Own the shared deploy pipelines and the infrastructure as code that every repo ships through",
+        "Set the roadmap, run 1:1s and code reviews, and rolled out Claude Code tooling for the whole team"
+      ],
+      "location": null,
+      "work_mode": null,
+      "start": null,
+      "end": null,
+      "team_size": null,
       "featured": true
     },
     {
@@ -223,8 +309,17 @@
         "Developer",
         "Senior Developer"
       ],
-      "start_year": null,
-      "end_year": null,
+      "highlights": [
+        "Promoted from Developer to Senior Developer",
+        "Led the employee self service attendance app from the first screens to production",
+        "Built GTI Controls, the React component library behind Interis Works, so every team shipped consistent screens",
+        "Worked across C# and Node.js services, PostgreSQL databases and deployments on AWS and Azure"
+      ],
+      "location": null,
+      "work_mode": null,
+      "start": null,
+      "end": null,
+      "team_size": null,
       "featured": true
     },
     {
@@ -238,8 +333,16 @@
         "SQL"
       ],
       "roles": [],
-      "start_year": null,
-      "end_year": null,
+      "highlights": [
+        "Built the IT ticketing system from scratch, which became how the whole office asked for help",
+        "Connected internal systems so managers could follow manufacturing performance in real time",
+        "Worked on the corporate website"
+      ],
+      "location": null,
+      "work_mode": null,
+      "start": null,
+      "end": null,
+      "team_size": null,
       "featured": false
     },
     {
@@ -255,8 +358,15 @@
         "JavaScript"
       ],
       "roles": [],
-      "start_year": null,
-      "end_year": null,
+      "highlights": [
+        "Rebuilt the school insurance workflows from the ground up",
+        "Extended core features, fixed UX problems and tightened business rules as the customer base grew"
+      ],
+      "location": null,
+      "work_mode": null,
+      "start": null,
+      "end": null,
+      "team_size": null,
       "featured": false
     },
     {
@@ -272,8 +382,14 @@
       "roles": [
         "Intern"
       ],
-      "start_year": null,
-      "end_year": null,
+      "highlights": [
+        "Built the inventory system that logged every truck in and out of the Tijuana customs office"
+      ],
+      "location": null,
+      "work_mode": null,
+      "start": null,
+      "end": null,
+      "team_size": null,
       "featured": false
     }
   ],
@@ -347,5 +463,138 @@
         "url": "https://www.instagram.com/thecristopher/"
       }
     ]
-  }
+  },
+  "getCaseStudies": [
+    {
+      "slug": "firstword-ai",
+      "title": "FirstWord AI",
+      "company": "PSL Group",
+      "role": "Tech Lead",
+      "kind": "AI",
+      "summary": "Claude agents on AWS Bedrock that answer questions about pharma and healthcare intelligence.",
+      "challenge": "FirstWord readers make decisions on what they read, so an AI feature there has to be right before it can be impressive. A confident wrong answer costs more than no answer at all.",
+      "approach": [
+        "Versioned every agent, so a prompt or model change ships and rolls back like any other release",
+        "Streamed answers to the reader while the model is still writing",
+        "Put guardrails in front of every response",
+        "Treated the model like any other dependency: tested, monitored and with a fallback"
+      ],
+      "outcome": "AI answers that live inside the product people already use, held to the same bar as the rest of it.",
+      "technologies": [
+        "TypeScript",
+        "Bedrock",
+        "LLMs",
+        "Lambda",
+        "Serverless",
+        "React"
+      ],
+      "metrics": []
+    },
+    {
+      "slug": "firstword-brands",
+      "title": "One codebase, three brands",
+      "company": "PSL Group",
+      "role": "Tech Lead",
+      "kind": "Frontend",
+      "summary": "A single React codebase that serves every FirstWord brand.",
+      "challenge": "Three brands that each need their own look would normally mean three apps drifting apart.",
+      "approach": [
+        "Built one React codebase with the brand as configuration, not as a fork",
+        "Shared components, data fetching and tests across every brand",
+        "Built FirstWord Manager in Next.js as the workspace the team runs everything from"
+      ],
+      "outcome": "A fix or a feature lands once and every brand gets it.",
+      "technologies": [
+        "React",
+        "Next.js",
+        "TypeScript",
+        "Node.js"
+      ],
+      "metrics": []
+    },
+    {
+      "slug": "shared-pipelines",
+      "title": "Pipelines every team ships through",
+      "company": "PSL Group",
+      "role": "Engineering Manager",
+      "kind": "Platform",
+      "summary": "Shared deploy pipelines, infrastructure as code and Claude Code tooling for the whole team.",
+      "challenge": "Every repo deploying its own way makes releases slow to review and scary to run.",
+      "approach": [
+        "Moved environments into infrastructure as code",
+        "Built shared GitHub Actions workflows that every repo reuses",
+        "Set up the Claude Code tooling and conventions the team works with day to day"
+      ],
+      "outcome": "Deploys are boring in the best way, and a new repo is ready to ship on day one.",
+      "technologies": [
+        "Terraform",
+        "GitHub Actions",
+        "AWS",
+        "Kubernetes",
+        "Serverless"
+      ],
+      "metrics": []
+    },
+    {
+      "slug": "gti-controls",
+      "title": "GTI Controls",
+      "company": "Grupo Tress",
+      "role": "Senior Developer",
+      "kind": "Frontend",
+      "summary": "The React component library behind Interis Works, Tress's cloud payroll product.",
+      "challenge": "Several teams building one payroll product were shipping screens that looked and behaved differently.",
+      "approach": [
+        "Built a shared React component library for the whole product",
+        "Gave every team the same building blocks for forms, tables and layout"
+      ],
+      "outcome": "Every team shipped screens that looked and behaved the same.",
+      "technologies": [
+        "React",
+        "JavaScript",
+        "Node.js"
+      ],
+      "metrics": []
+    },
+    {
+      "slug": "self-service",
+      "title": "Employee self service",
+      "company": "Grupo Tress",
+      "role": "Senior Developer",
+      "kind": "Product",
+      "summary": "The app where employees track their own attendance, led from the first screens to production.",
+      "challenge": "Employees needed to see and manage their own attendance without going through HR for every question.",
+      "approach": [
+        "Owned the app end to end, from the first screens to production",
+        "Built on the C# and Node.js services and the PostgreSQL data behind Tress's payroll"
+      ],
+      "outcome": "Employees track their attendance themselves, in a product used by companies across Mexico, the U.S. and Canada.",
+      "technologies": [
+        "React",
+        "C#",
+        "Node.js",
+        "PostgreSQL"
+      ],
+      "metrics": []
+    },
+    {
+      "slug": "ticketing",
+      "title": "IT ticketing system",
+      "company": "Hisense México",
+      "role": "Developer",
+      "kind": "Product",
+      "summary": "An IT help desk built from scratch for Hisense's corporate office.",
+      "challenge": "The office had no single place to ask IT for help or follow up on a request.",
+      "approach": [
+        "Built the ticketing system from scratch in C#, ASP.NET MVC and SQL",
+        "Kept it simple enough that nobody needed training to file a ticket"
+      ],
+      "outcome": "It became how the whole office asked for help.",
+      "technologies": [
+        "C#",
+        "MVC",
+        "SQL"
+      ],
+      "metrics": []
+    }
+  ]
 }

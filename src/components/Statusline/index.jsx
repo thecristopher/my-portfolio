@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
-import { Volume2, VolumeX } from "lucide-react";
+import { GitBranch, Volume2, VolumeX } from "lucide-react";
 import { useEchoMessage } from "../../lib/echo";
 import { bufferNameFor, fileTypeFor, localClock, nowStatus, scrollPosition } from "../../actions";
 import { cursorLineAt } from "../../lib/editor";
 import { HOME_TIMEZONE } from "../../lib/profile";
-import { SECRET_IDS, useFoundSecrets } from "../../lib/secrets";
+import { RELIC_IDS, useFoundRelics } from "../../lib/relics";
+import { formatRunes, onRunesEarned, useRunes } from "../../lib/runes";
 import { setMuted, useMuted } from "../../lib/sound";
 import { searchCount, useSearchState } from "../../lib/search";
+import { useRegion } from "../../hooks/useRegion";
+import FileIcon from "../FileIcon";
 
 const MODE_STYLES = {
   NORMAL: "bg-accent text-ink",
-  COMMAND: "bg-signal text-ink",
+  COMMAND: "bg-peach text-ink",
+  SEARCH: "bg-signal text-ink",
+  HINT: "bg-mauve text-ink",
 };
 
 const ECHO_TONES = {
@@ -31,73 +36,131 @@ const useHomeClock = () => {
   return { time: clock.time, status: nowStatus(clock) };
 };
 
-const Statusline = ({ mode, colorscheme, activeId, onOpenCmdline, onOpenQuestLog }) => {
-  const message = useEchoMessage();
-  const bufferName = bufferNameFor(activeId);
-  const { scrollY } = useScroll();
-  const [position, setPosition] = useState("Top");
-  const [line, setLine] = useState(() => cursorLineAt(0));
-  const { time, status } = useHomeClock();
-  const isMuted = useMuted();
-  const found = useFoundSecrets();
-  const searchState = useSearchState();
+// the last payout floats up off the counter for a moment, the way the game adds runes after a kill
+const useLastPayout = () => {
+  const [payout, setPayout] = useState(null);
+  useEffect(() => onRunesEarned((earned) => setPayout({ earned, id: Date.now() })), []);
+  useEffect(() => {
+    if (!payout) return;
+    const timer = setTimeout(() => setPayout(null), 1800);
+    return () => clearTimeout(timer);
+  }, [payout]);
+  return payout;
+};
 
+const Runes = () => {
+  const total = useRunes();
+  const payout = useLastPayout();
+  return (
+    <span className="relative flex items-center gap-1.5 px-3 text-rose tabular-nums" title="Runes, earned by exploring">
+      {/* the rune glyph from the game's hud, a little gold sigil */}
+      <svg viewBox="0 0 10 12" className="h-3 w-2.5 text-accent" aria-hidden="true">
+        <path d="M5 0.5 L5 11.5 M5 3 L8.5 1 M5 6 L1.5 4 M5 8 L8.5 6" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      </svg>
+      {formatRunes(total)}
+      <AnimatePresence>
+        {payout && (
+          <motion.span
+            key={payout.id}
+            initial={{ opacity: 0, y: 0 }}
+            animate={{ opacity: [0, 1, 1, 0], y: -22 }}
+            transition={{ duration: 1.8, ease: "easeOut" }}
+            className="pointer-events-none absolute right-2 bottom-full text-accent"
+          >
+            +{formatRunes(payout.earned)}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </span>
+  );
+};
+
+const EchoLine = () => {
+  const message = useEchoMessage();
+  // only the :echo line is a live region. the clock ticking and the scroll readout would be noise read aloud
+  return (
+    <span role="status" className="flex min-w-0 flex-1 items-center px-2">
+      <AnimatePresence mode="wait">
+        {message && (
+          <motion.span
+            key={message.id}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className={`truncate ${ECHO_TONES[message.tone]}`}
+          >
+            {message.text}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </span>
+  );
+};
+
+// where the page is, the way nvim's ruler reads it
+const useRuler = () => {
+  const { scrollY } = useScroll();
+  const [ruler, setRuler] = useState({ position: "Top", line: cursorLineAt(0) });
   useMotionValueEvent(scrollY, "change", (latest) => {
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-    setPosition(scrollPosition(latest, maxScroll));
-    setLine(cursorLineAt(latest));
+    setRuler({ position: scrollPosition(latest, maxScroll), line: cursorLineAt(latest) });
   });
+  return ruler;
+};
+
+/**
+ * Eldentree's lualine: the mode in the region's gold, the branch and buffer, :echo messages, the relic score,
+ * the rune tally, my local time, the region and where in the page you are.
+ */
+const Statusline = ({ mode, activeId, onOpenCmdline, onOpenQuestLog, onOpenRegions }) => {
+  const bufferName = bufferNameFor(activeId);
+  const { position, line } = useRuler();
+  const { time, status } = useHomeClock();
+  const isMuted = useMuted();
+  const found = useFoundRelics();
+  const searchState = useSearchState();
+  const { region } = useRegion();
 
   return (
-    <div
-      className="fixed inset-x-0 bottom-0 z-40 flex h-7 items-stretch border-t border-line bg-panel/95 font-mono text-[11px] backdrop-blur-xl"
-    >
+    <div className="glass-strong hairline fixed inset-x-0 bottom-0 z-40 flex h-7 items-stretch border-t font-mono text-[11px]">
       {/* tapping the mode is the way into the command line on a phone, where there is no ":" key to press */}
       <button
         type="button"
         onClick={onOpenCmdline}
         aria-label="Open command line"
-        className={`flex items-center px-3 font-medium tracking-wider transition-colors duration-300 ${MODE_STYLES[mode]}`}
+        className={`flex items-center px-3 font-semibold tracking-wider transition-colors duration-300 ${MODE_STYLES[mode] ?? MODE_STYLES.NORMAL}`}
       >
         {mode}
       </button>
-      <span className="flex items-center px-3 text-fg">{bufferName}</span>
-
-      {/* only the :echo line is a live region. the clock ticking and the scroll readout would be noise read aloud */}
-      <span role="status" className="flex min-w-0 flex-1 items-center px-2">
-        <AnimatePresence mode="wait">
-          {message && (
-            <motion.span
-              key={message.id}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className={`truncate ${ECHO_TONES[message.tone]}`}
-            >
-              {message.text}
-            </motion.span>
-          )}
-        </AnimatePresence>
+      <span className="hidden items-center gap-1.5 bg-raised px-3 text-string sm:flex">
+        <GitBranch size={11} aria-hidden="true" />
+        main
+      </span>
+      <span className="flex items-center gap-1.5 px-3 text-fg">
+        <FileIcon name={bufferName} size={11} />
+        <span className="truncate">{bufferName}</span>
       </span>
 
+      <EchoLine />
+
       {searchState.total > 0 && (
-        <span className="hidden items-center px-3 text-signal tabular-nums sm:flex">
+        <span className="hidden items-center px-3 text-accent tabular-nums sm:flex">
           /{searchState.query} {searchCount(searchState)}
         </span>
       )}
-      {/* the score only shows up after the first find, so nobody knows there is a hunt until they stumble into it */}
-      {found.length > 0 && (
-        <button
-          type="button"
-          onClick={onOpenQuestLog}
-          aria-label={`Quest log, ${found.length} of ${SECRET_IDS.length} secrets found`}
-          className="flex items-center gap-1 px-3 text-accent tabular-nums transition-colors hover:bg-raised"
-        >
-          ✦ {found.length}/{SECRET_IDS.length}
-        </button>
-      )}
-      <span className="hidden items-center gap-1.5 px-3 text-faint lg:flex" title="My local time in Rosarito, Mexico">
+      <button
+        type="button"
+        onClick={onOpenQuestLog}
+        aria-label={`Quest log, ${found.length} of ${RELIC_IDS.length} relics found`}
+        className="flex items-center gap-1 px-3 text-accent tabular-nums transition-colors hover:bg-raised"
+      >
+        ✦ {found.length}/{RELIC_IDS.length}
+      </button>
+      <span className="hidden md:flex">
+        <Runes />
+      </span>
+      <span className="hidden items-center gap-1.5 px-3 text-faint xl:flex" title="My local time in Rosarito, Mexico">
         <span className="text-muted tabular-nums">{time}</span> {status}
       </span>
       <button
@@ -109,10 +172,17 @@ const Statusline = ({ mode, colorscheme, activeId, onOpenCmdline, onOpenQuestLog
       >
         {isMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
       </button>
-      <span className="hidden items-center px-3 text-faint xl:flex">{colorscheme}</span>
+      <button
+        type="button"
+        onClick={onOpenRegions}
+        className="hidden items-center px-3 text-faint transition-colors hover:bg-raised hover:text-fg lg:flex"
+        aria-label={`Region ${region.title}, travel`}
+      >
+        {region.name}
+      </button>
       <span className="hidden items-center px-3 text-faint md:flex">{fileTypeFor(bufferName)}</span>
       <span className="flex items-center bg-raised px-3 text-muted">{position}</span>
-      <span className={`hidden items-center px-3 tabular-nums sm:flex ${MODE_STYLES[mode]}`}>{line}:1</span>
+      <span className={`hidden items-center px-3 tabular-nums sm:flex ${MODE_STYLES[mode] ?? MODE_STYLES.NORMAL}`}>{line}:1</span>
     </div>
   );
 };

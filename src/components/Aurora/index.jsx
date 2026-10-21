@@ -4,13 +4,13 @@ import { auroraLayout, mixColors, parseCssColor } from "../../actions";
 
 // the two colors the light behind each section is mixed from, out of the colorscheme's own palette
 const SECTION_LIGHT = {
-  home: ["accent", "signal"],
-  manifesto: ["accent", "error"],
-  about: ["signal", "string"],
+  home: ["accent", "rose"],
+  about: ["accent", "lavender"],
   work: ["accent", "signal"],
-  education: ["string", "signal"],
-  github: ["error", "accent"],
-  skills: ["signal", "error"],
+  projects: ["mauve", "accent"],
+  skills: ["lavender", "accent"],
+  github: ["string", "accent"],
+  education: ["sky", "accent"],
   contact: ["accent", "error"],
 };
 

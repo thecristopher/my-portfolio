@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
-import SectionHeader from "../../components/SectionHeader";
+import SectionIntro, { Gold } from "../../components/SectionIntro";
 import SpotlightCard from "../../components/SpotlightCard";
-import TerminalWindow from "../../components/TerminalWindow";
-import { Magician } from "../../components/Secrets";
+import EditorWindow from "../../components/EditorWindow";
+import { Trigger as FaceDownCard } from "../../components/Relics/DarkMagician";
+import { Trigger as FourNations } from "../../components/Relics/Avatar";
 import { MAGIC_BLUE, MAGIC_PINK, useMagicBuff } from "../../lib/magic";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetSkillsQuery } from "../../api/skillsApi";
@@ -11,6 +12,7 @@ import { iconMap } from "../../lib/iconMap";
 import TechIcon from "../../components/TechIcon";
 import { easeOutExpo } from "../../lib/motion";
 import { formatIndex, isMaxLevel, markMainStack } from "../../actions";
+import { SKILL_CATEGORY_ORDER } from "../../lib/resume/buildResume";
 import { echo } from "../../lib/echo";
 import { scrollToSection } from "../../lib/smoothScroll";
 import { pickTech, usePickedTech } from "../../lib/stackFilter";
@@ -76,7 +78,7 @@ const CapabilityCard = ({ skill, index, isBuffed }) => {
         className="h-full"
       >
         <SpotlightCard
-          className="group flex h-full flex-col gap-6 rounded-2xl border border-line bg-panel p-7 transition-[border-color,box-shadow] duration-500 hover:border-line-strong sm:p-8"
+          className="group flex h-full flex-col gap-6 rounded-3xl border border-line bg-panel/80 p-7 transition-[border-color,box-shadow] duration-500 hover:border-line-strong sm:p-8"
           style={isDuelMonster ? BUFFED_CARD : undefined}
         >
           <div className="flex items-center justify-between">
@@ -105,7 +107,7 @@ const CapabilityCard = ({ skill, index, isBuffed }) => {
             />
           )}
           <div className="flex flex-col gap-4">
-            <h3 className={isLead ? "text-gradient text-3xl font-semibold tracking-[-0.03em] sm:text-5xl" : "text-xl font-medium tracking-tight"}>
+            <h3 className={isLead ? "text-gold text-3xl font-semibold tracking-[-0.03em] sm:text-5xl" : "text-xl font-medium tracking-tight"}>
               {skill.title}
             </h3>
             <p className={`leading-relaxed text-muted text-pretty ${isLead ? "max-w-lg text-base sm:text-lg" : "text-sm"}`}>{skill.description}</p>
@@ -163,32 +165,41 @@ const RatedReport = ({ tools, isBuffed, pickedTech }) => (
   </ul>
 );
 
+// one block per category, the way :checkhealth lists one block per provider. the order matches the resume
+const groupByCategory = (tools) =>
+  [...SKILL_CATEGORY_ORDER, "Other"]
+    .map((category) => ({ category, tools: tools.filter((tool) => (tool.category ?? "Other") === category) }))
+    .filter((group) => group.tools.length > 0);
+
 // laid out like nvim's :checkhealth so the current stack reads as "all green"
 const StackHealth = ({ mainStack, skillLevels, isBuffed }) => {
-  const ratedTools = markMainStack(skillLevels, mainStack);
+  const groups = groupByCategory(markMainStack(skillLevels, mainStack));
   const pickedTech = usePickedTech();
 
   return (
-    <TerminalWindow title="~/skills · nvim">
-      <div className="flex flex-col gap-6 font-mono text-xs">
+    <EditorWindow path={["cristopher", "skills", "checkhealth"]}>
+      <div className="flex flex-col gap-8 font-mono text-xs">
         <p className="flex flex-wrap justify-between gap-2 text-muted">
           <span>
-            <span className="text-signal">:</span>checkhealth stack
+            <span className="text-accent">:</span>checkhealth stack
           </span>
-          <span className="text-faint">pick a tool to grep ~/work for it</span>
+          <span className="text-faint">● main stack · pick a tool to grep the work history for it</span>
         </p>
-        {ratedTools.length > 0 && (
-          <div className="flex flex-col gap-4">
-            <HealthHeading>stack ~</HealthHeading>
-            <RatedReport tools={ratedTools} isBuffed={isBuffed} pickedTech={pickedTech} />
+        {groups.map((group) => (
+          <div key={group.category} className="flex flex-col gap-4">
+            <HealthHeading>
+              {group.category.toLowerCase()} <span className="text-string">✓ OK</span>
+            </HealthHeading>
+            <RatedReport tools={group.tools} isBuffed={isBuffed} pickedTech={pickedTech} />
           </div>
-        )}
+        ))}
       </div>
-    </TerminalWindow>
+    </EditorWindow>
   );
 };
 
-const Skills = () => {
+/** skills.lua: how I lead as a deck of cards, the four elements I bend, and the tools as a :checkhealth report. */
+const Skills = ({ number }) => {
   const { data: skills = [], isLoading, isError } = useGetSkillsQuery();
   const { data: about } = useGetAboutQuery();
   const isBuffed = useMagicBuff();
@@ -196,7 +207,16 @@ const Skills = () => {
   return (
     <section id="skills" className="relative py-24 sm:py-36">
       <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
-        <SectionHeader id="skills" index="06" label="skills.lua" title="How I lead, and the tools I reach for." />
+        <SectionIntro
+          sectionId="skills"
+          number={number}
+          title={
+            <>
+              How I lead, <Gold>and what I reach for.</Gold>
+            </>
+          }
+          lead="Six things I'm good at, then every tool I've shipped with, rated the way nvim checks its own health."
+        />
 
         {isLoading && <SkeletonLines lines={4} />}
         {isError && <LoadError what="skills" />}
@@ -207,15 +227,14 @@ const Skills = () => {
           ))}
         </div>
 
+        {/* a card set face down beside the deck, and the four nations: frontend, backend, cloud and people */}
+        <div className="flex flex-wrap items-center justify-center gap-16 py-6 sm:gap-24">
+          <FaceDownCard />
+          <FourNations />
+        </div>
+
         {about && (
           <div id="checkhealth">
-            {/* the hat sits on the line that opens the skills, right above the cards she turns into duel monsters */}
-            <div className="mb-3 flex items-center justify-end gap-1">
-              <p className="font-mono text-xs text-faint">
-                <span className="text-accent">$</span> nvim ~/skills.lua
-              </p>
-              <Magician className="-my-2" />
-            </div>
             <StackHealth mainStack={about.main_stack ?? []} skillLevels={about.skill_levels} isBuffed={isBuffed} />
           </div>
         )}

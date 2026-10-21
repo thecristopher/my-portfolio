@@ -1,131 +1,147 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, MotionConfig, motion, useScroll, useSpring } from "framer-motion";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import CommandMenu from "./components/CommandMenu";
-import Resume from "./components/Resume";
-import Statusline from "./components/Statusline";
+import Bufferline from "./components/Bufferline";
 import FileTree from "./components/FileTree";
+import Statusline from "./components/Statusline";
+import Telescope from "./components/Telescope";
+import WhichKey from "./components/WhichKey";
 import QuestLog from "./components/QuestLog";
 import SearchLine from "./components/SearchLine";
-import Splash from "./components/Splash";
-import Pointer from "./components/Pointer";
 import HintMode from "./components/HintMode";
+import Banner from "./components/Banner";
+import Rest from "./components/Rest";
+import Hub from "./components/Hub";
+import Pointer from "./components/Pointer";
 import Aurora from "./components/Aurora";
-import StackRibbon from "./components/StackRibbon";
+import Footer from "./components/Footer";
+import Resume from "./components/Resume";
+import RelicStage from "./components/Relics/Stage";
 import Hero from "./sections/Hero";
-import Manifesto from "./sections/Manifesto";
 import About from "./sections/About";
 import Work from "./sections/Work";
-import Education from "./sections/Education";
-import GitHub from "./sections/GitHub";
+import Projects from "./sections/Projects";
 import Skills from "./sections/Skills";
+import GitHub from "./sections/GitHub";
+import Education from "./sections/Education";
 import Contact from "./sections/Contact";
 import { startSmoothScroll } from "./lib/smoothScroll";
+import { earnRunes } from "./lib/runes";
 import { useVimKeys } from "./hooks/useVimKeys";
-import { useColorscheme } from "./hooks/useColorscheme";
 import { useActiveSection } from "./hooks/useActiveSection";
 import { useGetNavBarQuery } from "./api/navBarApi";
-import { sectionIdFromUrl, withManifesto } from "./actions";
+import { sectionIdFromUrl } from "./actions";
+import { buildLeaderBindings } from "./lib/leader";
 
-const ScrollProgress = () => {
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30 });
-  return <motion.div style={{ scaleX }} className="fixed inset-x-0 top-0 z-50 h-px origin-left bg-accent" />;
-};
+const SECTIONS = { home: Hero, about: About, work: Work, projects: Projects, skills: Skills, github: GitHub, education: Education, contact: Contact };
 
 // one shared empty list, so the section ids only change when the nav actually arrives
 const NO_LINKS = [];
 
-const App = () => {
-  const [isCmdlineOpen, setIsCmdlineOpen] = useState(false);
-  const [isQuestLogOpen, setIsQuestLogOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isHinting, setIsHinting] = useState(false);
-  const { colorscheme, applyColorscheme } = useColorscheme();
-  const { data: links = NO_LINKS } = useGetNavBarQuery();
-  const bufferIds = useMemo(() => links.map((link) => sectionIdFromUrl(link.url)), [links]);
-  const sectionIds = useMemo(() => withManifesto(bufferIds), [bufferIds]);
-  const activeSectionId = useActiveSection(sectionIds);
+const ScrollProgress = () => {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30 });
+  return <motion.div style={{ scaleX }} className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-accent" />;
+};
 
-  const openCmdline = useCallback(() => setIsCmdlineOpen(true), []);
-  const closeCmdline = useCallback(() => setIsCmdlineOpen(false), []);
-  const openQuestLog = useCallback(() => setIsQuestLogOpen(true), []);
-  const closeQuestLog = useCallback(() => setIsQuestLogOpen(false), []);
-  const openSearch = useCallback(() => setIsSearchOpen(true), []);
-  const closeSearch = useCallback(() => setIsSearchOpen(false), []);
-  const openHints = useCallback(() => setIsHinting(true), []);
-  const closeHints = useCallback(() => setIsHinting(false), []);
+// which dialogs are open, and the mode the statusline shows for them
+const useDialogs = () => {
+  const [open, setOpen] = useState({ telescope: false, telescopeQuery: "", quests: false, search: false, hints: false, whichKey: false });
+  const set = useCallback((patch) => setOpen((current) => ({ ...current, ...patch })), []);
+  const handlers = useMemo(
+    () => ({
+      openTelescope: (query = "") => set({ telescope: true, telescopeQuery: typeof query === "string" ? query : "" }),
+      closeTelescope: () => set({ telescope: false }),
+      openRegions: () => set({ telescope: true, telescopeQuery: "region " }),
+      openQuests: () => set({ quests: true }),
+      closeQuests: () => set({ quests: false }),
+      openSearch: () => set({ search: true }),
+      closeSearch: () => set({ search: false }),
+      openHints: () => set({ hints: true }),
+      closeHints: () => set({ hints: false }),
+      openWhichKey: () => set({ whichKey: true }),
+      closeWhichKey: () => set({ whichKey: false }),
+    }),
+    [set]
+  );
+  const isAnyOpen = open.telescope || open.quests || open.search || open.hints || open.whichKey;
+  const mode = open.telescope ? "COMMAND" : open.search ? "SEARCH" : open.hints ? "HINT" : "NORMAL";
+  return { open, handlers, isAnyOpen, mode };
+};
+
+/** The page as an nvim session: bufferline on top, lualine at the bottom, one buffer per section in between. */
+const App = () => {
+  const { data: links = NO_LINKS } = useGetNavBarQuery();
+  const sectionIds = useMemo(() => links.map((link) => sectionIdFromUrl(link.url)).filter((id) => SECTIONS[id]), [links]);
+  const activeSectionId = useActiveSection(sectionIds);
+  const { open, handlers, isAnyOpen, mode } = useDialogs();
+  const leaderBindings = useMemo(() => buildLeaderBindings(handlers), [handlers]);
 
   useEffect(() => startSmoothScroll(), []);
+
+  // every buffer you open pays a few runes, once, like the first visit to an area
+  useEffect(() => {
+    if (activeSectionId) earnRunes("section", `section:${activeSectionId}`);
+  }, [activeSectionId]);
+
   useVimKeys({
-    onOpenCmdline: openCmdline,
-    onOpenSearch: openSearch,
-    onOpenHints: openHints,
+    onOpenCmdline: handlers.openTelescope,
+    onOpenSearch: handlers.openSearch,
+    onOpenHints: handlers.openHints,
+    onOpenWhichKey: handlers.openWhichKey,
     sectionIds,
-    bufferIds,
-    isPaused: isCmdlineOpen || isQuestLogOpen || isSearchOpen || isHinting,
+    bufferIds: sectionIds,
+    isPaused: isAnyOpen,
   });
 
   useEffect(() => {
     const toggleOnShortcut = (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setIsCmdlineOpen((open) => !open);
+        handlers.openTelescope();
       }
     };
     window.addEventListener("keydown", toggleOnShortcut);
     return () => window.removeEventListener("keydown", toggleOnShortcut);
-  }, []);
+  }, [handlers]);
 
   return (
     <MotionConfig reducedMotion="user">
-      <a
-        href="#about"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-fg focus:px-4 focus:py-2 focus:text-ink"
-      >
+      <a href="#about" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-fg focus:px-4 focus:py-2 focus:text-ink">
         Skip to content
       </a>
       <Aurora sectionId={activeSectionId} />
       <ScrollProgress />
-      <FileTree onOpenCmdline={openCmdline} />
-      <Navbar onOpenCmdline={openCmdline} />
+      <Bufferline sectionIds={sectionIds} activeId={activeSectionId} onOpenCmdline={handlers.openTelescope} onOpenRegions={handlers.openRegions} />
+      <FileTree onOpenCmdline={handlers.openTelescope} />
       {/* on wide screens an open file tree takes the left edge. the sections still run edge to edge underneath it,
           only their content moves over to make room (see .clears-tree) */}
       <div className="clears-tree">
         <main>
-          <Hero />
-          <Manifesto />
-          <StackRibbon />
-          <About />
-          <Work />
-          <Education />
-          <GitHub />
-          <Skills />
-          <Contact />
+          {sectionIds.map((id, index) => {
+            const Section = SECTIONS[id];
+            return <Section key={id} number={index + 1} />;
+          })}
         </main>
-        <Footer onOpenCmdline={openCmdline} />
+        <Footer onOpenCmdline={handlers.openTelescope} />
       </div>
-      <Statusline
-        mode={isCmdlineOpen ? "COMMAND" : "NORMAL"}
-        colorscheme={colorscheme}
-        activeId={activeSectionId}
-        onOpenCmdline={openCmdline}
-        onOpenQuestLog={openQuestLog}
+      <Statusline mode={mode} activeId={activeSectionId} onOpenCmdline={handlers.openTelescope} onOpenQuestLog={handlers.openQuests} onOpenRegions={handlers.openRegions} />
+      <Telescope
+        isOpen={open.telescope}
+        initialQuery={open.telescopeQuery}
+        onClose={handlers.closeTelescope}
+        onOpenQuestLog={handlers.openQuests}
+        onOpenSearch={handlers.openSearch}
+        onOpenWhichKey={handlers.openWhichKey}
       />
-      <CommandMenu
-        isOpen={isCmdlineOpen}
-        onClose={closeCmdline}
-        colorscheme={colorscheme}
-        onSetColorscheme={applyColorscheme}
-        onOpenQuestLog={openQuestLog}
-        onOpenSearch={openSearch}
-      />
-      <AnimatePresence>{isSearchOpen && <SearchLine onClose={closeSearch} />}</AnimatePresence>
-      <QuestLog isOpen={isQuestLogOpen} onClose={closeQuestLog} />
+      <WhichKey isOpen={open.whichKey} bindings={leaderBindings} onClose={handlers.closeWhichKey} />
+      <AnimatePresence>{open.search && <SearchLine onClose={handlers.closeSearch} />}</AnimatePresence>
+      <QuestLog isOpen={open.quests} onClose={handlers.closeQuests} />
       <Resume />
-      {isHinting && <HintMode onClose={closeHints} />}
-      <Splash />
+      {open.hints && <HintMode onClose={handlers.closeHints} />}
+      <RelicStage />
+      <Banner />
+      <Rest isBusy={() => isAnyOpen} />
+      <Hub />
       <Pointer />
     </MotionConfig>
   );

@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { echo } from "./echo";
 
-// whether nvim-tree is open, shared by \e, :tree, the statusline and the phone menu. it starts closed, like nvim
+// whether neo-tree is open, shared by \e, :tree, the statusline and the phone menu. it starts closed, like nvim
 let isOpen = false;
 const listeners = new Set();
 
@@ -42,7 +42,7 @@ export const toggleFileTree = ({ focus = false } = {}) => {
   setFileTreeOpen(!isOpen, { focus });
   // the keys only mean something with a keyboard, so a phone skips the hint
   const hasKeyboard = globalThis.matchMedia?.("(hover: hover) and (pointer: fine)").matches;
-  if (isOpen && hasKeyboard) echo("NvimTree · j/k move · l open · h close · q or \\e to hide");
+  if (isOpen && hasKeyboard) echo("Neo-tree · j/k move · l open · h close · q or \\e to hide");
 };
 
 export const closeFileTree = () => setFileTreeOpen(false);

@@ -9,6 +9,7 @@ const ENDPOINTS = {
   getNavBar: "/navbar",
   getAbout: "/about",
   getProjects: "/projects",
+  getCaseStudies: "/case-studies",
   getSkills: "/skills",
   getContact: "/contact",
   getRepos: "/github/repos",

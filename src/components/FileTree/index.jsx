@@ -5,6 +5,7 @@ import { useGetNavBarQuery } from "../../api/navBarApi";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useGetReposQuery } from "../../api/githubApi";
 import { useGetAboutQuery } from "../../api/aboutApi";
+import { useGetCaseStudiesQuery } from "../../api/caseStudiesApi";
 import { useActiveSection } from "../../hooks/useActiveSection";
 import { buildFileTree, sectionIdFromUrl } from "../../actions";
 import { scrollToSection } from "../../lib/smoothScroll";
@@ -88,7 +89,7 @@ const DirectoryRow = ({ node, isOpen, isActive, activeChildId, onToggle, onOpenF
             transition={{ duration: 0.35, ease: easeOutExpo }}
             className="relative overflow-hidden"
           >
-            {/* the indent guide nvim-tree draws down an open folder */}
+            {/* the indent guide neo-tree draws down an open folder */}
             <span className="absolute top-0 bottom-1 left-[2.4rem] w-px bg-line" aria-hidden="true" />
             <ul>
               {node.children.map((child) => (
@@ -109,7 +110,7 @@ const DirectoryRow = ({ node, isOpen, isActive, activeChildId, onToggle, onOpenF
   );
 };
 
-// nvim-tree's own keys while a row has focus: j/k walk the rows, l opens, h closes or climbs to the parent folder,
+// neo-tree's own keys while a row has focus: j/k walk the rows, l opens, h closes or climbs to the parent folder,
 // q closes the tree and esc hands focus back to the page
 const walkTree = (event, { toggleDirectory }) => {
   const rows = [...event.currentTarget.querySelectorAll("button")];
@@ -131,7 +132,7 @@ const walkTree = (event, { toggleDirectory }) => {
     h: () => (directory ? isOpen && toggleDirectory(directory, false) : rows.find((each) => each.dataset.dir === row.dataset.parent)?.focus()),
     ArrowLeft: () => (directory ? isOpen && toggleDirectory(directory, false) : rows.find((each) => each.dataset.dir === row.dataset.parent)?.focus()),
     Escape: () => row.blur(),
-    // nvim-tree's own key for closing the tree
+    // neo-tree's own key for closing the tree
     q: () => closeFileTree(),
   };
 
@@ -149,12 +150,13 @@ const TreeList = ({ group, onNavigate, scrollsOnOpen = true, ...props }) => {
   const { data: projects = [] } = useGetProjectsQuery();
   const { data: repos = [] } = useGetReposQuery();
   const { data: about } = useGetAboutQuery();
+  const { data: caseStudies = [] } = useGetCaseStudiesQuery();
   // what the visitor opened or closed by hand wins over following the scroll
   const [toggled, setToggled] = useState({});
 
   const tree = buildFileTree(
     links.map((link) => sectionIdFromUrl(link.url)),
-    { projects, repos, hasCertifications: (about?.certifications ?? []).length > 0 }
+    { projects, caseStudies, repos, hasCertifications: (about?.certifications ?? []).length > 0 }
   );
   const activeSectionId = useActiveSection(tree.map((node) => node.sectionId));
   const activeNode = tree.find((node) => node.sectionId === activeSectionId);
@@ -217,7 +219,7 @@ const TreeRail = () => {
       transition={{ type: "spring", stiffness: 380, damping: 38 }}
       aria-label="Sections"
       data-search-skip
-      className="fixed top-0 bottom-7 left-0 z-40 flex w-10 flex-col items-center border-r border-line bg-panel/95 py-2 font-mono text-[11px] backdrop-blur-xl"
+      className="fixed top-12 bottom-7 left-0 z-30 flex w-10 flex-col items-center border-r border-line bg-panel/95 py-2 font-mono text-[11px] backdrop-blur-xl"
     >
       <button
         type="button"
@@ -267,14 +269,14 @@ const TreeRail = () => {
         aria-hidden="true"
       >
         <span className="rotate-180 inline-block">
-          <span className="text-muted">\e</span> NvimTree
+          <span className="text-muted">\e</span> Neo-tree
         </span>
       </button>
     </motion.nav>
   );
 };
 
-// nvim-tree as a split down the left edge, toggled by \e, :tree, the statusline or the phone menu. on wide screens the
+// neo-tree as a split down the left edge, toggled by \e, :tree, the statusline or the phone menu. on wide screens the
 // page moves over to make room, the way a split does. on smaller ones it slides over the page and a pick closes it
 const FileTree = ({ onOpenCmdline }) => {
   const isOpen = useFileTreeOpen();
@@ -307,7 +309,7 @@ const FileTree = ({ onOpenCmdline }) => {
             transition={slide}
             aria-label="Sections"
             data-search-skip
-            className="fixed top-0 bottom-7 left-0 z-50 flex w-[min(20rem,85vw)] flex-col border-r border-line bg-panel/95 font-mono text-sm backdrop-blur-xl xl:z-40 xl:w-64 xl:bg-panel/80 xl:text-xs"
+            className="fixed top-12 bottom-7 left-0 z-50 flex w-[min(20rem,85vw)] flex-col border-r border-line bg-panel/95 font-mono text-sm backdrop-blur-xl xl:z-40 xl:w-64 xl:bg-panel/80 xl:text-xs"
           >
             <div className="flex items-center justify-between gap-2 border-b border-line py-2 pr-2 pl-4">
               <a href="#home" onClick={() => !isWide && closeFileTree()} className="flex items-center gap-2 py-1.5 text-muted transition-colors hover:text-fg">
