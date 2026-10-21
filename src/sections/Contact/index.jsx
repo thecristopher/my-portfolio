@@ -1,17 +1,20 @@
 import { useRef, useState } from "react";
 import { motion, useMotionTemplate, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { ArrowUpRight, Check, Copy, SkipForward } from "lucide-react";
+import { ArrowUpRight, Check, Copy, Download, SkipForward } from "lucide-react";
 import TextReveal from "../../components/TextReveal";
-import TerminalWindow from "../../components/TerminalWindow";
+import EditorWindow from "../../components/EditorWindow";
 import TypeLine from "../../components/TypeLine";
-import Seal from "../../components/Seal";
-import Scramble from "../../components/Scramble";
-import { Bat, Grace } from "../../components/Secrets";
+import FileIcon from "../../components/FileIcon";
+import { Trigger as BatSignal } from "../../components/Relics/Batman";
+import { Trigger as SiteOfGrace } from "../../components/Relics/EldenRing";
+import { Trigger as D20 } from "../../components/Relics/BaldursGate";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetContactQuery } from "../../api/contactApi";
 import { socialIconMap } from "../../lib/socialIconMap";
 import { easeOutExpo } from "../../lib/motion";
 import { echo } from "../../lib/echo";
+import { earnRunes } from "../../lib/runes";
+import { exportResume } from "../../lib/resume/exportResume";
 
 const CopyEmailButton = ({ email }) => {
   const [isCopied, setIsCopied] = useState(false);
@@ -87,7 +90,7 @@ const ContactTerminal = ({ contact }) => {
   };
 
   return (
-    <TerminalWindow title="~/contact · zsh" bodyClassName="p-6 sm:p-10">
+    <EditorWindow path={["cristopher", "contact.sh"]}>
       <div className="flex flex-col gap-4 font-mono text-sm">
         <div className="flex items-center justify-between gap-4">
           <p className="text-faint"># what're ya buyin', stranger?</p>
@@ -106,16 +109,13 @@ const ContactTerminal = ({ contact }) => {
           <motion.div {...printedLine(0)} className="flex flex-col gap-4 pb-4">
             <a
               href={contact.mailto}
+              onClick={() => earnRunes("contact", "contact")}
               className="group inline-flex w-fit items-center gap-3 font-sans text-[clamp(1rem,4.2vw,3rem)] font-medium tracking-[-0.03em] transition-colors hover:text-accent"
             >
               <EmailAddress email={contact.email} />
               <ArrowUpRight className="shrink-0 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
             </a>
-            {/* the email is the Bat-Signal, so the bat waits right next to it */}
-            <div className="flex items-center gap-2">
-              <CopyEmailButton email={contact.email} />
-              <Bat />
-            </div>
+            <CopyEmailButton email={contact.email} />
           </motion.div>
         )}
 
@@ -148,16 +148,13 @@ const ContactTerminal = ({ contact }) => {
         {hasExited && (
           <motion.div {...printedLine(0)} className="flex flex-col gap-1 text-faint">
             <p>logout</p>
-            <p className="flex items-center gap-1">
-              <span>
-                <span className="text-accent">#</span> touch grace any time, Tarnished.
-              </span>
-              <Grace className="-my-1.5" />
+            <p>
+              <span className="text-accent">#</span> touch grace any time, Tarnished.
             </p>
           </motion.div>
         )}
       </div>
-    </TerminalWindow>
+    </EditorWindow>
   );
 };
 
@@ -170,37 +167,92 @@ const SunsetHeadline = () => {
   const clipPath = useMotionTemplate`inset(0 ${unlit}% 0 0)`;
 
   return (
-    <h2 ref={ref} className="text-[clamp(2.75rem,9vw,7.5rem)] leading-[0.92] font-medium tracking-[-0.05em]">
+    <h2 ref={ref} className="text-[clamp(2.75rem,9vw,7.5rem)] leading-[0.92] font-semibold tracking-[-0.055em]">
       <TextReveal text="Let's build" className="block" />
       <span className="relative block">
         <TextReveal text="something that lasts." delay={0.15} className="block text-muted" />
         <motion.span aria-hidden="true" data-search-skip className="absolute inset-0" style={{ clipPath: prefersReducedMotion ? "none" : clipPath }}>
-          <TextReveal text="something that lasts." delay={0.15} className="block text-accent" />
+          <TextReveal text="something that lasts." delay={0.15} className="block text-gold" />
         </motion.span>
       </span>
     </h2>
   );
 };
 
-const Contact = () => {
+// the three ways in, as big as Apple makes its last call to action
+const CallsToAction = ({ contact }) => (
+  <div className="flex flex-wrap items-center gap-3">
+    <a
+      href={contact.mailto}
+      onClick={() => earnRunes("contact", "contact")}
+      className="group inline-flex items-center gap-2 rounded-full bg-accent px-7 py-4 text-base font-semibold text-ink transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
+    >
+      Email me
+      <ArrowUpRight size={18} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+    </a>
+    <button
+      type="button"
+      onClick={exportResume}
+      className="group inline-flex items-center gap-2 rounded-full border border-line-strong px-7 py-4 text-base font-medium transition-colors hover:border-faint"
+    >
+      Download résumé
+      <Download size={17} className="text-muted transition-transform group-hover:translate-y-0.5" />
+    </button>
+    {contact.socials
+      .filter((social) => social.name === "LinkedIn")
+      .map((social) => (
+        <a key={social.id} href={social.url} target="_blank" rel="noreferrer" className="px-3 text-base text-accent underline-offset-4 hover:underline">
+          LinkedIn ›
+        </a>
+      ))}
+  </div>
+);
+
+// the night over the last section: the bat signal up in the clouds, a grace on the ground and the dice on the table
+const Relics = () => (
+  <div className="flex flex-col gap-10 pt-6">
+    <p className="text-center font-mono text-xs text-faint">
+      <span className="text-accent">//</span> three relics left on the table for whoever reads to the end. touch them
+    </p>
+    <div className="grid items-end gap-x-16 gap-y-24 sm:grid-cols-3">
+      <div className="flex justify-center sm:scale-125">
+        <BatSignal />
+      </div>
+      <div className="flex justify-center sm:scale-150">
+        <SiteOfGrace />
+      </div>
+      <div className="flex justify-center sm:scale-125">
+        <D20 />
+      </div>
+    </div>
+  </div>
+);
+
+/** contact.sh: the closing line, every way to reach me, and three relics for whoever stays until the end. */
+const Contact = ({ number }) => {
   const { data: contact, isLoading, isError } = useGetContactQuery();
 
   return (
     <section id="contact" className="relative pt-16 pb-20 sm:pt-24 sm:pb-28">
-      <div className="relative mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
-        <div className="flex items-end justify-between gap-8">
-          <div className="flex flex-col gap-6">
-            <p className="font-mono text-xs tracking-[0.15em] text-muted">
-              <span className="text-accent">07</span> <span className="text-faint">/</span> <Scramble text="contact.sh" />
-            </p>
-            <SunsetHeadline />
-          </div>
-          <Seal id="contact" label="contact.sh" index="07" className="mb-3 hidden shrink-0 lg:block" />
+      <div className="relative mx-auto flex max-w-6xl flex-col gap-14 px-4 sm:px-6">
+        <div className="flex flex-col gap-6">
+          <p className="flex items-center gap-2 font-mono text-xs text-faint">
+            <span className="text-accent tabular-nums">{String(number).padStart(2, "0")}</span>
+            <span className="h-px w-6 bg-line-strong" aria-hidden="true" />
+            <FileIcon name="contact.sh" size={12} />
+            <span className="text-muted">contact.sh</span>
+          </p>
+          <SunsetHeadline />
+          <p className="max-w-2xl text-lg leading-relaxed text-muted text-pretty sm:text-xl">
+            Hiring for a team that ships, or just want to talk shop? I read every message, and I answer.
+          </p>
+          {contact && <CallsToAction contact={contact} />}
         </div>
 
         {isLoading && <SkeletonLines lines={2} />}
         {isError && <LoadError what="contact details" />}
         {contact && <ContactTerminal contact={contact} />}
+        <Relics />
       </div>
     </section>
   );

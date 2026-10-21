@@ -4,11 +4,6 @@ export const splitParagraphs = (text = "") =>
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
 
-export const extractYearsOfExperience = (text = "") => {
-  const match = text.match(/(\d+\+?)\s+years/i);
-  return match ? match[1] : null;
-};
-
 // the API has entries like "Docker (optional)" and we only want the tool name
 export const cleanTechName = (name = "") =>
   name.replace(/\s*\(.*?\)\s*/g, "").trim();
@@ -32,9 +27,6 @@ export const wordRevealRange = (index, total) => {
   const start = index / total;
   return [start, start + 1 / total];
 };
-
-// cards further back in the stack shrink a little more, so the pile reads as depth
-export const stackScale = (index, total) => 1 - (total - index - 1) * 0.04;
 
 export const splitStatValue = (value) => {
   const match = String(value).match(/^(\d+)(.*)$/);
@@ -72,20 +64,16 @@ export const filterCommands = (commands, query = "") => {
 
 const BUFFER_NAMES = {
   home: "index.tsx",
-  manifesto: "philosophy.md",
   about: "about.md",
-  work: "work.json",
-  education: "education.toml",
-  github: "repos.yml",
+  work: "experience.json",
+  projects: "projects.ts",
   skills: "skills.lua",
+  github: "side-quests.yml",
+  education: "education.toml",
   contact: "contact.sh",
 };
 
 export const bufferNameFor = (sectionId = "") => BUFFER_NAMES[sectionId] ?? `${sectionId}.md`;
-
-// the other way around, so a secret's hint can jump to the buffer it hides in
-export const sectionIdForBuffer = (bufferName) =>
-  Object.keys(BUFFER_NAMES).find((sectionId) => BUFFER_NAMES[sectionId] === bufferName) ?? null;
 
 // the same Top / Bot / percent readout nvim shows in its ruler
 export const scrollPosition = (scrollY, maxScroll) => {
@@ -95,16 +83,10 @@ export const scrollPosition = (scrollY, maxScroll) => {
   return `${Math.round((scrollY / maxScroll) * 100)}%`;
 };
 
-const FILE_TYPES = { tsx: "typescriptreact", md: "markdown", json: "json", lua: "lua", sh: "sh", yml: "yaml", toml: "toml" };
+const FILE_TYPES = { tsx: "typescriptreact", ts: "typescript", md: "markdown", json: "json", lua: "lua", sh: "sh", yml: "yaml", toml: "toml" };
 
 // what nvim would print as the filetype in the statusline
 export const fileTypeFor = (bufferName = "") => FILE_TYPES[bufferName.split(".").pop()] ?? "text";
-
-export const THEMES = ["rosarito", "kanagawa", "catppuccin", "rose-pine", "ember", "lotus"];
-// home: Baja at dusk. everyone lands here first, whatever their system is set to
-export const DEFAULT_THEME = "rosarito";
-
-export const resolveTheme = (saved) => (THEMES.includes(saved) ? saved : DEFAULT_THEME);
 
 export const isMaxLevel = (level, maxLevel) => level >= maxLevel;
 
@@ -170,13 +152,29 @@ export const revealCircle = ({ x, y }, { width, height }) => ({
   radius: Math.hypot(Math.max(x, width - x), Math.max(y, height - y)),
 });
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-// the hero stat reads "2x" so it counts up like the others but still says certifications, not companies
-export const timesCertified = (certifications = []) => (certifications.length > 0 ? `${certifications.length}x` : null);
+/**
+ * Formats a "2021" or "2021-03" date the way resumes print it.
+ * @param {string | null} value year or year and month
+ * @returns {string | null} like "Mar 2021" or "2021", null when empty
+ */
+export const formatMonth = (value) => {
+  if (!value) return null;
+  const [year, month] = value.split("-");
+  return month ? `${MONTHS[Number(month) - 1]} ${year}` : year;
+};
 
-export const formatYears = (start, end) => {
-  if (start && end) return start === end ? `${start}` : `${start} – ${end}`;
-  return start ? `${start} – present` : null;
+/**
+ * The dates a role ran, "Present" while it's still going.
+ * @param {string | null} start when it started
+ * @param {string | null} end when it ended, null while current
+ * @returns {string | null} like "Mar 2021 – Present", null when the start isn't known
+ */
+export const formatRange = (start, end) => {
+  const from = formatMonth(start);
+  if (!from) return null;
+  return `${from} – ${formatMonth(end) ?? "Present"}`;
 };
 
 // a stable fake sha per commit, so the career log reads like git without changing between visits
@@ -191,7 +189,7 @@ export const shortHash = (text = "") => {
 export const careerCommits = (projects = []) => {
   const commits = projects.flatMap((project) => {
     const roles = project.roles?.length ? project.roles : [null];
-    const years = formatYears(project.start_year, project.end_year);
+    const years = formatRange(project.start, project.end);
     return roles
       .map((role, step) => ({
         hash: shortHash(`${project.title}:${role ?? step}`),
@@ -242,15 +240,11 @@ const WEEKEND_STATUS = [
 export const nowStatus = ({ hour, isWeekend }) =>
   (isWeekend ? WEEKEND_STATUS : WEEKDAY_STATUS).find(([until]) => hour < until)[1];
 
-// the nav from the api skips the philosophy, but it is a buffer too, right after the hero
-export const withManifesto = (sectionIds = []) =>
-  sectionIds.includes("home") ? ["home", "manifesto", ...sectionIds.filter((id) => id !== "home")] : sectionIds;
-
 const file = (name, targetId) => ({ name, targetId });
 
 // what each section holds when the file tree opens it as a directory. a section left out stays a single file
 const SECTION_FILES = {
-  about: () => [file("about.md", "bio"), file("profile.json", "profile")],
+  about: () => [file("philosophy.md", "philosophy"), file("about.md", "bio"), file("principles.md", "principles")],
   work: ({ projects }) => {
     const { featured, earlier } = splitFeatured(projects);
     return [
@@ -259,18 +253,19 @@ const SECTION_FILES = {
       ...(earlier.length > 0 ? [file("earlier.log", "work-earlier")] : []),
     ];
   },
-  education: ({ hasCertifications }) => [file("degree.toml", "degree"), ...(hasCertifications ? [file("aws-certs.toml", "certifications")] : [])],
-  github: ({ repos }) => repos.map((repo) => file(`${repo.name}.git`, `repo-${slugify(repo.name)}`)),
+  projects: ({ caseStudies }) => caseStudies.map((study) => file(`${study.slug}.ts`, `project-${study.slug}`)),
   skills: () => [file("cards.lua", "skill-cards"), file("checkhealth", "checkhealth")],
+  github: ({ repos }) => repos.map((repo) => file(`${repo.name}.git`, `repo-${slugify(repo.name)}`)),
+  education: ({ hasCertifications }) => [file("degree.toml", "degree"), ...(hasCertifications ? [file("aws-certs.toml", "certifications")] : [])],
 };
 
-const DIRECTORY_NAMES = { github: "side-quests" };
+const DIRECTORY_NAMES = { github: "side-quests", work: "experience" };
 
-// the sidebar like nvim-tree draws it: the hero and the philosophy as files up top, each section with
-// something inside as a directory, and the rest as plain files in nav order
-export const buildFileTree = (sectionIds = [], { projects = [], repos = [], hasCertifications = false } = {}) =>
-  withManifesto(sectionIds).map((sectionId) => {
-    const children = SECTION_FILES[sectionId]?.({ projects, repos, hasCertifications }) ?? [];
+// the sidebar like neo-tree draws it: each section with something inside as a directory, the rest as plain
+// files in nav order
+export const buildFileTree = (sectionIds = [], { projects = [], caseStudies = [], repos = [], hasCertifications = false } = {}) =>
+  sectionIds.map((sectionId) => {
+    const children = SECTION_FILES[sectionId]?.({ projects, caseStudies, repos, hasCertifications }) ?? [];
     if (children.length === 0) return { sectionId, name: bufferNameFor(sectionId), isDirectory: false, children };
     return { sectionId, name: `${DIRECTORY_NAMES[sectionId] ?? sectionId}/`, isDirectory: true, children };
   });
@@ -280,24 +275,6 @@ export const buildFileTree = (sectionIds = [], { projects = [], repos = [], hasC
 export const letterWeight = (distance, { rest = 500, peak = 820, reach = 240 } = {}) => {
   const closeness = Math.max(0, 1 - distance / reach);
   return rest + (peak - rest) * closeness * closeness * (3 - 2 * closeness);
-};
-
-const SCRAMBLE_GLYPHS = "abcdefghijklmnopqrstuvwxyz0123456789/._-~#$";
-
-// one frame of a label decoding itself: the letters up to how far along it is are real, the rest are noise.
-// punctuation and spaces hold still so the shape of the word reads from the start
-export const scrambleFrame = (text = "", progress = 0, random = Math.random) =>
-  [...text]
-    .map((letter, index) => {
-      if (index < Math.floor(progress * text.length) || /[\s.·/]/.test(letter)) return letter;
-      return SCRAMBLE_GLYPHS[Math.floor(random() * SCRAMBLE_GLYPHS.length)];
-    })
-    .join("");
-
-// keeps a value looping inside [min, max), the way the stack ribbon wraps its offset back around
-export const wrapRange = (min, max, value) => {
-  const span = max - min;
-  return ((((value - min) % span) + span) % span) + min;
 };
 
 // each tool in the color its own logo uses. the ones whose logo is plain black follow the text color instead
@@ -432,8 +409,3 @@ export const stepSection = (ids = [], currentId, direction) => {
   if (at === -1) return ids[0] ?? null;
   return ids[Math.min(ids.length - 1, Math.max(0, at + direction))];
 };
-
-
-// which slide a sideways gallery is resting on, from how far it has scrolled
-export const activeSlide = ({ scrollLeft, slideWidth, count }) =>
-  slideWidth > 0 ? Math.min(count - 1, Math.max(0, Math.round(scrollLeft / slideWidth))) : 0;

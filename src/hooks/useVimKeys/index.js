@@ -11,9 +11,11 @@ const DOUBLE_TAP_MS = 450;
 // vim's default leader. <leader>e toggles the file tree, the way most nvim-tree setups map it
 const LEADER = "\\";
 
-export const HELP_TEXT = "f follow a link · 1-7 or ]] [[ sections · j/k scroll · d/u half page · gg/G ends · h/l repos · / search · \\e tree · : commands";
+export const HELP_TEXT = "space leader · f follow a link · 1-8 or ]] [[ sections · j/k scroll · d/u half page · gg/G ends · / search · \\e tree · : telescope";
 
 const isTypingIn = (target) => target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA"].includes(target.tagName));
+
+const isPressable = (target) => target instanceof Element && Boolean(target.closest("button, a, summary, [role='button']"));
 
 // the file tree handles its own j/k while it has focus, so the page doesn't scroll underneath
 const isInFileTree = (target) => target instanceof Element && Boolean(target.closest("[data-file-tree]"));
@@ -34,12 +36,14 @@ const announceStep = (step) => {
   else echo("E35: No previous regular expression", "error");
 };
 
-export const useVimKeys = ({ onOpenCmdline, onOpenSearch, onOpenHints, sectionIds = [], bufferIds = [], isPaused }) => {
+export const useVimKeys = ({ onOpenCmdline, onOpenSearch, onOpenHints, onOpenWhichKey, sectionIds = [], bufferIds = [], isPaused }) => {
   const lastKeyRef = useRef({ key: "", at: 0 });
 
   useEffect(() => {
     const handleKey = (event) => {
       if (isPaused || event.metaKey || event.ctrlKey || event.altKey || isTypingIn(event.target) || isInFileTree(event.target)) return;
+      // space on a focused button presses it, the leader only applies to the page itself
+      if (event.key === " " && isPressable(event.target)) return;
 
       const previous = lastKeyRef.current;
       const isQuickFollowUp = Date.now() - previous.at < DOUBLE_TAP_MS;
@@ -62,7 +66,9 @@ export const useVimKeys = ({ onOpenCmdline, onOpenSearch, onOpenHints, sectionId
         l: () => nudgeShelf(1),
         "/": () => onOpenSearch(),
         ":": () => onOpenCmdline(),
-        "?": () => echo(HELP_TEXT),
+        "?": () => onOpenWhichKey(),
+        // the leader is space, like Eldentree. which-key shows what it unlocks
+        " ": () => onOpenWhichKey(),
         Escape: () => clearSearch(),
       };
 
@@ -101,5 +107,5 @@ export const useVimKeys = ({ onOpenCmdline, onOpenSearch, onOpenHints, sectionId
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [onOpenCmdline, onOpenSearch, onOpenHints, sectionIds, bufferIds, isPaused]);
+  }, [onOpenCmdline, onOpenSearch, onOpenHints, onOpenWhichKey, sectionIds, bufferIds, isPaused]);
 };

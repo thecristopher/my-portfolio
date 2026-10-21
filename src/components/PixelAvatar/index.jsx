@@ -273,8 +273,8 @@ const SpeechBubble = () => (
 );
 
 // a tiny fighting stance me: drops in, bounces on his toes, blinks, looks around, hops when the page scrolls,
-// waves hello with a grin, and jabs when poked
-const PixelAvatar = ({ className = "", entersAfterMs = 0, firstWaveAfterMs = FIRST_WAVE_MS }) => {
+// waves hello with a grin, and jabs when poked. onPoke hears about every jab, so a combo can set something off
+const PixelAvatar = ({ className = "", entersAfterMs = 0, firstWaveAfterMs = FIRST_WAVE_MS, onPoke }) => {
   const buttonRef = useRef(null);
   const isOnScreen = useInView(buttonRef);
   const prefersReducedMotion = useReducedMotion();
@@ -347,6 +347,7 @@ const PixelAvatar = ({ className = "", entersAfterMs = 0, firstWaveAfterMs = FIR
     if (isBusy.current) return;
     stopMove();
     playSound("punch");
+    onPoke?.();
     if (prefersReducedMotion) return;
     const snap = { duration: 0.32, ease: (progress) => Math.round(progress * 4) / 4 };
     isBusy.current = true;

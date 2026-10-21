@@ -1,58 +1,61 @@
 # cristophercervantes.com
 
-My personal portfolio. It looks and behaves like a Neovim buffer, has a tiny Scott Pilgrim style pixel me living in the hero, and hides a few secrets for anyone who pokes around.
+My personal portfolio, drawn from my Neovim config. The config is Eldentree: Catppuccin recolored for whichever Elden Ring region you wake up in, with a dashboard, banners, a rune tally and a Site of Grace to rest at. The site is that editor, laid out like an Apple product page: huge type, scenes that hold still while you scroll, frosted glass and bento tiles.
 
 Live at [cristophercervantes.com](https://cristophercervantes.com). The content comes from [my-portfolio-service](https://github.com/thecristopher/my-portfolio-service), a small FastAPI backend.
 
+## For recruiters
+
+- The **Résumé** button is on every screen. It writes a real PDF in the browser (one column, standard section names, selectable text and working links, so applicant tracking systems read it cleanly), built from the same API as the page, so it's never out of date. `space r`, `:resume` and the hub's `r` do the same. `⌘P` prints the same resume.
+- The hero's `profile.ts` and the bento under it hold the quick facts: role, years, location, timezone, stack, certifications and languages.
+- Experience reads one company per chapter with the wins as resume bullets, and Projects walks through challenge, approach and outcome.
+
 ## What's in it
 
-The first visit opens on an nvim dashboard that boots and then pushes through into the page. On a mouse, the cursor is vim's block: it inverts whatever it sits on, wraps itself around anything you can click the way iPadOS does, and thins into the insert bar over a text field. A wash of colored light sits behind the whole page and takes on each section's colors as you reach it.
+The first visit opens on Eldentree's hub: my name shimmering in the region's gold, embers rising and a player message writing itself in, then the area's name rolls across the screen like entering it in the game. Any key skips it.
 
-Every section has its own seal (its buffer name running around a ring that turns as you scroll, with a mark that draws itself in the middle), its number set huge and hollow behind the header, a label that decodes itself like a terminal, and its own way of moving:
-
-- **Hero** with my name set in Geist's variable weights, the letters bulking up as the cursor passes (on a phone, a wave rolls through them once), the pixel avatar, a blueprint grid that lights up under your cursor and buttons that lean toward it. He drops in, bounces on his toes in a fighting stance, blinks, glances around, waves hello, hops when you scroll and throws a jab when you poke him. Scroll away and the grid tips back into a floor running off to the horizon.
-- **Philosophy**, which holds the page still while the sentence lights up word by word, with a reading line filling underneath. After it, two ribbons run in opposite directions, every tool I've shipped with and how I like to work, racing and leaning with how fast you scroll.
-- **About** with the bio, a portrait that drifts inside its frame as you scroll, and a `profile.json` that types itself out.
-- **Work**, opened by a `git log --graph` of my career whose branch line draws itself as you read (every title I've held is a commit, the first job is the root commit), then a stack of cards for every place I've shipped software. Click any tool in a card's stack, or in the skills' `:checkhealth`, and the jobs that never used it fade back.
-- **Education**, the degree and the AWS badges, with light glinting across each badge like a foil seal.
-- **Side quests**, my public GitHub repos pulled live from the GitHub API. On wide screens the page pins and the repos slide past sideways as you keep scrolling. Repos without a description show the first paragraph of their README instead.
-- **Skills**, how I lead and the tools I reach for, dealt onto the page like cards. Every tool in the report greps the work history for it.
-- **Contact**, where the closing line fills with the sunset as you scroll to it, and a terminal logs you in and out. It can be skipped, and it prints straight away on a return visit.
+- **Hero** with my name in Geist's variable weights and the pixel me (Scott Pilgrim style) in the tall grass. Scroll and the name sinks back while `profile.ts` rises out of the page.
+- **About**: the philosophy, held still while it lights up word by word; the page at a glance as bento tiles; the story with my portrait; and how I lead, as four vim marks.
+- **Experience**: a `git log --graph` of every title I've held, then one chapter per company, the masthead pinned while the wins light up as they pass. Click any tool in a stack, or in the skills report, and the jobs that never used it fade back.
+- **Projects**: case studies on a rail that slides sideways while you scroll down.
+- **Skills**: how I lead as a deck of cards, and every tool as a `:checkhealth` report grouped by category.
+- **Side quests**: my public repos live from GitHub, browsed like a Telescope picker.
+- **Education**: the degree and the AWS badges.
+- **Contact**: the closing line filling with gold, every way to reach me and a terminal that logs in and out.
 
 The page paints with real content straight away: every build saves what the API serves into `src/data/snapshot.json`, the page starts from that, and then asks the API for anything newer.
+
+### Regions
+
+The colorschemes are Eldentree's six regions with their exact palettes: Leyndell, Haligtree, Raya Lucaria, Caelid, Mohgwyn and Ordina. Like in nvim, the first visit wakes up in Leyndell and every visit after that rolls one you didn't see last time. Pick one in `:region` (Telescope repaints the page live while you move through the list, and puts it back if you leave) and it stays pinned. The new region spreads out in a circle from where you clicked, and the browser bar and tab icon follow it.
 
 ### The editor bits
 
 | Key | What it does |
 | --- | --- |
-| `f` | Follow a hint: every link and button on screen gets a short label, type it to click. Nothing needs the mouse |
-| `1` to `7` | Jump to a section by its buffer number |
+| `space` | The leader. which-key shows what it unlocks: résumé, yank my email, telescope, neo-tree, regions, quest log and more |
+| `:` or `⌘K` | Telescope: every section, project, command and region, with a preview |
+| `f` | Follow a hint: every link and button on screen gets a short label, type it to click |
+| `1` to `8` | Jump to a section by its buffer number |
 | `]]` / `[[` | Next / previous section |
-| `j` / `k` | Scroll down / up |
-| `d` / `u` | Half page down / up |
+| `j` / `k`, `d` / `u` | Scroll a line, or half a page |
 | `gg` / `G` | Jump to top / bottom |
-| `h` / `l` | Slide the side quests shelf while it's on screen |
 | `/` | Search the page. `n` / `N` step through the matches, `esc` or `:noh` clears them |
-| `\e` | Toggle the file tree. In it, `j` / `k` move, `l` opens, `h` closes or climbs to the folder, `q` hides it, `esc` goes back |
-| `:` or `⌘K` | Open the command line |
+| `\e` | Toggle neo-tree. In it, `j` / `k` move, `l` opens, `h` closes, `q` hides it |
 
-From the command line you can jump to any section, search, copy my email, mute the sound, open the quest log, or switch between six colorschemes. The default is `rosarito`, Baja at dusk with the sunset in the accent, made for this site, and everyone starts there. `kanagawa`, `catppuccin`, `rose-pine`, `ember` and the light `lotus` are there too. In browsers with View Transitions, the new colorscheme spreads out in a circle from wherever you clicked, and the browser bar and tab icon follow it.
+The bufferline across the top has a tab per section on wide screens. The lualine at the bottom shows the mode, the buffer, the relic score, the rune tally (exploring pays runes, once per thing), my local time in Rosarito with a guess at what I'm doing, the region and where in the page you are. Leave the page alone long enough and it rests at a Site of Grace, the way Eldentree does. Some commands are hidden, if you know what to type.
 
-On wide screens there's no top nav at all, the keyboard and the file tree cover it. The sections live in a file tree drawn like nvim-tree that stays out of the way until you ask for it: `\e` or `:tree` opens it, and on phones so does the menu button. While it's closed on a wide screen it folds down to a slim rail on the left edge, one icon per section, so it's always clear it's there. On wide screens it docks down the left edge like a split and the page moves over; on phones it slides over the page and closes once you pick a file. The cursorline follows the file on screen.
+### Relics
 
-The statusline at the bottom shows the current mode, buffer and scroll position, the search and its match count, my local time in Rosarito with a guess at what I'm doing, and a sound toggle. On a phone, tapping the mode opens the command line.
-
-### Secrets
-
-There are 11 of them hidden around the page, each with its own full screen moment and a little synth jingle generated on the fly (no audio files shipped). The page remembers which ones you found. After the first find, the score shows up in the statusline and opens a quest log (`:quests`). Its riddles stay locked for the first minute and a half, so the hunt stays a hunt. One of them asks the API to roll for you. Some commands are hidden too, if you know what to type. I'm not saying where any of them are.
+Twelve franchises I grew up with left a relic on the page, out in the open where its line fits it, each breathing softly until it's touched. Each one plays its own full screen moment with a jingle synthesized on the fly (no audio files shipped), and the quest log (`:quests`, `space q` or the score in the statusline) keeps what you found and says where the rest wait. Finds from before the redesign carry over. One of them asks the API to roll for you.
 
 ## Stack
 
 - React 19 + Vite 6
 - Tailwind CSS 4
-- Framer Motion for every animation
+- Framer Motion for every animation, Lenis for smooth scrolling
 - Redux Toolkit Query for API calls
-- Lenis for smooth scrolling
+- @react-pdf/renderer for the resume, loaded only when someone asks for it
 - Vitest for tests
 
 ## Running it locally
@@ -65,7 +68,7 @@ yarn install
 yarn dev
 ```
 
-The app runs at `http://localhost:5173`, which is the origin the backend allows for local development.
+The app runs at `http://localhost:5173`, which is the origin the backend allows for local development. The frontend reads fields the backend added with this redesign (`/case-studies`, resume bullets, principles), so deploy the backend first.
 
 | Command | What it does |
 | --- | --- |
@@ -80,14 +83,16 @@ The app runs at `http://localhost:5173`, which is the origin the backend allows 
 
 ```
 src/
-  sections/     one folder per page section (Hero, About, Work, GitHub, Skills, Contact...)
-  components/   shared UI, including PixelAvatar and the Secrets
+  sections/     one folder per page section, split into smaller pieces where it grows
+  components/   the editor chrome (Bufferline, Statusline, Telescope, WhichKey, FileTree, Hub, Banner, Rest) and shared UI
+  components/Relics/
+                one folder per relic: index.jsx (the object on the page), Effect.jsx (its moment), sound.js (its jingle)
+  lib/          regions, relics, runes, banners, sound, the resume (lib/resume) and other self contained pieces
   api/          RTK Query endpoints for the backend and GitHub
   actions/      small pure helpers, with tests next to them
-  lib/          the avatar sprite, sounds, secrets, motion presets
-  hooks/        vim keys, colorschemes, active section tracking
+  hooks/        vim keys, the region, active section tracking
 ```
 
 ### Editing the pixel avatar
 
-The sprite lives in `src/lib/avatarSprite.js` as plain text, one character per pixel, with a palette mapping each character to a color. Tweaking him is just editing text. The wave is three hand drawn frames in `WAVE_FRAMES` that play out and back, and the blink and smile are small overlays painted on top of the base sprite.
+The sprite lives in `src/lib/avatarSprite.js` as plain text, one character per pixel, with a palette mapping each character to a color. Tweaking him is just editing text.

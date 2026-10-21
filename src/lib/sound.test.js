@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SECRET_IDS } from "./secrets";
-import { SOUNDS, getMuted, noteFrequency, playSound, setMuted } from "./sound";
+import { UI_SOUNDS, getMuted, noteFrequency, playRecipe, playSound, setMuted } from "./sound";
 
 describe("noteFrequency", () => {
   it("tunes zero semitones to A4", () => {
@@ -12,31 +11,33 @@ describe("noteFrequency", () => {
   });
 });
 
-describe("SOUNDS", () => {
-  it("has a jingle for every secret", () => {
-    for (const id of SECRET_IDS) expect(SOUNDS).toHaveProperty(id);
+describe("UI_SOUNDS", () => {
+  it("has the jab and coins for the avatar", () => {
+    expect(UI_SOUNDS).toHaveProperty("punch");
+  });
+});
+
+describe("playRecipe", () => {
+  it("stays quiet when the browser has no Web Audio", () => {
+    expect(() => playRecipe(UI_SOUNDS.punch)).not.toThrow();
   });
 
-  it("has the jab and coins for the avatar", () => {
-    expect(SOUNDS).toHaveProperty("punch");
+  it("ignores a missing recipe", () => {
+    expect(() => playRecipe(undefined)).not.toThrow();
   });
 });
 
 describe("playSound", () => {
-  it("stays quiet when the browser has no Web Audio", () => {
-    expect(() => playSound("grace")).not.toThrow();
-  });
-
   it("ignores a sound it does not know", () => {
     expect(() => playSound("hollow-knight")).not.toThrow();
   });
 });
 
 describe("setMuted", () => {
-  it("flips the mute and keeps playSound quiet", () => {
+  it("flips the mute and keeps every sound quiet", () => {
     setMuted(true);
     expect(getMuted()).toBe(true);
-    expect(() => playSound("grace")).not.toThrow();
+    expect(() => playSound("punch")).not.toThrow();
     setMuted(false);
     expect(getMuted()).toBe(false);
   });

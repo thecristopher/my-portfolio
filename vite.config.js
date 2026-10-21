@@ -7,6 +7,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
     outDir: "dist",
+    // the pdf writer is the one big chunk, and it only downloads the first time someone asks for the resume
+    chunkSizeWarningLimit: 1300,
     rollupOptions: {
       output: {
         // the libraries change far less often than the site, so they get their own files and stay cached between deploys

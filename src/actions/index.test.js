@@ -10,21 +10,18 @@ import {
   glowFalloff,
   softBeams,
   brandColorFor,
-  wrapRange,
-  scrambleFrame,
   letterWeight,
   buildFileTree,
-  sectionIdForBuffer,
   careerCommits,
+  formatMonth,
+  formatRange,
   countUsing,
-  formatYears,
   localClock,
   nowStatus,
   shortHash,
   usesTech,
   cleanTechName,
   revealCircle,
-  extractYearsOfExperience,
   formatIndex,
   hostnameFromUrl,
   sectionIdFromUrl,
@@ -32,15 +29,12 @@ import {
   splitParagraphs,
   splitStatValue,
   splitWords,
-  timesCertified,
-  stackScale,
   wordRevealRange,
   filterCommands,
   findCommandByAlias,
   bufferNameFor,
   scrollPosition,
   fileTypeFor,
-  resolveTheme,
   isMaxLevel,
   spriteToPixels,
   isInRegion,
@@ -51,7 +45,6 @@ import {
   idleMoveDelay,
   markMainStack,
   splitFeatured,
-  activeSlide,
 } from "./index";
 
 describe("splitParagraphs", () => {
@@ -65,16 +58,6 @@ describe("splitParagraphs", () => {
 
   it("returns nothing for empty text", () => {
     expect(splitParagraphs("")).toEqual([]);
-  });
-});
-
-describe("extractYearsOfExperience", () => {
-  it("finds the years with a plus sign", () => {
-    expect(extractYearsOfExperience("Jill has 9+ years of experience")).toBe("9+");
-  });
-
-  it("returns null when no years are mentioned", () => {
-    expect(extractYearsOfExperience("Melina just shows up")).toBeNull();
   });
 });
 
@@ -123,16 +106,6 @@ describe("wordRevealRange", () => {
 
   it("gives the last word the final slice", () => {
     expect(wordRevealRange(3, 4)).toEqual([0.75, 1]);
-  });
-});
-
-describe("stackScale", () => {
-  it("keeps the top card at full size", () => {
-    expect(stackScale(2, 3)).toBe(1);
-  });
-
-  it("shrinks the bottom card the most", () => {
-    expect(stackScale(0, 3)).toBeCloseTo(0.92);
   });
 });
 
@@ -207,7 +180,7 @@ describe("bufferNameFor", () => {
   });
 
   it("opens the github section as yaml", () => {
-    expect(bufferNameFor("github")).toBe("repos.yml");
+    expect(bufferNameFor("github")).toBe("side-quests.yml");
   });
 
   it("opens education as toml, and the statusline knows the filetype", () => {
@@ -245,24 +218,6 @@ describe("fileTypeFor", () => {
 
   it("falls back to text for unknown extensions", () => {
     expect(fileTypeFor("tarnished.ring")).toBe("text");
-  });
-});
-
-describe("resolveTheme", () => {
-  it("keeps a known theme", () => {
-    expect(resolveTheme("rose-pine")).toBe("rose-pine");
-  });
-
-  it("falls back to rosarito for anything else", () => {
-    expect(resolveTheme("lordran")).toBe("rosarito");
-  });
-
-  it("starts everyone on rosarito when nothing is saved", () => {
-    expect(resolveTheme(null)).toBe("rosarito");
-  });
-
-  it("keeps a saved light colorscheme", () => {
-    expect(resolveTheme("lotus")).toBe("lotus");
   });
 });
 
@@ -418,32 +373,27 @@ describe("splitFeatured", () => {
   });
 });
 
-describe("timesCertified", () => {
-  it("counts Leon's two certifications as 2x", () => {
-    const leonsCerts = [{ name: "R.P.D. Rookie" }, { name: "D.S.O. Agent" }];
-    expect(timesCertified(leonsCerts)).toBe("2x");
+describe("formatMonth", () => {
+  it("prints Inde's anniversary month the way resumes do", () => {
+    expect(formatMonth("2021-02")).toBe("Feb 2021");
   });
 
-  it("shows nothing for a Tarnished with no certifications yet", () => {
-    expect(timesCertified([])).toBeNull();
+  it("keeps a bare year as is", () => {
+    expect(formatMonth("2016")).toBe("2016");
   });
 });
 
-describe("formatYears", () => {
+describe("formatRange", () => {
+  it("leaves Claire's current job open", () => {
+    expect(formatRange("2021-03", null)).toBe("Mar 2021 – Present");
+  });
+
   it("prints a closed range", () => {
-    expect(formatYears(2017, 2019)).toBe("2017 – 2019");
-  });
-
-  it("leaves a current job open", () => {
-    expect(formatYears(2021, null)).toBe("2021 – present");
-  });
-
-  it("prints one year once", () => {
-    expect(formatYears(2016, 2016)).toBe("2016");
+    expect(formatRange("2017", "2019")).toBe("2017 – 2019");
   });
 
   it("is empty without a start", () => {
-    expect(formatYears(null, null)).toBeNull();
+    expect(formatRange(null, null)).toBeNull();
   });
 });
 
@@ -460,14 +410,14 @@ describe("shortHash", () => {
 
 describe("careerCommits", () => {
   const projects = [
-    { title: "PSL Group", roles: ["Tech Lead", "Engineering Manager"], start_year: 2021, end_year: null },
+    { title: "PSL Group", roles: ["Tech Lead", "Engineering Manager"], start: "2021", end: null },
     { title: "Hisense México", roles: [] },
-    { title: "Systems Communications", roles: ["Intern"], start_year: 2015, end_year: 2016 },
+    { title: "Systems Communications", roles: ["Intern"], start: "2015", end: "2016" },
   ];
   const commits = careerCommits(projects);
 
   it("puts the newest title on top as HEAD", () => {
-    expect(commits[0]).toMatchObject({ type: "promote", message: "Engineering Manager", isHead: true, years: "2021 – present" });
+    expect(commits[0]).toMatchObject({ type: "promote", message: "Engineering Manager", isHead: true, years: "2021 – Present" });
   });
 
   it("joins a company with its first title", () => {
@@ -536,41 +486,35 @@ describe("nowStatus", () => {
   });
 });
 
-describe("sectionIdForBuffer", () => {
-  it("finds the section behind a buffer", () => {
-    expect(sectionIdForBuffer("repos.yml")).toBe("github");
-  });
-
-  it("knows the philosophy", () => {
-    expect(sectionIdForBuffer("philosophy.md")).toBe("manifesto");
-  });
-
-  it("is null for a buffer that doesn't exist", () => {
-    expect(sectionIdForBuffer("lordran.txt")).toBeNull();
-  });
-});
-
 describe("buildFileTree", () => {
-  const sections = ["home", "about", "work", "github", "contact"];
+  const sections = ["home", "about", "work", "projects", "github", "contact"];
   const tree = buildFileTree(sections, {
     projects: [{ title: "PSL Group" }, { title: "Hisense México", featured: false }],
+    caseStudies: [{ slug: "firstword-ai" }],
     repos: [{ name: "dotfiles" }],
   });
 
-  it("slips the philosophy in right after the hero", () => {
-    expect(tree.map((node) => node.name).slice(0, 2)).toEqual(["index.tsx", "philosophy.md"]);
+  it("starts with the hero as a single file", () => {
+    expect(tree[0]).toMatchObject({ name: "index.tsx", isDirectory: false });
   });
 
-  it("opens sections with something inside as directories", () => {
-    expect(tree.find((node) => node.sectionId === "about")).toMatchObject({ name: "about/", isDirectory: true });
+  it("keeps the philosophy and principles inside about", () => {
+    expect(tree.find((node) => node.sectionId === "about").children.map((child) => child.name)).toEqual(["philosophy.md", "about.md", "principles.md"]);
   });
 
-  it("lists the career log, each featured job and the earlier ones under work", () => {
-    expect(tree.find((node) => node.sectionId === "work").children).toEqual([
-      { name: "career.log", targetId: "career-log" },
-      { name: "01-psl-group.json", targetId: "work-psl-group" },
-      { name: "earlier.log", targetId: "work-earlier" },
-    ]);
+  it("lists the career log, each featured job and the earlier ones under experience", () => {
+    expect(tree.find((node) => node.sectionId === "work")).toMatchObject({
+      name: "experience/",
+      children: [
+        { name: "career.log", targetId: "career-log" },
+        { name: "01-psl-group.json", targetId: "work-psl-group" },
+        { name: "earlier.log", targetId: "work-earlier" },
+      ],
+    });
+  });
+
+  it("gives each case study its own file", () => {
+    expect(tree.find((node) => node.sectionId === "projects").children).toEqual([{ name: "firstword-ai.ts", targetId: "project-firstword-ai" }]);
   });
 
   it("names the repos folder side-quests", () => {
@@ -585,7 +529,7 @@ describe("buildFileTree", () => {
   });
 
   it("keeps a section without data as a file until its data arrives", () => {
-    expect(buildFileTree(["github"])[0]).toMatchObject({ name: "repos.yml", isDirectory: false });
+    expect(buildFileTree(["github"])[0]).toMatchObject({ name: "side-quests.yml", isDirectory: false });
   });
 });
 
@@ -602,31 +546,6 @@ describe("letterWeight", () => {
   it("eases in between", () => {
     expect(letterWeight(120)).toBeGreaterThan(500);
     expect(letterWeight(120)).toBeLessThan(820);
-  });
-});
-
-describe("scrambleFrame", () => {
-  it("is the real text once it's done", () => {
-    expect(scrambleFrame("work.json", 1)).toBe("work.json");
-  });
-
-  it("keeps the dots where they are while the letters are noise", () => {
-    expect(scrambleFrame("work.json", 0, () => 0)).toBe("aaaa.aaaa");
-  });
-
-  it("settles from the left", () => {
-    expect(scrambleFrame("abcd", 0.5, () => 0.99)).toBe("ab$$");
-  });
-});
-
-describe("wrapRange", () => {
-  it("leaves a value inside the range alone", () => {
-    expect(wrapRange(-50, 0, -20)).toBe(-20);
-  });
-
-  it("loops past either end", () => {
-    expect(wrapRange(-50, 0, -60)).toBe(-10);
-    expect(wrapRange(-50, 0, 10)).toBe(-40);
   });
 });
 
@@ -792,16 +711,3 @@ describe("stepSection", () => {
   });
 });
 
-describe("activeSlide", () => {
-  it("rounds to the slide the gallery mostly shows", () => {
-    expect(activeSlide({ scrollLeft: 620, slideWidth: 400, count: 5 })).toBe(2);
-  });
-
-  it("never runs past the last slide", () => {
-    expect(activeSlide({ scrollLeft: 9000, slideWidth: 400, count: 5 })).toBe(4);
-  });
-
-  it("sits on the first slide before anything is measured", () => {
-    expect(activeSlide({ scrollLeft: 0, slideWidth: 0, count: 5 })).toBe(0);
-  });
-});

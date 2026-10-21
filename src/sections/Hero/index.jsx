@@ -1,155 +1,154 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { motion, useMotionTemplate, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { ArrowDownRight, Download } from "lucide-react";
 import KineticName from "../../components/KineticName";
-import TypeLine from "../../components/TypeLine";
-import PixelAvatar from "../../components/PixelAvatar";
 import Magnetic from "../../components/Magnetic";
-import { Pokeball } from "../../components/Secrets";
+import { Trigger as PlayerOne } from "../../components/Relics/ScottPilgrim";
+import { Trigger as TallGrass } from "../../components/Relics/Pokemon";
 import { useGetAboutQuery } from "../../api/aboutApi";
-import { useMediaQuery } from "../../hooks/useMediaQuery";
-import { easedGlow, extractYearsOfExperience } from "../../actions";
+import { easedGlow } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 import { INTRO_S } from "../../lib/intro";
+import { exportResume } from "../../lib/resume/exportResume";
+import ProfileWindow from "./ProfileWindow";
+
+// how far a value is between two points, held at 0 before and 1 after
+const clampProgress = (value, from, to) => Math.min(1, Math.max(0, (value - from) / (to - from)));
 
 // the soft shadow the sprite stands on
 const FLOOR_SHADOW = easedGlow("var(--color-fg)", { strength: 0.1, shape: "ellipse" });
 
-const WHOAMI = ["tech lead", "engineering manager", "full stack", "aws certified"];
-
 // the sprite drops in once the name has landed, so he doesn't steal its moment
 const AVATAR_ENTERS_AT_S = INTRO_S + 1.2;
 
-// everything in the hero waits for the boot screen, if it plays
+// everything in the hero waits for the hub, if it plays
 const riseIn = (delay) => ({
   initial: { opacity: 0, y: 24, filter: "blur(8px)" },
   animate: { opacity: 1, y: 0, filter: "blur(0px)" },
   transition: { duration: 1.2, delay: INTRO_S + delay, ease: easeOutExpo },
 });
 
-// moves the lit patch of the grid under the cursor through css vars, so react never re-renders for it
-const trackGrid = (event) => {
-  if (event.pointerType !== "mouse") return;
-  const section = event.currentTarget;
-  const bounds = section.getBoundingClientRect();
-  section.style.setProperty("--grid-x", `${event.clientX - bounds.left}px`);
-  section.style.setProperty("--grid-y", `${event.clientY - bounds.top}px`);
+const Eyebrow = ({ about }) => (
+  <motion.p {...riseIn(0.2)} className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-xs text-muted">
+    <span className="flex items-center gap-2 rounded-full border border-line-strong bg-panel/60 px-3 py-1.5 backdrop-blur">
+      <span className="relative flex size-2">
+        <span className="absolute inset-0 animate-ping rounded-full bg-string/60" />
+        <span className="relative size-2 rounded-full bg-string" />
+      </span>
+      {about?.open_to ?? about?.role ?? "Tech Lead & Engineering Manager"}
+    </span>
+    {about?.location && <span>{about.location}</span>}
+  </motion.p>
+);
+
+const Actions = () => (
+  <motion.div {...riseIn(1.1)} className="flex flex-wrap items-center gap-3">
+    <Magnetic>
+      <button
+        type="button"
+        onClick={exportResume}
+        className="group inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-ink transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
+      >
+        Download résumé
+        <Download size={16} className="transition-transform duration-300 group-hover:translate-y-0.5" />
+      </button>
+    </Magnetic>
+    <Magnetic>
+      <a
+        href="#work"
+        className="group inline-flex items-center gap-2 rounded-full border border-line-strong bg-ink/40 px-6 py-3.5 text-sm font-medium backdrop-blur transition-colors duration-300 hover:border-faint"
+      >
+        See the work
+        <ArrowDownRight size={16} className="text-muted transition-all duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:text-fg" />
+      </a>
+    </Magnetic>
+    <a href="#contact" className="px-2 text-sm text-accent underline-offset-4 hover:underline">
+      Get in touch ›
+    </a>
+  </motion.div>
+);
+
+// player one, standing in the tall grass at the edge of the stage
+const Stage = () => (
+  <figure className="relative flex items-end justify-center gap-6 lg:flex-col lg:items-center lg:gap-2">
+    <div className="relative">
+      {/* exact multiples of the 63 row sprite keep every pixel square */}
+      <PlayerOne
+        className="h-[126px] sm:h-[252px] lg:h-[315px]"
+        entersAfterMs={AVATAR_ENTERS_AT_S * 1000}
+        firstWaveAfterMs={(AVATAR_ENTERS_AT_S + 1) * 1000}
+      />
+      {/* a gradient, because Safari paints a blurred div solid black */}
+      <div className="pointer-events-none absolute inset-x-[12.5%] top-[120px] -z-10 h-3 sm:top-[243px] lg:top-[306px]" style={{ background: FLOOR_SHADOW }} aria-hidden="true" />
+    </div>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: AVATAR_ENTERS_AT_S + 0.8, duration: 0.6 }} className="mt-6">
+      <TallGrass />
+    </motion.div>
+  </figure>
+);
+
+const Intro = ({ about }) => {
+  const summary = about?.headline?.split(". ").slice(1).join(". ");
+  return (
+    <div className="flex flex-col gap-7">
+      <Eyebrow about={about} />
+      <KineticName
+        lines={[{ text: "Cristopher" }, { text: "Cervantes.", className: "text-accent" }]}
+        delay={INTRO_S + 0.5}
+        className="text-[clamp(3.25rem,10.5vw,8.5rem)] leading-[0.88] font-semibold tracking-[-0.06em]"
+      />
+      <motion.p {...riseIn(0.95)} className="max-w-xl text-xl leading-snug text-muted text-pretty sm:text-2xl">
+        <span className="text-fg">Engineering Manager &amp; Tech Lead.</span> {summary || "AI products, serverless AWS and the teams that ship them."}
+      </motion.p>
+      <Actions />
+    </div>
+  );
 };
 
+/**
+ * The opening scene, the way Apple opens a product page: the name huge and centered, then as you scroll it
+ * sinks back and an editor window rises out of the page with the facts a recruiter scans for first.
+ */
 const Hero = () => {
-  const sectionRef = useRef(null);
-  const [isBooted, setIsBooted] = useState(false);
+  const sceneRef = useRef(null);
   const { data: about } = useGetAboutQuery();
-
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end start"] });
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, -120]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
-  const contentBlur = useTransform(scrollYProgress, [0, 0.7], [0, 10]);
-  const contentFilter = useMotionTemplate`blur(${contentBlur}px)`;
-  // on phones the sprite is the last thing in the hero, so sliding him down would shove him past the
-  // section's clipped bottom edge. the drift only runs side by side
-  const isSideBySide = useMediaQuery("(min-width: 1024px)");
-  const avatarDrift = useTransform(scrollYProgress, [0, 1], [0, 140]);
-  const avatarY = isSideBySide ? avatarDrift : 0;
-  // the hero's signature: as you scroll away, the blueprint grid lays down into a floor that runs off toward
-  // the horizon, the way a stage tips back at the end of a keynote
   const prefersReducedMotion = useReducedMotion();
-  const floorTilt = useTransform(scrollYProgress, [0, 1], [0, 62]);
-  const floorScale = useTransform(scrollYProgress, [0, 1], [1, 1.6]);
-  const floor = prefersReducedMotion ? undefined : { rotateX: floorTilt, scale: floorScale, transformPerspective: 900, transformOrigin: "50% 100%" };
+  const isScene = !prefersReducedMotion;
 
-  const years = extractYearsOfExperience(about?.description);
+  const { scrollYProgress } = useScroll({ target: sceneRef, offset: ["start start", "end end"] });
+  const introScale = useTransform(scrollYProgress, [0, 0.45], [1, 0.86]);
+  // the function form on purpose: framer hands plain opacity ranges to the browser's scroll timeline, which maps
+  // this pinned scene's offsets wrong and leaves both layers half visible
+  const introOpacity = useTransform(scrollYProgress, (progress) => 1 - clampProgress(progress, 0.05, 0.4));
+  const introBlur = useTransform(scrollYProgress, [0.05, 0.4], [0, 12]);
+  const introFilter = useMotionTemplate`blur(${introBlur}px)`;
+  const windowY = useTransform(scrollYProgress, [0.15, 0.7], ["65vh", "0vh"]);
+  const windowScale = useTransform(scrollYProgress, [0.15, 0.75], [0.82, 1]);
+  const windowOpacity = useTransform(scrollYProgress, (progress) => clampProgress(progress, 0.15, 0.4));
 
   return (
-    <section
-      ref={sectionRef}
-      id="home"
-      onPointerMove={trackGrid}
-      className="hero relative flex min-h-svh items-center overflow-hidden pt-28 pb-16"
-    >
-      <motion.div style={floor} className="blueprint pointer-events-none absolute inset-0" aria-hidden="true" />
-      <motion.div style={floor} className="blueprint-glow pointer-events-none absolute inset-0" aria-hidden="true" />
-
-      <div className="relative mx-auto grid w-full max-w-6xl gap-14 px-4 sm:px-6 lg:grid-cols-12 lg:items-center lg:gap-8">
-        <motion.div style={{ y: contentY, opacity: contentOpacity, filter: contentFilter }} className="flex flex-col gap-8 lg:col-span-7">
-          <div className="flex flex-col gap-1.5 text-sm">
-            <TypeLine prompt="~ $" text="whoami" delay={INTRO_S + 0.3} speed={90} onDone={() => setIsBooted(true)} className="text-muted" />
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: isBooted ? 1 : 0 }}
-              transition={{ duration: 0.4 }}
-              className="flex flex-wrap font-mono text-fg"
-            >
-              {WHOAMI.map((title, index) => (
-                // the dot trails each title, so when the line wraps on a phone it never starts with one
-                <span key={title} className={`whitespace-nowrap ${index === WHOAMI.length - 1 ? "text-accent" : ""}`}>
-                  {title}
-                  {index < WHOAMI.length - 1 && <span className="px-2 text-faint">·</span>}
-                </span>
-              ))}
-            </motion.p>
+    <section id="home" ref={sceneRef} className={`relative ${isScene ? "h-[260svh]" : ""}`}>
+      <div className={isScene ? "sticky top-0 h-svh overflow-hidden" : "py-28"}>
+        <motion.div
+          style={isScene ? { scale: introScale, opacity: introOpacity, filter: introFilter } : undefined}
+          className="mx-auto grid h-full w-full max-w-6xl content-center items-center gap-6 px-4 pt-16 pb-10 sm:px-6 lg:grid-cols-12 lg:gap-10"
+        >
+          <div className="lg:col-span-8">
+            <Intro about={about} />
           </div>
-
-          <KineticName
-            lines={[{ text: "Cristopher" }, { text: "Cervantes", className: "text-muted" }]}
-            delay={INTRO_S + 0.5}
-            className="text-[clamp(3.5rem,10vw,7.5rem)] leading-[0.9] font-medium tracking-[-0.055em]"
-          />
-
-          <motion.p {...riseIn(1)} className="max-w-xl text-lg leading-relaxed text-muted text-pretty sm:text-xl">
-            Hey there! I'm a <span className="text-fg">full stack developer</span> from{" "}
-            <span className="text-fg">Rosarito, Mexico</span>, with {years ?? "9+"} years of building software for every kind of
-            market, from small local companies all the way to global corporations. These days I lead engineering
-            teams and still write plenty of the code, lately with <span className="text-fg">TypeScript, AWS and LLMs</span>.
-          </motion.p>
-
-          <motion.div {...riseIn(1.15)} className="flex flex-wrap gap-3">
-            <Magnetic>
-              <a
-                href="#work"
-                className="group inline-flex items-center gap-2 rounded-full bg-fg px-6 py-3.5 text-sm font-medium text-ink transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
-              >
-                See the work
-                <ArrowDownRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5" />
-              </a>
-            </Magnetic>
-            <Magnetic>
-              <a
-                href="#contact"
-                className="group inline-flex items-center gap-2 rounded-full border border-line-strong bg-ink/40 px-6 py-3.5 text-sm font-medium backdrop-blur transition-colors duration-300 hover:border-faint"
-              >
-                Get in touch
-                <ArrowUpRight size={16} className="text-muted transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-fg" />
-              </a>
-            </Magnetic>
-          </motion.div>
-
+          {/* on phones he stands under the buttons, where the scene still has room before the window rises */}
+          <div className="lg:col-span-4">
+            <Stage />
+          </div>
         </motion.div>
 
-        <motion.figure style={{ y: avatarY }} className="relative mx-auto flex flex-col items-center gap-6 lg:col-span-5">
-          <div className="relative">
-            {/* exact multiples of the 63 row sprite keep every pixel square */}
-            <PixelAvatar
-              className="h-[189px] sm:h-[252px] lg:h-[378px]"
-              entersAfterMs={AVATAR_ENTERS_AT_S * 1000}
-              firstWaveAfterMs={(AVATAR_ENTERS_AT_S + 1) * 1000}
-            />
-            {/* a soft floor shadow so he's standing somewhere. a gradient, because Safari paints a blurred div solid black */}
-            <div className="absolute inset-x-[12.5%] -bottom-1 -z-10 h-3" style={{ background: FLOOR_SHADOW }} aria-hidden="true" />
-          </div>
-          <motion.figcaption
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: AVATAR_ENTERS_AT_S + 0.8, duration: 0.6 }}
-            className="flex items-center gap-2 font-mono text-[11px] text-muted"
-          >
-            <span className="text-accent">player_1</span>
-            <span>poke him</span>
-            <Pokeball className="-my-2" />
-          </motion.figcaption>
-        </motion.figure>
+        <motion.div
+          style={isScene ? { y: windowY, scale: windowScale, opacity: windowOpacity } : undefined}
+          className={`${isScene ? "absolute inset-x-0 top-1/2 -translate-y-1/2" : "mt-12"} mx-auto w-full max-w-4xl px-4 sm:px-6`}
+        >
+          <ProfileWindow about={about} />
+        </motion.div>
       </div>
-
     </section>
   );
 };
