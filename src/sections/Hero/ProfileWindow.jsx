@@ -1,5 +1,6 @@
 import EditorWindow from "../../components/EditorWindow";
 import { useGetProjectsQuery } from "../../api/projectsApi";
+import { useGetContactQuery } from "../../api/contactApi";
 
 // Eldentree's highlight groups: keywords in bold gold, properties in rosewater, strings in grace green,
 // numbers in steel blue, types in arcane purple and comments in italic mist
@@ -39,36 +40,40 @@ const Field = ({ name, children, comment }) => (
   </div>
 );
 
-// only the facts the api actually has, so a field nobody filled in never shows up as a guess
-const fieldsFor = (about, current) =>
+const latestRole = (project) => project?.roles?.at(-1) ?? null;
+
+// everything a recruiter scans for first, in one place: who, where, what now, with what, and how to reach me
+const fieldsFor = ({ about, current, contact }) =>
   [
     { name: "name", value: <Str>{about.name}</Str> },
     { name: "role", value: <Str>{about.role}</Str> },
-    current && { name: "currently", value: <Str>{current.title}</Str>, comment: current.products },
-    { name: "yearsShipping", value: <Num>{about.years_of_experience}</Num>, comment: "and counting" },
-    { name: "location", value: <Str>{about.location}</Str> },
-    { name: "timezone", value: <Str>{about.timezone}</Str> },
-    about.work_modes?.length > 0 && { name: "workModes", value: <List items={about.work_modes} /> },
+    current && { name: "currently", value: <Str>{`${latestRole(current) ?? about.role} @ ${current.title}`}</Str> },
+    { name: "yearsShipping", value: <Num>{about.years_of_experience}</Num>, comment: "intern to engineering manager" },
+    { name: "basedIn", value: <Str>{about.location}</Str>, comment: about.timezone },
     about.open_to && { name: "openTo", value: <Str>{about.open_to}</Str> },
-    { name: "stack", value: <List items={about.main_stack.slice(0, 6)} /> },
+    about.work_modes?.length > 0 && { name: "workModes", value: <List items={about.work_modes} /> },
+    { name: "stack", value: <List items={about.main_stack} /> },
+    about.expertise?.length > 0 && { name: "leads", value: <List items={about.expertise.slice(0, 3)} /> },
     about.certifications?.length > 0 && { name: "certified", value: <List items={about.certifications.map((cert) => cert.name.replace("AWS Certified ", "AWS "))} /> },
-    about.languages?.length > 0 && { name: "speaks", value: <List items={about.languages.map((language) => language.name)} /> },
+    about.education?.[0] && { name: "studied", value: <Str>{about.education[0].degree}</Str>, comment: about.education[0].school },
+    about.languages?.length > 0 && { name: "speaks", value: <List items={about.languages.map((language) => (language.level ? `${language.name} (${language.level})` : language.name))} /> },
+    contact && { name: "email", value: <Str>{contact.email}</Str> },
     { name: "editor", value: <Str>{about.editor}</Str>, comment: "eldentree, obviously" },
   ].filter(Boolean);
 
 /**
- * The hero's reveal: profile.ts, the facts a recruiter scans for first, written as code in Eldentree's colors.
+ * The hero's reveal and the page's greeter: profile.ts, the whole profile at a glance written as code in
+ * Eldentree's colors. The sections below tell each part in full.
  */
 const ProfileWindow = ({ about }) => {
   const { data: projects = [] } = useGetProjectsQuery();
+  const { data: contact } = useGetContactQuery();
   if (!about) return null;
-  const latest = projects[0];
-  const current = latest && { title: latest.title, products: latest.description.match(/: ([^.]+)\./)?.[1] ?? null };
-  const fields = fieldsFor(about, current);
+  const fields = fieldsFor({ about, current: projects[0], contact });
 
   return (
     <EditorWindow path={["cristopher", "src", "profile.ts"]} lines={fields.length + 4}>
-      <pre className="overflow-x-auto font-mono text-[12px] leading-[1.75] whitespace-pre sm:text-[13px]">
+      <pre className="no-scrollbar overflow-x-auto font-mono text-[11px] leading-[1.7] whitespace-pre sm:text-[13px]">
         <div>
           <Keyword>export const</Keyword> <span className="text-fg">cristopher</span>
           <Punct>: </Punct>

@@ -133,7 +133,7 @@ const ElementScene = ({ nation, index, isCalm }) => {
 const Harmony = ({ isCalm }) => {
   const spots = diamondSpots(36);
   return (
-    <div className="absolute inset-x-4 top-1/2 flex -translate-y-1/2 flex-col items-center gap-8">
+    <div className="absolute inset-x-4 top-[46%] flex -translate-y-1/2 flex-col items-center gap-6 sm:gap-8">
       <div className="relative size-[min(68vw,17rem)]">
         <Shockwave color={SCROLL_GOLD} delay={BEATS.together} size="100%" />
         {NATIONS.map((nation, index) => (
@@ -156,11 +156,11 @@ const Harmony = ({ isCalm }) => {
           <AangArrow color={ARROW_BLUE} className="h-full w-auto" style={{ filter: `drop-shadow(0 0 14px ${ARROW_BLUE})` }} />
         </motion.span>
       </div>
-      <div className="flex max-w-md flex-col items-center gap-3 text-center">
-        <p className="font-serif text-base text-[#f3e6c8] italic sm:text-lg">
-          <TypedText text="Long ago, the four nations lived together in harmony." startAt={BEATS.harmony} perLetter={0.022} />
+      <div className="flex max-w-md flex-col items-center gap-3 text-center text-balance">
+        <p className="font-serif text-[clamp(0.95rem,4vw,1.125rem)] text-[#f3e6c8] italic">
+          <TypedText text="Long ago, the four stacks lived together in harmony." startAt={BEATS.harmony} perLetter={0.022} />
         </p>
-        <p className="flex flex-wrap justify-center gap-x-3 font-display text-sm tracking-[0.18em] uppercase sm:text-base">
+        <p className="flex flex-wrap justify-center gap-x-3 font-display text-[clamp(0.875rem,3.6vw,1rem)] tracking-[0.18em] uppercase">
           {["Frontend.", "Backend.", "Cloud.", "People."].map((role, index) => (
             <motion.span
               key={role}
@@ -173,12 +173,21 @@ const Harmony = ({ isCalm }) => {
             </motion.span>
           ))}
         </p>
+        <motion.p
+          className="font-serif text-[clamp(0.95rem,4vw,1.125rem)] text-white"
+          style={{ textShadow: `0 0 14px ${SCROLL_GOLD}88` }}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: BEATS.master, ease: easeOutExpo }}
+        >
+          Only an Engineering Manager can master all four.
+        </motion.p>
       </div>
     </div>
   );
 };
 
-/** Avatar: the opening narration. Water, Earth, Fire, Air, one beat apart, then the four nations join around Aang's arrow. */
+/** Avatar: the opening narration. Water, Earth, Fire, Air, one beat apart, then the four nations join around Aang's arrow and stay. */
 const FourNations = ({ onDone }) => {
   const isCalm = useReducedMotion();
   useMomentLength(BEATS.lastsMs, onDone);

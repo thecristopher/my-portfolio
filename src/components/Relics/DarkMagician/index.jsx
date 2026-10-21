@@ -43,11 +43,11 @@ const CardFace = () => (
 /**
  * A card set face down at the end of the skills, waiting to be flipped. Once she's summoned, it stays face up.
  */
-export const Trigger = ({ className = "" }) => {
+export const Trigger = ({ className = "", zoom = 1 }) => {
   const { isFound, touch } = useRelic("magician");
 
   return (
-    <RelicButton id="magician" isFound={isFound} onTouch={() => touch()} className={className}>
+    <RelicButton id="magician" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
       <span className="block [perspective:600px]" aria-hidden="true">
         <motion.span
           className="relative block h-[5.5rem] w-[3.8rem] [transform-style:preserve-3d] sm:h-28 sm:w-[4.8rem]"

@@ -32,8 +32,12 @@ describe("isComplete", () => {
 });
 
 describe("relicsIn", () => {
-  it("puts the grace, the bat signal and the d20 in contact", () => {
-    expect(relicsIn("contact")).toEqual(["grace", "bat", "d20"]);
+  it("leaves only the grace in contact, Malenia's respawn point", () => {
+    expect(relicsIn("contact")).toEqual(["grace"]);
+  });
+
+  it("spreads the relics over at least eight places", () => {
+    expect(new Set(RELIC_IDS.map((id) => RELICS[id].section)).size).toBeGreaterThanOrEqual(8);
   });
 });
 
@@ -47,6 +51,7 @@ describe("RELICS", () => {
       expect(relic.franchise).toBeTruthy();
       expect(relic.color).toMatch(/^#[0-9a-f]{6}$/i);
       expect(relic.quip).not.toContain("\u2014");
+      expect(relic.riddle).toBeTruthy();
     });
   });
 });

@@ -19,13 +19,13 @@ const SPIDER_LEGS = [
  * A little spider hanging off the top of the degree on its silk, swinging gently. Peter Parker was a student first.
  * Once its thread is pulled, it wears the classic red for good.
  */
-export const Trigger = ({ className = "" }) => {
+export const Trigger = ({ className = "", zoom = 1 }) => {
   const { isFound, touch } = useRelic("spider");
   const isReduced = useReducedMotion();
   const fill = isFound ? SPIDER_RED : "currentColor";
 
   return (
-    <RelicButton id="spider" isFound={isFound} onTouch={() => touch()} className={className}>
+    <RelicButton id="spider" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
       <svg viewBox="0 0 24 64" className="h-16 w-6 overflow-visible text-muted" aria-hidden="true">
         {/* it swings from the top of its thread, so the pivot is where the silk is anchored */}
         <motion.g

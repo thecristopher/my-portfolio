@@ -32,7 +32,6 @@ const styles = StyleSheet.create({
   skillRow: { flexDirection: "row", marginBottom: 2 },
   skillCategory: { width: 92, fontFamily: "Helvetica-Bold", fontSize: 8.6 },
   skillItems: { flex: 1, fontSize: 8.6 },
-  project: { marginBottom: 5 },
   projectTitle: { fontFamily: "Helvetica-Bold" },
   small: { fontSize: 8.6, color: MUTED },
   footer: { position: "absolute", bottom: 18, left: 40, right: 40, fontSize: 7.5, color: FAINT, flexDirection: "row", justifyContent: "space-between" },
@@ -118,30 +117,15 @@ const ResumeDocument = ({ resume }) => (
         ))}
       </Section>
 
-      {resume.projects.length > 0 && (
-        <Section title="Selected projects">
-          {resume.projects.map((project) => (
-            <View key={project.title} style={styles.project} wrap={false}>
-              <Text>
-                <Text style={styles.projectTitle}>{project.title}</Text>
-                <Text style={styles.small}>{`  ·  ${project.context}`}</Text>
-              </Text>
-              <Text>{`${project.summary} ${project.outcome}`}</Text>
-              {project.metrics.length > 0 && <Text style={styles.small}>{project.metrics.map((metric) => `${metric.value} ${metric.label}`).join("  ·  ")}</Text>}
-            </View>
-          ))}
-        </Section>
-      )}
-
-      <Section title="Skills" wrap={false}>
+      <Section title="Skills">
         {resume.skills.map((group) => (
-          <View key={group.category} style={styles.skillRow}>
+          <View key={group.category} style={styles.skillRow} wrap={false}>
             <Text style={styles.skillCategory}>{group.category}</Text>
             <Text style={styles.skillItems}>{group.items.join(", ")}</Text>
           </View>
         ))}
         {resume.expertise.length > 0 && (
-          <View style={styles.skillRow}>
+          <View style={styles.skillRow} wrap={false}>
             <Text style={styles.skillCategory}>Leadership</Text>
             <Text style={styles.skillItems}>{resume.expertise.join(", ")}</Text>
           </View>

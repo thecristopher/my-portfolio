@@ -15,8 +15,15 @@ const BAM_AT = 0.3;
 const KO_AT = 0.6;
 const COINS_AT = 1.5;
 const LEVEL_UP_AT = 2.6;
-const LIFE_AT = 3.85;
-const MOMENT_MS = 5400;
+const RANK_AT = 3.2;
+const EXP_AT = 3.85;
+const EARNED_AT = 4.25;
+const PER_LETTER = 0.02;
+const EARNED = "Cristopher earned the ";
+const POWER = "POWER OF LEADERSHIP";
+const PAYOFF = ": FirstWord, DGPL, MEC, AMI, one team.";
+// the last letter of the payoff lands here, after that the level up screen just holds
+const MOMENT_MS = Math.ceil((EARNED_AT + (EARNED.length + POWER.length + PAYOFF.length) * PER_LETTER) * 1000) + 100;
 
 const COINS = coinSpray(9);
 const HEART_PATH = rowsToPath(PIXEL_HEART);
@@ -204,33 +211,45 @@ const Fight = ({ isGentle }) => (
   </motion.div>
 );
 
-/** The extra life: a pixel heart beating next to +1 LIFE. */
-const ExtraLife = () => (
+/** The experience gained: a pixel heart beating next to +9 YEARS EXP. */
+const ExperienceGained = () => (
   <motion.div
     className="flex items-center gap-3"
     style={{ color: SCOTT_PINK }}
     initial={{ opacity: 0, scale: 0.4 }}
     animate={{ opacity: 1, scale: [0.4, 1.2, 1] }}
-    transition={{ duration: 0.4, delay: LIFE_AT, ease: steppy(4) }}
+    transition={{ duration: 0.4, delay: EXP_AT, ease: steppy(4) }}
   >
     <motion.svg
       viewBox="0 0 8 7"
       shapeRendering="crispEdges"
       className="h-[min(8vw,2.5rem)] w-auto"
       animate={{ scale: [1, 1.18, 1] }}
-      transition={{ duration: 0.5, delay: LIFE_AT + 0.4, repeat: Infinity, ease: steppy(3) }}
+      transition={{ duration: 0.5, delay: EXP_AT + 0.4, repeat: Infinity, ease: steppy(3) }}
     >
       <path d={HEART_PATH} fill={INK} transform="translate(1 1)" />
       <path d={HEART_PATH} fill="#ff3b6b" />
       <path d="M1 1h1v1h-1z" fill="#ffd0dc" />
     </motion.svg>
-    <PixelText text="+1 LIFE" className="h-[min(6vw,2rem)]" />
+    <PixelText text="+9 YEARS EXP" className="h-[min(6vw,2rem)]" />
   </motion.div>
 );
 
-/** LEVEL UP! drops in pixel by pixel, the reward line types out, and the extra life pops in last. */
+/** The promotion, typed out like a character's new class on the stats screen. */
+const RankUp = () => (
+  <motion.p
+    className="font-mono text-[clamp(0.85rem,3.6vw,1.25rem)] font-bold tracking-wider text-white [text-shadow:2px_2px_0_#140812]"
+    initial={{ opacity: 0, scale: 0.6 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.3, delay: RANK_AT, ease: steppy(3) }}
+  >
+    INTERN <span style={{ color: COMIC_YELLOW }}>→</span> <span style={{ color: SCOTT_PINK }}>ENGINEERING MANAGER</span>
+  </motion.p>
+);
+
+/** LEVEL UP! drops in pixel by pixel, the promotion and the experience pop in, and the reward line types out last. */
 const LevelUp = ({ isGentle }) => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-4 text-center">
+  <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-4 pb-16 text-center">
     <div className="relative grid place-items-center">
       <Shockwave color={SCOTT_PINK} delay={LEVEL_UP_AT + 0.1} />
       <Sparks colors={[SCOTT_PINK, COMIC_YELLOW, "#7ee8ff"]} count={14} reach={36} delay={LEVEL_UP_AT + 0.15} />
@@ -246,22 +265,24 @@ const LevelUp = ({ isGentle }) => (
         <PixelText text="LEVEL UP!" className="h-[min(13vw,5rem)]" />
       </motion.div>
     </div>
+    <RankUp />
+    <ExperienceGained />
     <motion.p
-      className="max-w-sm font-mono text-sm leading-relaxed text-white sm:text-base"
+      className="max-w-sm font-mono text-sm leading-relaxed text-pretty text-white sm:text-base"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.01, delay: LEVEL_UP_AT + 0.5 }}
+      transition={{ duration: 0.01, delay: EARNED_AT }}
     >
-      <TypedText text="Cristopher earned the " startAt={LEVEL_UP_AT + 0.5} perLetter={0.025} />
+      <TypedText text={EARNED} startAt={EARNED_AT} perLetter={PER_LETTER} />
       <span className="font-bold" style={{ color: SCOTT_PINK }}>
-        <TypedText text="POWER OF SHIPPING" startAt={LEVEL_UP_AT + 1.05} perLetter={0.025} />
+        <TypedText text={POWER} startAt={EARNED_AT + EARNED.length * PER_LETTER} perLetter={PER_LETTER} />
       </span>
+      <TypedText text={PAYOFF} startAt={EARNED_AT + (EARNED.length + POWER.length) * PER_LETTER} perLetter={PER_LETTER} />
     </motion.p>
-    <ExtraLife />
   </div>
 );
 
-/** Scott Pilgrim K.O.: two hits flash white, the backlog gets knocked out, pays out in coins and Cristopher levels up. */
+/** Scott Pilgrim K.O.: two hits flash white, the backlog gets knocked out, pays out in coins and Cristopher levels up and stays there. */
 const KnockOutMoment = ({ onDone }) => {
   const isGentle = useReducedMotion();
   useMomentLength(MOMENT_MS, onDone);

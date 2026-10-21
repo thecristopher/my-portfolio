@@ -61,22 +61,6 @@ const Resume = () => {
         </ul>
       </section>
 
-      {resume.projects.length > 0 && (
-        <section className="mb-3 break-inside-avoid">
-          <Heading>Selected projects</Heading>
-          <ul className="flex flex-col gap-1.5">
-            {resume.projects.map((project) => (
-              <li key={project.title}>
-                <span className="font-semibold">{project.title}</span> <span className="text-neutral-500">· {project.context}</span>
-                <p>
-                  {project.summary} {project.outcome}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
       <section className="mb-3 break-inside-avoid">
         <Heading>Skills</Heading>
         {resume.skills.map((group) => (

@@ -89,7 +89,7 @@ const Crackle = ({ isCalm }) => {
 
 // the circle lying on the floor, drawn in perspective, with the lightning crackling around its rim
 const FloorCircle = ({ isCalm }) => (
-  <div className="absolute top-[64%] left-1/2 aspect-[100/60] w-[min(94vw,36rem)] -translate-x-1/2 -translate-y-1/2 [perspective:1600px]">
+  <div className="absolute top-[67%] left-1/2 aspect-[100/60] w-[min(94vw,36rem)] -translate-x-1/2 -translate-y-1/2 [perspective:1600px]">
     <div className="absolute top-[60%] left-0 aspect-square w-full -translate-y-1/2 [transform:rotateX(64deg)]">
       <TransmutationCircle
         color={ALCHEMY_BLUE}
@@ -107,7 +107,7 @@ const FloorCircle = ({ isCalm }) => (
 const FlamelCross = ({ isCalm }) => (
   <motion.svg
     viewBox="0 0 100 120"
-    className="absolute top-[64%] left-1/2 h-[min(34vh,13rem)] w-auto -translate-x-1/2 -translate-y-[62%] overflow-visible"
+    className="absolute top-[67%] left-1/2 h-[min(34vh,13rem)] w-auto -translate-x-1/2 -translate-y-[62%] overflow-visible"
     initial={{ opacity: 0, scale: isCalm ? 1 : 2.6 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: isCalm ? 0.3 : 0.16, delay: BEATS.stamp - (isCalm ? 0 : 0.16), ease: "easeIn" }}
@@ -127,9 +127,32 @@ const FlamelCross = ({ isCalm }) => (
   </motion.svg>
 );
 
-// the law of equivalent exchange, then what it means around here
+// the transmutation this portfolio actually performed: one codebase traded for three brands
+const Payoff = () => (
+  <motion.p
+    className="font-display text-[clamp(1.1rem,4.6vw,2rem)] leading-tight text-balance text-white"
+    initial={{ opacity: 0, scale: 0.9, filter: "blur(6px)" }}
+    animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+    transition={{ duration: 0.6, delay: BEATS.payoff, ease: easeOutExpo }}
+    style={{ textShadow: `0 0 18px ${ALCHEMY_BLUE}` }}
+  >
+    1 React codebase{" "}
+    <motion.span
+      className="inline-block"
+      style={{ color: FLAMEL_RED, textShadow: `0 0 14px ${FLAMEL_RED}` }}
+      initial={{ rotate: -180 }}
+      animate={{ rotate: 0 }}
+      transition={{ duration: 0.6, delay: BEATS.payoff, ease: easeOutExpo }}
+    >
+      ⇄
+    </motion.span>{" "}
+    3 FirstWord brands
+  </motion.p>
+);
+
+// the law of equivalent exchange, then what it means around here. starts low enough to clear the relic counter
 const Narration = () => (
-  <div className="absolute inset-x-4 top-[9vh] flex flex-col items-center gap-3 text-center">
+  <div className="absolute inset-x-4 top-[max(9vh,6.5rem)] flex flex-col items-center gap-3 text-center">
     <motion.p
       className="font-display text-[clamp(1.6rem,7.5vw,3.75rem)] leading-tight text-balance tracking-[0.08em] text-white"
       initial={{ opacity: 0, scale: 1.15, letterSpacing: "0.3em" }}
@@ -139,9 +162,10 @@ const Narration = () => (
     >
       EQUIVALENT EXCHANGE
     </motion.p>
-    <p className="max-w-md font-serif text-sm text-white/85 italic sm:text-base">
+    <p className="max-w-md font-serif text-sm text-pretty text-white/85 italic sm:text-base">
       <TypedText text="To obtain, something of equal value must be lost." startAt={BEATS.narration} perLetter={0.022} />
     </p>
+    <Payoff />
     <motion.p
       className="font-mono text-xs tracking-[0.2em] uppercase sm:text-sm"
       style={{ color: ALCHEMY_BLUE }}
@@ -149,7 +173,7 @@ const Narration = () => (
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: BEATS.tagline, ease: easeOutExpo }}
     >
-      hard problems in, readable code out
+      hard problems in, readable code out.
     </motion.p>
   </div>
 );
@@ -162,7 +186,7 @@ const Transmutation = ({ onDone }) => {
   return (
     <EffectLayer background={veil(ALCHEMY_BLUE, 0.9)}>
       <FloorCircle isCalm={isCalm} />
-      <div className="absolute inset-x-0 top-[64%] h-0">
+      <div className="absolute inset-x-0 top-[67%] h-0">
         <Shockwave color={FLAMEL_RED} delay={BEATS.stamp} />
         {!isCalm && <Sparks colors={[ALCHEMY_BLUE, "#e8f4ff", FLAMEL_RED]} count={14} reach={36} delay={BEATS.stamp} />}
       </div>

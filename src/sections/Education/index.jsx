@@ -26,7 +26,7 @@ const Diploma = ({ school }) => {
     <div className="relative">
       {/* Peter Parker was a student first, so the spider hangs off the diploma */}
       <div className="absolute -top-2 right-8 z-10">
-        <HangingSpider />
+        <HangingSpider zoom={0.4} />
       </div>
       <EditorWindow path={["cristopher", "education", "degree.toml"]}>
       <div className="flex flex-col gap-8 p-2 sm:p-5">
@@ -111,6 +111,7 @@ const CertBadge = ({ cert, index }) => {
         <div className="flex min-w-0 flex-col gap-1.5">
           <p className={`font-mono text-[10px] tracking-[0.2em] uppercase ${tone}`}>{cert.level}</p>
           <h3 className="leading-snug font-medium text-pretty">{cert.name}</h3>
+          {cert.description && <p className="text-sm leading-relaxed text-muted text-pretty">{cert.description}</p>}
           {cert.verify_url ? (
             <a
               href={cert.verify_url}
@@ -166,14 +167,13 @@ const Education = ({ number }) => {
                 <p className="font-mono text-xs text-faint">
                   <span className="text-accent">$</span> aws certifications list <span className="text-fg">→ {certifications.length} earned</span>
                 </p>
+                {/* the exams took total concentration, so Tanjiro's earring hangs beside them */}
+                <HanafudaEarring zoom={0.22} />
               </div>
               {certifications.map((cert, index) => (
                 <CertBadge key={cert.name} cert={cert} index={index} />
               ))}
-              {/* the exams took total concentration, so Tanjiro's earring hangs beside them */}
-              <div className="flex justify-center pt-6">
-                <HanafudaEarring />
-              </div>
+
             </div>
           )}
         </div>

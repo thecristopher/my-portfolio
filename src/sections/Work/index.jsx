@@ -5,14 +5,16 @@ import EditorWindow from "../../components/EditorWindow";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { Trigger as Typewriter } from "../../components/Relics/ResidentEvil";
 import { useGetProjectsQuery } from "../../api/projectsApi";
+import { useGetCaseStudiesQuery } from "../../api/caseStudiesApi";
 import { cleanTechName, countUsing, formatRange, slugify, splitFeatured, usesTech } from "../../actions";
 import { formatRoles } from "../../lib/resume/buildResume";
 import { usePickedTech } from "../../lib/stackFilter";
+import { scrollToSection } from "../../lib/smoothScroll";
 import { CareerLog, GrepBanner } from "./pieces";
 import Chapter from "./Chapter";
 
 // the jobs before the featured ones, one line of what I did and the stack, with each one's own bullets
-const EarlierRoles = ({ projects, pickedTech }) => (
+const EarlierRoles = ({ projects, pickedTech, caseStudies }) => (
   <EditorWindow path={["cristopher", "work", "earlier.log"]}>
     <ul className="flex flex-col divide-y divide-line">
       {projects.map((project) => (
@@ -38,6 +40,25 @@ const EarlierRoles = ({ projects, pickedTech }) => (
               ))}
             </ul>
             <p className="font-mono text-[11px] text-faint">{project.technologies.map(cleanTechName).join(" · ")}</p>
+            {project.note && <p className="text-sm text-rose italic">{project.note}</p>}
+            {/* yes, I really worked at a company called Umbrella. the save room had to be here */}
+            {project.title === "Umbrella Seguros" && (
+              <span className="flex justify-end">
+                <Typewriter zoom={0.22} />
+              </span>
+            )}
+            {caseStudies
+              .filter((study) => study.company === project.title)
+              .map((study) => (
+                <button
+                  key={study.slug}
+                  type="button"
+                  onClick={() => scrollToSection(`project-${study.slug}`)}
+                  className="w-fit font-mono text-[11px] text-accent transition-colors hover:text-fg"
+                >
+                  → {study.title}
+                </button>
+              ))}
           </div>
         </li>
       ))}
@@ -48,6 +69,7 @@ const EarlierRoles = ({ projects, pickedTech }) => (
 /** experience.json: the career as a git log, one chapter per company, then the earlier jobs and the save room. */
 const Work = ({ number }) => {
   const { data: projects = [], isLoading, isError } = useGetProjectsQuery();
+  const { data: caseStudies = [] } = useGetCaseStudiesQuery();
   const { featured, earlier } = splitFeatured(projects);
   const pickedTech = usePickedTech();
 
@@ -62,7 +84,7 @@ const Work = ({ number }) => {
               Intern to Engineering Manager. <Gold>Every commit of it.</Gold>
             </>
           }
-          lead="Five companies, from a customs office in Tijuana to pharma intelligence at PSL Group. Each one taught me something I still use on Monday mornings."
+          lead="Five companies in nine years, some down the street from home and some an ocean away. Each one taught me something I still use on Monday mornings."
         />
 
         {isLoading && <SkeletonLines lines={5} />}
@@ -77,7 +99,7 @@ const Work = ({ number }) => {
 
         <div className="flex flex-col gap-24">
           {featured.map((project, index) => (
-            <Chapter key={project.title} project={project} index={index} pickedTech={pickedTech} />
+            <Chapter key={project.title} project={project} index={index} pickedTech={pickedTech} studies={caseStudies.filter((study) => study.company === project.title)} />
           ))}
         </div>
 
@@ -86,15 +108,10 @@ const Work = ({ number }) => {
             <p className="font-mono text-xs text-faint">
               <span className="text-accent">//</span> where it started
             </p>
-            <EarlierRoles projects={earlier} pickedTech={pickedTech} />
+            <EarlierRoles projects={earlier} pickedTech={pickedTech} caseStudies={caseStudies} />
           </div>
         )}
 
-        {/* the save room at the end of the career: every chapter so far is worth saving */}
-        <div className="flex flex-col items-center gap-3 pt-6 text-center">
-          <p className="font-mono text-xs text-faint">Career progress so far. Want to keep it?</p>
-          <Typewriter />
-        </div>
       </div>
     </section>
   );

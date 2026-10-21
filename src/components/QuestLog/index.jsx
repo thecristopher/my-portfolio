@@ -20,15 +20,19 @@ const FoundQuest = ({ id }) => (
   </>
 );
 
-// the relics are out in the open now, so the log says where each one waits instead of hiding it behind a riddle
+// an open quest names the buffer and gives a riddle, never the spot, so the hunt stays a hunt
 const OpenQuest = ({ id, onGo }) => (
   <>
     <span className="mt-1 size-2 shrink-0 rounded-full bg-line-strong" />
     <span className="flex min-w-0 flex-col gap-1">
-      <span className="text-muted">{RELICS[id].franchise}</span>
-      <button type="button" onClick={() => onGo(RELICS[id].section)} className="flex w-fit items-center gap-1.5 text-accent transition-colors hover:text-fg">
-        <MapPin size={11} aria-hidden="true" /> :e {bufferNameFor(RELICS[id].section)} · {RELICS[id].touch}
-      </button>
+      <span className="text-faint">???</span>
+      <span className="leading-relaxed text-pretty text-muted">{RELICS[id].riddle}</span>
+      {/* a relic in the editor chrome has no buffer to jump to, its riddle has to do */}
+      {RELICS[id].section && (
+        <button type="button" onClick={() => onGo(RELICS[id].section)} className="flex w-fit items-center gap-1.5 text-accent transition-colors hover:text-fg">
+          <MapPin size={11} aria-hidden="true" /> :e {bufferNameFor(RELICS[id].section)}
+        </button>
+      )}
     </span>
   </>
 );
@@ -89,7 +93,7 @@ const Log = ({ onClose }) => {
   );
 };
 
-/** Every relic on the page: what each found one said, and where the rest are waiting. */
+/** Every relic on the page: what each found one said, and a riddle for each of the rest. */
 const QuestLog = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (!isOpen) return;

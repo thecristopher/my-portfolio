@@ -141,10 +141,13 @@ describe("crackleTimes", () => {
 });
 
 describe("BEATS", () => {
-  it("claps, then stamps, then speaks, and wraps up inside six seconds", () => {
+  it("claps, stamps, speaks, then transmutes, and settles inside six seconds", () => {
     expect(BEATS.clap).toBeLessThan(BEATS.stamp);
     expect(BEATS.stamp).toBeLessThan(BEATS.title);
-    expect(BEATS.title).toBeLessThan(BEATS.tagline);
+    expect(BEATS.title).toBeLessThan(BEATS.narration);
+    expect(BEATS.narration).toBeLessThan(BEATS.payoff);
+    expect(BEATS.payoff).toBeLessThan(BEATS.tagline);
+    expect(BEATS.tagline * 1000).toBeLessThan(BEATS.lastsMs);
     expect(BEATS.lastsMs).toBeGreaterThanOrEqual(3000);
     expect(BEATS.lastsMs).toBeLessThanOrEqual(6000);
   });

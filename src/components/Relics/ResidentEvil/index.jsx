@@ -10,11 +10,11 @@ const PAPER = "#ece6d6";
  * The save room typewriter at the end of the career. A sheet waits in the roller, and once you've saved, the
  * Umbrella logo is stamped on it.
  */
-export const Trigger = ({ className = "" }) => {
+export const Trigger = ({ className = "", zoom = 1 }) => {
   const { isFound, touch } = useRelic("umbrella");
 
   return (
-    <RelicButton id="umbrella" isFound={isFound} onTouch={() => touch()} className={className}>
+    <RelicButton id="umbrella" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
       <svg viewBox="0 0 72 60" className="w-24 overflow-visible sm:w-28" aria-hidden="true">
         {/* the sheet in the roller */}
         <rect x="22" y="2" width="28" height="26" rx="1" fill={PAPER} />

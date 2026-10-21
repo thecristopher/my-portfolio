@@ -12,11 +12,11 @@ const TRIM = "#d9b04a";
  * The treasure chest at the end of the side quests, the kind every dungeon hides behind its last door.
  * Opened, the lid stays up and the Triforce glows inside.
  */
-export const Trigger = ({ className = "" }) => {
+export const Trigger = ({ className = "", zoom = 1 }) => {
   const { isFound, touch } = useRelic("triforce");
 
   return (
-    <RelicButton id="triforce" isFound={isFound} onTouch={() => touch()} className={className}>
+    <RelicButton id="triforce" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
       <svg viewBox="0 0 64 56" className="w-20 overflow-visible sm:w-24" aria-hidden="true">
         {isFound && (
           <g style={{ filter: `drop-shadow(0 0 6px ${ZELDA_GOLD})` }} transform="translate(24 8) scale(1)">

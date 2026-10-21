@@ -11,9 +11,9 @@ const TRIFORCE_ENTRANCES = [
   { x: 320, y: 220 },
 ];
 
-/** Item get: the pieces fly in and join over god rays, then the classic text box says what you got. */
+/** Item get: the pieces fly in and join over god rays, then the classic text box says what you got and stays open. */
 const ItemGet = ({ onDone }) => {
-  useMomentLength(4000, onDone);
+  useMomentLength(3900, onDone);
   return (
     <EffectLayer background={veil(ZELDA_GOLD)} className="flex flex-col items-center justify-center gap-10 px-4">
       <div className="relative grid size-[min(60vw,16rem)] place-items-center">
@@ -45,8 +45,8 @@ const ItemGet = ({ onDone }) => {
           <TypedText text="Triforce" startAt={1.68} />
         </span>
         <TypedText text="!" startAt={2} />
-        <span className="mt-2 block text-sm text-white/70">
-          <TypedText text="Courage, wisdom and a clean merge." startAt={2.3} perLetter={0.03} />
+        <span className="mt-2 block text-[clamp(0.8rem,3.4vw,0.875rem)] text-white/85">
+          <TypedText text="Courage to lead, Wisdom to review, Power to ship." startAt={2.3} perLetter={0.03} />
         </span>
       </motion.p>
     </EffectLayer>

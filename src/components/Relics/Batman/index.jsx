@@ -28,11 +28,11 @@ const Cloud = ({ isLit }) => (
  * The Bat-Signal on a rooftop, its lamp aimed at a cloud. Dark until someone lights it; lit, the beam stays on and
  * the bat hangs on the cloud for good.
  */
-export const Trigger = ({ className = "" }) => {
+export const Trigger = ({ className = "", zoom = 1 }) => {
   const { isFound, touch } = useRelic("bat");
 
   return (
-    <RelicButton id="bat" isFound={isFound} onTouch={() => touch()} className={className}>
+    <RelicButton id="bat" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
       <svg viewBox="0 0 80 128" className="h-32 w-auto overflow-visible" aria-hidden="true">
         <defs>
           <linearGradient id="bat-signal-beam" x1="0" y1="1" x2="0" y2="0">

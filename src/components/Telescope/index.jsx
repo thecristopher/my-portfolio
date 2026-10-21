@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, CornerDownLeft } from "lucide-react";
+import { Check, CornerDownLeft, Search } from "lucide-react";
 import { useGetNavBarQuery } from "../../api/navBarApi";
 import { useGetContactQuery } from "../../api/contactApi";
 import { useGetCaseStudiesQuery } from "../../api/caseStudiesApi";
@@ -17,7 +17,7 @@ const NO_ITEMS = [];
 const REGION_SWATCHES = ["ink", "panel", "fg", "accent", "rose", "lavender", "string", "signal", "error"];
 
 const RegionPreview = ({ region }) => (
-  <div data-theme={region.name} className="flex h-full flex-col gap-4 rounded-lg bg-ink p-5 text-fg">
+  <div data-theme={region.name} className="flex h-full flex-col gap-4 rounded-2xl bg-ink p-6 text-fg">
     <p className="font-display text-xs tracking-[0.3em] text-accent uppercase">{region.subtitle}</p>
     <p className="font-display text-3xl tracking-[0.12em] uppercase">{region.title}</p>
     <p className="text-sm text-muted">{region.tagline}</p>
@@ -36,15 +36,15 @@ const RegionPreview = ({ region }) => (
 );
 
 const TextPreview = ({ preview }) => (
-  <div className="flex h-full flex-col gap-3 p-5">
+  <div className="flex h-full flex-col gap-3 p-6">
     {preview.eyebrow && <p className="font-mono text-[11px] text-accent">{preview.eyebrow}</p>}
-    <p className="text-xl font-semibold tracking-tight text-fg">{preview.title}</p>
+    <p className="text-2xl font-semibold tracking-tight text-fg">{preview.title}</p>
     <p className="text-sm leading-relaxed text-muted text-pretty">{preview.body}</p>
   </div>
 );
 
 const Preview = ({ command }) => {
-  if (!command?.preview) return <p className="p-5 font-mono text-xs text-faint">-- no preview --</p>;
+  if (!command?.preview) return <p className="p-6 text-sm text-faint">Press enter to run it.</p>;
   if (command.preview.kind === "region") return <RegionPreview region={command.preview.region} />;
   return <TextPreview preview={command.preview} />;
 };
@@ -71,15 +71,16 @@ const ResultRow = ({ command, isActive, isFirstInGroup, onRun, onHover }) => {
   const Icon = command.icon;
   return (
     <li>
-      {isFirstInGroup && <p className="px-3 pt-3 pb-1 font-mono text-[10px] tracking-[0.2em] text-faint uppercase">{command.group}</p>}
+      {isFirstInGroup && <p className="px-3 pt-4 pb-1.5 text-[11px] font-medium tracking-wide text-faint">{command.group}</p>}
       <button
         type="button"
         onClick={onRun}
         onMouseEnter={onHover}
-        className={`relative flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors ${isActive ? "bg-raised text-fg" : "text-muted"}`}
+        className={`relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[15px] transition-colors ${isActive ? "bg-raised/80 text-fg" : "text-muted"}`}
       >
-        {isActive && <span className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-accent" aria-hidden="true" />}
-        <Icon size={14} className={isActive ? "text-accent" : "text-faint"} />
+        <span className={`grid size-7 shrink-0 place-items-center rounded-lg ${isActive ? "bg-accent text-ink" : "bg-panel text-faint"}`}>
+          <Icon size={14} />
+        </span>
         <span className="flex-1 truncate">{command.label}</span>
         {command.isCurrent && <Check size={13} className="text-string" aria-label="current" />}
         <span className="hidden font-mono text-[11px] text-faint sm:inline">:{command.alias}</span>
@@ -145,12 +146,11 @@ const Picker = ({ onClose, initialQuery, onOpenQuestLog, onOpenSearch, onOpenWhi
       exit={{ opacity: 0, scale: 0.98, y: -8 }}
       transition={{ duration: 0.35, ease: easeOutExpo }}
       onClick={(event) => event.stopPropagation()}
-      className="mx-auto grid h-[min(70vh,34rem)] w-full max-w-4xl grid-rows-[auto_1fr] overflow-hidden rounded-xl border border-accent/60 bg-mantle/95 shadow-[0_40px_120px_-20px_color-mix(in_oklab,var(--color-shadow)_90%,transparent)] backdrop-blur-xl md:grid-cols-[1.1fr_1fr]"
+      className="glass-strong hairline mx-auto grid h-[min(70vh,36rem)] w-full max-w-4xl grid-rows-[auto_1fr] overflow-hidden rounded-3xl border shadow-[0_40px_120px_-20px_color-mix(in_oklab,var(--color-shadow)_90%,transparent)] md:grid-cols-[1.1fr_1fr]"
     >
-      <div className="relative border-b border-line-strong md:col-span-2">
-        <span className="absolute -top-px left-4 bg-mantle px-2 font-mono text-[10px] text-accent">Telescope</span>
-        <div className="flex items-center gap-2 px-4 py-3.5 font-mono text-sm">
-          <span className="text-accent">❯</span>
+      <div className="relative border-b border-line md:col-span-2">
+        <div className="flex items-center gap-3 px-5 py-4">
+          <Search size={20} className="shrink-0 text-accent" aria-hidden="true" />
           <input
             autoFocus
             value={query}
@@ -159,10 +159,10 @@ const Picker = ({ onClose, initialQuery, onOpenQuestLog, onOpenSearch, onOpenWhi
               setActiveIndex(0);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="resume, work, region, yank, keys..."
+            placeholder="Search sections, projects, regions or commands"
             aria-label="Command"
             spellCheck={false}
-            className="flex-1 bg-transparent text-fg placeholder:text-faint focus:outline-none"
+            className="min-w-0 flex-1 bg-transparent text-xl tracking-tight text-fg placeholder:text-faint focus:outline-none"
           />
           <span className="font-mono text-[11px] text-faint tabular-nums">
             {results.length}/{commands.filter((command) => !command.hidden).length}
@@ -184,16 +184,18 @@ const Picker = ({ onClose, initialQuery, onOpenQuestLog, onOpenSearch, onOpenWhi
         ))}
       </ul>
 
-      <div className="relative hidden min-h-0 border-l border-line-strong p-2 md:block">
-        <span className="absolute -top-px right-4 bg-mantle px-2 font-mono text-[10px] text-signal">Preview</span>
-        <Preview command={activeCommand} />
+      <div className="hidden min-h-0 p-3 md:block">
+        <div className="h-full overflow-hidden rounded-2xl bg-panel/50">
+          <Preview command={activeCommand} />
+        </div>
       </div>
     </motion.div>
   );
 };
 
 /**
- * Telescope: the command line, the buffer list, the region picker and every shortcut in one fuzzy finder.
+ * Telescope: the command line, the buffer list, the region picker and every shortcut in one fuzzy finder, drawn
+ * like the rest of the page. Opened from the keyboard only (":" or ⌘K).
  */
 const Telescope = ({ isOpen, initialQuery = "", onClose, onOpenQuestLog, onOpenSearch, onOpenWhichKey }) => {
   useEffect(() => {
@@ -216,7 +218,7 @@ const Telescope = ({ isOpen, initialQuery = "", onClose, onOpenQuestLog, onOpenS
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
           onClick={onClose}
-          className="fixed inset-0 z-50 bg-ink/60 px-3 pt-[12vh] backdrop-blur-sm"
+          className="fixed inset-0 z-50 bg-ink/50 px-3 pt-[12vh] backdrop-blur-md"
         >
           <Picker onClose={onClose} initialQuery={initialQuery} onOpenQuestLog={onOpenQuestLog} onOpenSearch={onOpenSearch} onOpenWhichKey={onOpenWhichKey} />
         </motion.div>

@@ -12,14 +12,16 @@ export const PERSUASION_DC = PERCEPTION_DC;
 export const ROLL_PATIENCE_MS = 1500;
 // the die always tumbles at least this long, even when the answer is instant
 export const TUMBLE_MS = 1600;
-export const MOMENT_MS = 6500;
+// once the die lands, the verdict, its line and the light rays all need this long to settle
+export const VERDICT_SETTLE_MS = 1800;
 
-export const SUCCESS_LINE = "One message away from a party member who already rolled initiative.";
+export const SUCCESS_LINE = "Cristopher joins your party. Class: Engineering Manager. Level 9.";
+export const CRITICAL_BONUS = "Natural 20. He brings the whole team.";
 export const FAILURE_LINE = "The dice disagree. Roll again, or just send the email.";
 
-// how each verdict looks once it's stamped: its color, the line under it, and whether it bursts or cracks
+// how each verdict looks once it's stamped: its color, the line under it, an optional bonus line, and whether it bursts or cracks
 export const VERDICT_LOOKS = {
-  critical: { color: D20_GOLD, line: SUCCESS_LINE, flourish: "burst" },
+  critical: { color: D20_GOLD, line: SUCCESS_LINE, bonus: CRITICAL_BONUS, flourish: "burst" },
   success: { color: D20_GOLD, line: SUCCESS_LINE, flourish: "ring" },
   failure: { color: DULL_RED, line: FAILURE_LINE, flourish: "none" },
   fumble: { color: D20_CRIMSON, line: FAILURE_LINE, flourish: "crack" },

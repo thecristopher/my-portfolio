@@ -4,6 +4,9 @@ import { useMomentLength, veil } from "../moment";
 import { easeOutExpo } from "../../../lib/motion";
 import { GRACE_GOLD, GRACE_SIGIL } from "./grace";
 
+// a dark edge right around the letters and a soft shadow wide around them, so the gold reads over the light
+const LEGIBLE_SHADOW = "0 1px 2px rgb(0 0 0 / 0.95), 0 0 8px rgb(0 0 0 / 0.9), 0 0 22px rgb(0 0 0 / 0.75)";
+
 // specks of gold rising up the whole screen, the way the air above a grace shimmers
 const GRACE_EMBERS = Array.from({ length: 18 }, (_, index) => ({ left: 4 + ((index * 37) % 92), delay: (index % 6) * 0.25, size: 3 + (index % 3) * 2 }));
 
@@ -48,14 +51,14 @@ const GraceDiscovered = ({ onDone }) => {
         ))}
       </svg>
       <Shockwave color={GRACE_GOLD} delay={0.4} />
-      <div className="relative w-full bg-gradient-to-r from-transparent via-black/85 to-transparent px-4 py-8 text-center">
+      <div className="relative w-full bg-gradient-to-r from-transparent via-black/90 to-transparent px-4 py-8 text-center">
         <Rule />
         <motion.p
           initial={{ letterSpacing: "0.45em", opacity: 0 }}
           animate={{ letterSpacing: "0.2em", opacity: 1 }}
           transition={{ duration: 1.8, ease: easeOutExpo }}
           className="my-4 font-display text-[clamp(1.25rem,5.5vw,3.75rem)] uppercase"
-          style={{ color: GRACE_GOLD, textShadow: `0 0 28px ${GRACE_GOLD}88` }}
+          style={{ color: GRACE_GOLD, textShadow: `${LEGIBLE_SHADOW}, 0 0 28px ${GRACE_GOLD}88` }}
         >
           Lost Grace Discovered
         </motion.p>
@@ -64,9 +67,10 @@ const GraceDiscovered = ({ onDone }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.4 }}
-          className="mt-4 font-display text-xs tracking-[0.3em] text-[#e9dcb0]/70 uppercase"
+          className="mx-auto mt-4 max-w-xl font-display text-xs tracking-[0.3em] text-balance text-[#e9dcb0] uppercase"
+          style={{ textShadow: LEGIBLE_SHADOW }}
         >
-          Contact · Inbox of the Tarnished
+          contact.sh · Rest here, Tarnished. Every message gets an answer.
         </motion.p>
       </div>
     </EffectLayer>

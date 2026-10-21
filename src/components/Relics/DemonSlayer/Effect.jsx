@@ -8,7 +8,9 @@ import { SUMI_INK, SUN_RED, brushDelays, ichimatsu } from "./helpers";
 const WASHI_AT = 0.42;
 const SLASH_AT = 2.7;
 const SUBTITLE_AT = 3.25;
-const LENGTH_MS = 5600;
+const CERTS_AT = SUBTITLE_AT + 0.8;
+// settled once the cert line has faded in, the wave and both lines then hold until the visitor moves on
+const SETTLED_MS = 4600;
 
 // where the blade crosses the screen, as a percent of its height. the calligraphy splits along this line
 const CUT_AT = 48;
@@ -68,7 +70,7 @@ const Glyph = ({ glyph, delay }) =>
 // the three columns and Tanjiro's seal stamped at the end
 const Calligraphy = () => (
   <div
-    className="absolute inset-x-4 top-[5vh] flex flex-row-reverse items-start justify-center gap-[clamp(0.75rem,5vw,2.75rem)] font-extrabold"
+    className="absolute inset-x-4 top-[6.5rem] flex lg:top-[5vh] flex-row-reverse items-start justify-center gap-[clamp(0.75rem,5vw,2.75rem)] font-extrabold"
     style={{ fontFamily: MINCHO, color: SUMI_INK, textShadow: "0 0 1px rgba(20,20,20,0.55)" }}
   >
     {COLUMNS.map(({ text, size }, column) => (
@@ -108,9 +110,9 @@ const CutPage = ({ isReduced }) =>
     </motion.div>
   ));
 
-// the English line the subtitles give it, and what it meant for school
+// the English line the subtitles give it, and the two forms Cristopher actually earned. it sits above the continue button
 const Subtitle = () => (
-  <div className="absolute inset-x-4 bottom-[6vh] flex flex-col items-center gap-3 text-center">
+  <div className="absolute inset-x-4 bottom-[6.5rem] flex flex-col items-center gap-3 text-center">
     <motion.p
       className="max-w-2xl font-sans text-[clamp(1rem,4.4vw,1.6rem)] leading-snug font-semibold text-white"
       style={{ textShadow: SUBTITLE_OUTLINE }}
@@ -121,13 +123,14 @@ const Subtitle = () => (
       Total Concentration. Water Breathing, First Form: Water Surface Slash.
     </motion.p>
     <motion.p
-      className="font-mono text-xs"
+      className="flex max-w-2xl flex-col gap-1 font-mono text-[clamp(0.75rem,3.2vw,0.95rem)] leading-snug text-balance"
       style={{ color: SUMI_INK }}
       initial={{ opacity: 0 }}
-      animate={{ opacity: 0.75 }}
-      transition={{ duration: 0.4, delay: SUBTITLE_AT + 0.8 }}
+      animate={{ opacity: 0.9 }}
+      transition={{ duration: 0.4, delay: CERTS_AT }}
     >
-      That's how every one of these exams got passed.
+      <span>First Form: AWS Certified Developer – Associate.</span>
+      <span>Second Form: AWS Certified Cloud Practitioner.</span>
     </motion.p>
   </div>
 );
@@ -135,7 +138,7 @@ const Subtitle = () => (
 /** Total Concentration: the haori wipes in, the form is painted in ink, and a Hokusai wave cuts the page in two. */
 const WaterBreathing = ({ onDone }) => {
   const isReduced = useReducedMotion();
-  useMomentLength(LENGTH_MS, onDone);
+  useMomentLength(SETTLED_MS, onDone);
 
   return (
     <EffectLayer>

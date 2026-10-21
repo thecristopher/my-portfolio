@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   D20_FACETS,
+  CRITICAL_BONUS,
   FAILURE_LINE,
   SUCCESS_LINE,
   VERDICT_LOOKS,
@@ -96,6 +97,11 @@ describe("VERDICT_LOOKS", () => {
   it("cheers every success with the party line", () => {
     expect(VERDICT_LOOKS.critical.line).toBe(SUCCESS_LINE);
     expect(VERDICT_LOOKS.success.line).toBe(SUCCESS_LINE);
+  });
+
+  it("adds the whole team only on a natural 20", () => {
+    const bonuses = Object.entries(VERDICT_LOOKS).filter(([, look]) => look.bonus);
+    expect(bonuses).toEqual([["critical", expect.objectContaining({ bonus: CRITICAL_BONUS })]]);
   });
 
   it("nudges every failure toward the email", () => {

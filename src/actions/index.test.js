@@ -17,6 +17,8 @@ import {
   formatRange,
   countUsing,
   localClock,
+  dayBlocks,
+  hoursAhead,
   nowStatus,
   shortHash,
   usesTech,
@@ -498,8 +500,8 @@ describe("buildFileTree", () => {
     expect(tree[0]).toMatchObject({ name: "index.tsx", isDirectory: false });
   });
 
-  it("keeps the philosophy and principles inside about", () => {
-    expect(tree.find((node) => node.sectionId === "about").children.map((child) => child.name)).toEqual(["philosophy.md", "about.md", "principles.md"]);
+  it("keeps the philosophy and the story inside about", () => {
+    expect(tree.find((node) => node.sectionId === "about").children.map((child) => child.name)).toEqual(["philosophy.md", "about.md", "day.log"]);
   });
 
   it("lists the career log, each featured job and the earlier ones under experience", () => {
@@ -711,3 +713,29 @@ describe("stepSection", () => {
   });
 });
 
+
+describe("dayBlocks", () => {
+  it("starts Claire's day at midnight and ends it at midnight", () => {
+    const blocks = dayBlocks();
+    expect(blocks[0].from).toBe(0);
+    expect(blocks.at(-1).until).toBe(24);
+  });
+
+  it("leaves no gap between two blocks", () => {
+    const blocks = dayBlocks();
+    blocks.slice(1).forEach((block, index) => expect(block.from).toBe(blocks[index].until));
+  });
+});
+
+describe("hoursAhead", () => {
+  it("says Malenia in the same timezone is zero hours away", () => {
+    const date = new Date();
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    expect(hoursAhead(date, zone)).toBe(0);
+  });
+
+  it("keeps Inde's difference within half a day", () => {
+    const value = hoursAhead(new Date(), "Pacific/Kiritimati");
+    expect(Math.abs(value)).toBeLessThanOrEqual(12);
+  });
+});

@@ -65,6 +65,11 @@ describe("textToPixelPath", () => {
     expect(textToPixelPath("+1 LIFE").d).toContain("M");
   });
 
+  it("spells the nine years of experience Claire wrote on his anniversary card", () => {
+    const missing = [..."+9 YEARS EXP"].filter((char) => !PIXEL_FONT[char]);
+    expect(missing).toEqual([]);
+  });
+
   it("leaves a gap for letters the font doesn't have", () => {
     expect(textToPixelPath("Z")).toEqual({ d: "", width: PIXEL_FONT[" "][0].length, height: 5 });
   });

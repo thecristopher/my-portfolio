@@ -1,20 +1,17 @@
 import { useRef, useState } from "react";
 import { motion, useMotionTemplate, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { ArrowUpRight, Check, Copy, Download, SkipForward } from "lucide-react";
+import { ArrowUpRight, Check, Copy, SkipForward } from "lucide-react";
 import TextReveal from "../../components/TextReveal";
 import EditorWindow from "../../components/EditorWindow";
 import TypeLine from "../../components/TypeLine";
 import FileIcon from "../../components/FileIcon";
-import { Trigger as BatSignal } from "../../components/Relics/Batman";
 import { Trigger as SiteOfGrace } from "../../components/Relics/EldenRing";
-import { Trigger as D20 } from "../../components/Relics/BaldursGate";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetContactQuery } from "../../api/contactApi";
 import { socialIconMap } from "../../lib/socialIconMap";
 import { easeOutExpo } from "../../lib/motion";
 import { echo } from "../../lib/echo";
 import { earnRunes } from "../../lib/runes";
-import { exportResume } from "../../lib/resume/exportResume";
 
 const CopyEmailButton = ({ email }) => {
   const [isCopied, setIsCopied] = useState(false);
@@ -148,8 +145,11 @@ const ContactTerminal = ({ contact }) => {
         {hasExited && (
           <motion.div {...printedLine(0)} className="flex flex-col gap-1 text-faint">
             <p>logout</p>
-            <p>
-              <span className="text-accent">#</span> touch grace any time, Tarnished.
+            <p className="flex items-center gap-2">
+              <span>
+                <span className="text-accent">#</span> touch grace any time, Tarnished.
+              </span>
+              <SiteOfGrace zoom={0.25} />
             </p>
           </motion.div>
         )}
@@ -170,16 +170,16 @@ const SunsetHeadline = () => {
     <h2 ref={ref} className="text-[clamp(2.75rem,9vw,7.5rem)] leading-[0.92] font-semibold tracking-[-0.055em]">
       <TextReveal text="Let's build" className="block" />
       <span className="relative block">
-        <TextReveal text="something that lasts." delay={0.15} className="block text-muted" />
+        <TextReveal text="something worth keeping." delay={0.15} className="block text-muted" />
         <motion.span aria-hidden="true" data-search-skip className="absolute inset-0" style={{ clipPath: prefersReducedMotion ? "none" : clipPath }}>
-          <TextReveal text="something that lasts." delay={0.15} className="block text-gold" />
+          <TextReveal text="something worth keeping." delay={0.15} className="block text-gold" />
         </motion.span>
       </span>
     </h2>
   );
 };
 
-// the three ways in, as big as Apple makes its last call to action
+// the way in, as big as Apple makes its last call to action. the resume stays in the bufferline
 const CallsToAction = ({ contact }) => (
   <div className="flex flex-wrap items-center gap-3">
     <a
@@ -190,14 +190,6 @@ const CallsToAction = ({ contact }) => (
       Email me
       <ArrowUpRight size={18} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
     </a>
-    <button
-      type="button"
-      onClick={exportResume}
-      className="group inline-flex items-center gap-2 rounded-full border border-line-strong px-7 py-4 text-base font-medium transition-colors hover:border-faint"
-    >
-      Download résumé
-      <Download size={17} className="text-muted transition-transform group-hover:translate-y-0.5" />
-    </button>
     {contact.socials
       .filter((social) => social.name === "LinkedIn")
       .map((social) => (
@@ -208,27 +200,7 @@ const CallsToAction = ({ contact }) => (
   </div>
 );
 
-// the night over the last section: the bat signal up in the clouds, a grace on the ground and the dice on the table
-const Relics = () => (
-  <div className="flex flex-col gap-10 pt-6">
-    <p className="text-center font-mono text-xs text-faint">
-      <span className="text-accent">//</span> three relics left on the table for whoever reads to the end. touch them
-    </p>
-    <div className="grid items-end gap-x-16 gap-y-24 sm:grid-cols-3">
-      <div className="flex justify-center sm:scale-125">
-        <BatSignal />
-      </div>
-      <div className="flex justify-center sm:scale-150">
-        <SiteOfGrace />
-      </div>
-      <div className="flex justify-center sm:scale-125">
-        <D20 />
-      </div>
-    </div>
-  </div>
-);
-
-/** contact.sh: the closing line, every way to reach me, and three relics for whoever stays until the end. */
+/** contact.sh: the closing line and every way to reach me. */
 const Contact = ({ number }) => {
   const { data: contact, isLoading, isError } = useGetContactQuery();
 
@@ -244,7 +216,7 @@ const Contact = ({ number }) => {
           </p>
           <SunsetHeadline />
           <p className="max-w-2xl text-lg leading-relaxed text-muted text-pretty sm:text-xl">
-            Hiring for a team that ships, or just want to talk shop? I read every message, and I answer.
+            Hiring, building something, or just want to argue about Neovim configs? Write me. I read every message, and I answer all of them.
           </p>
           {contact && <CallsToAction contact={contact} />}
         </div>
@@ -252,7 +224,6 @@ const Contact = ({ number }) => {
         {isLoading && <SkeletonLines lines={2} />}
         {isError && <LoadError what="contact details" />}
         {contact && <ContactTerminal contact={contact} />}
-        <Relics />
       </div>
     </section>
   );

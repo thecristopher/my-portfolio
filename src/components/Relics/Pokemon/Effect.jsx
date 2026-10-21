@@ -21,14 +21,19 @@ const ZAP_AT = 2.75;
 const WOBBLE_AT = 3.4;
 const CAUGHT_AT = 4.65;
 const DEX_AT = 5.05;
-const MOMENT_MS = 6000;
 const PER_LETTER = 0.025;
+const DEX_PER_LETTER = 0.005;
 
 const APPEARED = "A wild CRISTOPHER appeared!";
 const GO = "Go! POKé BALL!";
 const GOTCHA = "Gotcha! CRISTOPHER was caught!";
 // the next line waits for the first to finish printing, like a real text box
 const GO_AT = typingEnds(APPEARED, APPEARED_AT, PER_LETTER) + 0.05;
+const EVOLVED = "Evolved: INTERN, DEVELOPER, SENIOR, TECH LEAD, MANAGER.";
+const MOVES = "Known moves: TypeScript, AWS Bedrock, Code Review, 1:1.";
+const MOVES_AT = typingEnds(EVOLVED, DEX_AT + 0.1, DEX_PER_LETTER) + 0.05;
+// the battle screen and the Pokédex card hold once the last move is printed
+const MOMENT_MS = Math.round(typingEnds(MOVES, MOVES_AT, DEX_PER_LETTER) * 1000) + 150;
 const WIPE_BANDS = 8;
 
 const ENEMY_PIXELS = spriteToPixels(AVATAR_ROWS, AVATAR_PALETTE);
@@ -255,9 +260,14 @@ const DexEntry = () => (
     transition={{ duration: 0.35, delay: DEX_AT, ease: easeOutExpo }}
   >
     <div className="rounded-md bg-[#f8f8f0] px-3 py-2 font-mono text-[#202020]">
-      <p className="text-[10px] font-bold tracking-widest text-[#c02a08] uppercase">Pokédex No. 009 · Cristopher</p>
-      <p className="mt-1 text-xs leading-snug sm:text-sm">
-        <TypedText text="The Engineering Manager Pokémon. Leads teams and still writes the code." startAt={DEX_AT + 0.15} perLetter={0.008} />
+      <p className="text-[10px] font-bold tracking-widest text-[#c02a08] uppercase sm:text-xs">
+        No. 009 Cristopher <span className="text-[#202020]/60 normal-case">· The Engineering Manager Pokémon</span>
+      </p>
+      <p className="mt-1 text-xs leading-snug text-pretty sm:text-sm">
+        <TypedText text={EVOLVED} startAt={DEX_AT + 0.1} perLetter={DEX_PER_LETTER} />
+      </p>
+      <p className="mt-1 text-xs leading-snug text-pretty sm:text-sm">
+        <TypedText text={MOVES} startAt={MOVES_AT} perLetter={DEX_PER_LETTER} />
       </p>
     </div>
   </motion.div>
@@ -270,7 +280,8 @@ const WildEncounter = ({ onDone }) => {
 
   return (
     <EffectLayer background="rgba(6,8,14,0.9)" fade={0.3}>
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-4">
+      {/* nudged up so the Pokédex card clears the continue button */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-4 pb-16">
         <BattleScreen />
         <DexEntry />
       </div>

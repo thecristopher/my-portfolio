@@ -209,7 +209,7 @@ const LockOn = ({ isStill }) => (
 
 const CaseFile = () => (
   <motion.div
-    className="absolute inset-x-4 top-[52vh] mx-auto max-w-sm border-l-2 bg-black/60 px-4 py-3 font-mono text-[11px] leading-relaxed tracking-[0.12em] backdrop-blur-sm sm:text-xs"
+    className="absolute inset-x-4 top-[48vh] mx-auto max-w-sm border-l-2 bg-black/60 px-4 py-3 font-mono text-[11px] leading-relaxed tracking-[0.12em] backdrop-blur-sm sm:text-xs"
     style={{ borderColor: ARKHAM_ORANGE }}
     initial={{ opacity: 0, x: -12 }}
     animate={{ opacity: 1, x: 0 }}

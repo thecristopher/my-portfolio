@@ -111,8 +111,8 @@ const App = () => {
       </a>
       <Aurora sectionId={activeSectionId} />
       <ScrollProgress />
-      <Bufferline sectionIds={sectionIds} activeId={activeSectionId} onOpenCmdline={handlers.openTelescope} onOpenRegions={handlers.openRegions} />
-      <FileTree onOpenCmdline={handlers.openTelescope} />
+      <Bufferline sectionIds={sectionIds} activeId={activeSectionId} onOpenRegions={handlers.openRegions} />
+      <FileTree />
       {/* on wide screens an open file tree takes the left edge. the sections still run edge to edge underneath it,
           only their content moves over to make room (see .clears-tree) */}
       <div className="clears-tree">
@@ -122,9 +122,9 @@ const App = () => {
             return <Section key={id} number={index + 1} />;
           })}
         </main>
-        <Footer onOpenCmdline={handlers.openTelescope} />
+        <Footer />
       </div>
-      <Statusline mode={mode} activeId={activeSectionId} onOpenCmdline={handlers.openTelescope} onOpenQuestLog={handlers.openQuests} onOpenRegions={handlers.openRegions} />
+      <Statusline mode={mode} activeId={activeSectionId} onOpenQuestLog={handlers.openQuests} onOpenRegions={handlers.openRegions} />
       <Telescope
         isOpen={open.telescope}
         initialQuery={open.telescopeQuery}
