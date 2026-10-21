@@ -1,15 +1,13 @@
 import { useRef } from "react";
 import { motion, useMotionTemplate, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { ArrowDownRight, Download } from "lucide-react";
+import { ArrowDownRight } from "lucide-react";
 import KineticName from "../../components/KineticName";
 import Magnetic from "../../components/Magnetic";
 import { Trigger as PlayerOne } from "../../components/Relics/ScottPilgrim";
-import { Trigger as TallGrass } from "../../components/Relics/Pokemon";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { easedGlow } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 import { INTRO_S } from "../../lib/intro";
-import { exportResume } from "../../lib/resume/exportResume";
 import ProfileWindow from "./ProfileWindow";
 
 // how far a value is between two points, held at 0 before and 1 after
@@ -28,38 +26,27 @@ const riseIn = (delay) => ({
   transition: { duration: 1.2, delay: INTRO_S + delay, ease: easeOutExpo },
 });
 
-const Eyebrow = ({ about }) => (
-  <motion.p {...riseIn(0.2)} className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-xs text-muted">
-    <span className="flex items-center gap-2 rounded-full border border-line-strong bg-panel/60 px-3 py-1.5 backdrop-blur">
-      <span className="relative flex size-2">
-        <span className="absolute inset-0 animate-ping rounded-full bg-string/60" />
-        <span className="relative size-2 rounded-full bg-string" />
-      </span>
-      {about?.open_to ?? about?.role ?? "Tech Lead & Engineering Manager"}
+// only shows once the api says what I'm open to. the title and the city already have their own places
+const OpenTo = ({ openTo }) => (
+  <motion.p {...riseIn(0.2)} className="flex w-fit items-center gap-2 rounded-full border border-line-strong bg-panel/60 px-3 py-1.5 font-mono text-xs text-muted backdrop-blur">
+    <span className="relative flex size-2">
+      <span className="absolute inset-0 animate-ping rounded-full bg-string/60" />
+      <span className="relative size-2 rounded-full bg-string" />
     </span>
-    {about?.location && <span>{about.location}</span>}
+    {openTo}
   </motion.p>
 );
 
+// the resume lives in the bufferline on every screen, so the hero only points into the page
 const Actions = () => (
   <motion.div {...riseIn(1.1)} className="flex flex-wrap items-center gap-3">
     <Magnetic>
-      <button
-        type="button"
-        onClick={exportResume}
-        className="group inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-ink transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
-      >
-        Download résumé
-        <Download size={16} className="transition-transform duration-300 group-hover:translate-y-0.5" />
-      </button>
-    </Magnetic>
-    <Magnetic>
       <a
         href="#work"
-        className="group inline-flex items-center gap-2 rounded-full border border-line-strong bg-ink/40 px-6 py-3.5 text-sm font-medium backdrop-blur transition-colors duration-300 hover:border-faint"
+        className="group inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-ink transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
       >
         See the work
-        <ArrowDownRight size={16} className="text-muted transition-all duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:text-fg" />
+        <ArrowDownRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5" />
       </a>
     </Magnetic>
     <a href="#contact" className="px-2 text-sm text-accent underline-offset-4 hover:underline">
@@ -70,7 +57,7 @@ const Actions = () => (
 
 // player one, standing in the tall grass at the edge of the stage
 const Stage = () => (
-  <figure className="relative flex items-end justify-center gap-6 lg:flex-col lg:items-center lg:gap-2">
+  <figure className="relative flex justify-center">
     <div className="relative">
       {/* exact multiples of the 63 row sprite keep every pixel square */}
       <PlayerOne
@@ -81,9 +68,6 @@ const Stage = () => (
       {/* a gradient, because Safari paints a blurred div solid black */}
       <div className="pointer-events-none absolute inset-x-[12.5%] top-[120px] -z-10 h-3 sm:top-[243px] lg:top-[306px]" style={{ background: FLOOR_SHADOW }} aria-hidden="true" />
     </div>
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: AVATAR_ENTERS_AT_S + 0.8, duration: 0.6 }} className="mt-6">
-      <TallGrass />
-    </motion.div>
   </figure>
 );
 
@@ -91,7 +75,7 @@ const Intro = ({ about }) => {
   const summary = about?.headline?.split(". ").slice(1).join(". ");
   return (
     <div className="flex flex-col gap-7">
-      <Eyebrow about={about} />
+      {about?.open_to && <OpenTo openTo={about.open_to} />}
       <KineticName
         lines={[{ text: "Cristopher" }, { text: "Cervantes.", className: "text-accent" }]}
         delay={INTRO_S + 0.5}

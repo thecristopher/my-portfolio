@@ -278,7 +278,7 @@ const TreeRail = () => {
 
 // neo-tree as a split down the left edge, toggled by \e, :tree, the statusline or the phone menu. on wide screens the
 // page moves over to make room, the way a split does. on smaller ones it slides over the page and a pick closes it
-const FileTree = ({ onOpenCmdline }) => {
+const FileTree = () => {
   const isOpen = useFileTreeOpen();
   const isWide = useMediaQuery("(min-width: 80rem)");
   const prefersReducedMotion = useReducedMotion();
@@ -338,14 +338,6 @@ const FileTree = ({ onOpenCmdline }) => {
                 <kbd className="text-muted">{"\\e"}</kbd> toggle · <kbd className="text-muted">q</kbd> close
               </span>
               <span className="xl:hidden">tap a file to jump</span>
-              <button
-                type="button"
-                onClick={onOpenCmdline}
-                className="rounded-full border border-line-strong bg-ink/50 px-3 py-1 text-muted transition-colors hover:text-fg"
-                aria-label="Open command line"
-              >
-                <span className="text-signal">:</span>cmd
-              </button>
             </div>
           </motion.aside>
         </>

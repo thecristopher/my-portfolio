@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Briefcase, Download, FolderGit2, Send, User } from "lucide-react";
+import { Briefcase, FolderGit2, Send, User } from "lucide-react";
 import { SHOWS_SPLASH, SPLASH_HOLD_S, markBooted } from "../../lib/intro";
 import { scrollToSection } from "../../lib/smoothScroll";
 import { easeOutExpo } from "../../lib/motion";
-import { exportResume } from "../../lib/resume/exportResume";
 import { currentRegionName, resolveRegion } from "../../lib/regions";
 import { showBanner } from "../../lib/banner";
 import { PLAYER_MESSAGES } from "../Telescope/commands";
@@ -13,7 +12,6 @@ const ENTRIES = [
   { key: "a", icon: User, label: "About me", run: () => scrollToSection("about") },
   { key: "w", icon: Briefcase, label: "Experience", run: () => scrollToSection("work") },
   { key: "p", icon: FolderGit2, label: "Projects", run: () => scrollToSection("projects") },
-  { key: "r", icon: Download, label: "Download résumé", run: exportResume },
   { key: "c", icon: Send, label: "Say hello", run: () => scrollToSection("contact") },
 ];
 

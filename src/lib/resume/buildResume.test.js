@@ -70,6 +70,12 @@ describe("formatRoles", () => {
     expect(formatRoles(["Developer", "Senior Developer"])).toBe("Senior Developer (promoted from Developer)");
   });
 
+  it("names every step Malenia climbed, newest first", () => {
+    expect(formatRoles(["Senior Application Developer", "Tech Lead", "Engineering Manager"])).toBe(
+      "Engineering Manager (promoted from Tech Lead and Senior Application Developer)"
+    );
+  });
+
   it("keeps a single title plain", () => {
     expect(formatRoles(["Intern"])).toBe("Intern");
   });
@@ -108,6 +114,16 @@ describe("buildResume", () => {
       bullets: ["Shipped the T-virus antidote on a Friday"],
       stack: ["React", "Docker"],
     });
+  });
+
+  it("turns Claire's case study into the first bullet under her company", () => {
+    const withStudy = buildResume({
+      about,
+      projects,
+      contact,
+      caseStudies: [{ title: "Antidote", company: "Umbrella Corporation", summary: "A cure for Raccoon City.", metrics: [{ value: "1", label: "city saved" }] }],
+    });
+    expect(withStudy.experience[0].bullets).toEqual(["Antidote: A cure for Raccoon City (1 city saved)", "Shipped the T-virus antidote on a Friday"]);
   });
 
   it("prints a language level only when it's known", () => {

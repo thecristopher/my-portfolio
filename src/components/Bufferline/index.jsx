@@ -39,7 +39,7 @@ const BufferTab = ({ sectionId, number, isActive }) => (
  * The bar across the top: nvim's bufferline drawn in Apple's frosted glass. One buffer per section, the region
  * you woke up in, and the resume one click away on every screen, the way Apple keeps "Buy" in its product bar.
  */
-const Bufferline = ({ sectionIds, activeId, onOpenCmdline, onOpenRegions }) => {
+const Bufferline = ({ sectionIds, activeId, onOpenRegions }) => {
   const isTreeOpen = useFileTreeOpen();
   const { region } = useRegion();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -84,14 +84,6 @@ const Bufferline = ({ sectionIds, activeId, onOpenCmdline, onOpenRegions }) => {
           >
             <span className="size-1.5 rotate-45 bg-accent" aria-hidden="true" />
             {region.title}
-          </button>
-          <button
-            type="button"
-            onClick={onOpenCmdline}
-            className="hidden rounded-full px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:bg-raised hover:text-fg md:block"
-            aria-label="Open the command line"
-          >
-            <span className="text-accent">:</span>cmd
           </button>
           <button
             type="button"

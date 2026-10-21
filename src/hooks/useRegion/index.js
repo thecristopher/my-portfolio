@@ -5,6 +5,8 @@ import { syncBrowserChrome } from "../../lib/browserChrome";
 import { showBanner } from "../../lib/banner";
 import { currentRegionName, pinRegion, readPinnedRegion, resolveRegion } from "../../lib/regions";
 import { createStore } from "../../lib/store";
+import { playRecipe } from "../../lib/sound";
+import { REGION_SOUNDS } from "../../lib/regionSounds";
 
 // the reveal grows out of wherever the last click landed, a keyboard pick grows out of the middle
 let lastPointer = null;
@@ -48,6 +50,7 @@ export const travelTo = (next) => {
   });
   pinRegion(region.name);
   pinned.set(true);
+  playRecipe(REGION_SOUNDS[region.name]);
   showBanner("region", { text: region.title, subtitle: `${region.subtitle} · ${region.tagline}` });
 };
 

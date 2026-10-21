@@ -9,6 +9,8 @@ const CLICKABLE = "a[href], button:not([disabled]), [role='button'], summary, in
 // only what's on screen and actually on top. something covered by a modal or tucked under the navbar gets no label
 const visibleTargets = () =>
   [...document.querySelectorAll(CLICKABLE)].flatMap((element) => {
+    // relics never get a label, a hint would point straight at them
+    if (element.closest("[data-relic]")) return [];
     const box = element.getBoundingClientRect();
     if (box.width === 0 || box.height === 0) return [];
     if (box.bottom < 0 || box.top > window.innerHeight || box.right < 0 || box.left > window.innerWidth) return [];

@@ -20,8 +20,8 @@ const ComboPips = ({ hits }) => (
 );
 
 /**
- * The hero's pixel avatar is the relic: three pokes in a row land a combo and set off the K.O.
- * A chip under him says how, and turns into the franchise name once the combo has landed.
+ * The hero's pixel avatar is the relic: three pokes in a row land a combo and set off the K.O. Nothing says so.
+ * The combo pips only show up once someone is already hitting him, the way a fighting game counts a combo.
  * @param {{ className?: string, entersAfterMs?: number, firstWaveAfterMs?: number }} props sizing and timing for the avatar
  */
 export const Trigger = ({ className = "", entersAfterMs, firstWaveAfterMs }) => {
@@ -49,14 +49,11 @@ export const Trigger = ({ className = "", entersAfterMs, firstWaveAfterMs }) => 
     <span className="inline-flex flex-col items-center gap-3" data-relic="scott">
       <PixelAvatar className={className} entersAfterMs={entersAfterMs} firstWaveAfterMs={firstWaveAfterMs} onPoke={countPoke} />
       <span
-        className="pointer-events-none inline-flex items-center gap-1.5 rounded-full border border-line-strong bg-mantle/90 px-2.5 py-1 font-mono text-[10px] whitespace-nowrap text-muted backdrop-blur"
+        className={`pointer-events-none inline-flex items-center gap-1.5 font-mono text-[10px] whitespace-nowrap transition-opacity duration-300 ${hits > 0 ? "opacity-100" : "opacity-0"}`}
         aria-hidden="true"
       >
-        <span className={isFound ? "" : "relic-breathe inline-block"} style={{ color: PINK }}>
-          ✦
-        </span>
-        {isFound ? <span style={{ color: PINK }}>{franchise}</span> : <span>poke him ×{COMBO_HITS}</span>}
         <ComboPips hits={hits} />
+        {isFound && <span style={{ color: PINK }}>{franchise}</span>}
       </span>
     </span>
   );

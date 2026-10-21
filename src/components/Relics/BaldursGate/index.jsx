@@ -20,14 +20,14 @@ const Cushion = () => (
  * An ornate gold d20 resting on velvet, waiting for a persuasion check. Rolled once, it keeps showing the face it
  * last landed on.
  */
-export const Trigger = ({ className = "" }) => {
+export const Trigger = ({ className = "", zoom = 1 }) => {
   const { isFound, touch } = useRelic("d20");
   const face = faceToShow(isFound, lastFace.use());
   // untouched it sits a little dull, rolled it shines in full gold
   const shine = isFound ? `drop-shadow(0 0 8px ${D20_GOLD}aa)` : "saturate(0.6) brightness(0.8)";
 
   return (
-    <RelicButton id="d20" isFound={isFound} onTouch={() => touch()} className={className} labelSide="top">
+    <RelicButton id="d20" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
       <span className="flex flex-col items-center" aria-hidden="true">
         <Die face={face} className="relative z-10 w-16 transition-[filter] duration-700" style={{ filter: shine }} />
         <Cushion />

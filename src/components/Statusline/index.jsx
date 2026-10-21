@@ -11,6 +11,7 @@ import { setMuted, useMuted } from "../../lib/sound";
 import { searchCount, useSearchState } from "../../lib/search";
 import { useRegion } from "../../hooks/useRegion";
 import FileIcon from "../FileIcon";
+import { Trigger as BatSignal } from "../Relics/Batman";
 
 const MODE_STYLES = {
   NORMAL: "bg-accent text-ink",
@@ -113,7 +114,7 @@ const useRuler = () => {
  * Eldentree's lualine: the mode in the region's gold, the branch and buffer, :echo messages, the relic score,
  * the rune tally, my local time, the region and where in the page you are.
  */
-const Statusline = ({ mode, activeId, onOpenCmdline, onOpenQuestLog, onOpenRegions }) => {
+const Statusline = ({ mode, activeId, onOpenQuestLog, onOpenRegions }) => {
   const bufferName = bufferNameFor(activeId);
   const { position, line } = useRuler();
   const { time, status } = useHomeClock();
@@ -124,15 +125,7 @@ const Statusline = ({ mode, activeId, onOpenCmdline, onOpenQuestLog, onOpenRegio
 
   return (
     <div className="glass-strong hairline fixed inset-x-0 bottom-0 z-40 flex h-7 items-stretch border-t font-mono text-[11px]">
-      {/* tapping the mode is the way into the command line on a phone, where there is no ":" key to press */}
-      <button
-        type="button"
-        onClick={onOpenCmdline}
-        aria-label="Open command line"
-        className={`flex items-center px-3 font-semibold tracking-wider transition-colors duration-300 ${MODE_STYLES[mode] ?? MODE_STYLES.NORMAL}`}
-      >
-        {mode}
-      </button>
+      <span className={`flex items-center px-3 font-semibold tracking-wider transition-colors duration-300 ${MODE_STYLES[mode] ?? MODE_STYLES.NORMAL}`}>{mode}</span>
       <span className="hidden items-center gap-1.5 bg-raised px-3 text-string sm:flex">
         <GitBranch size={11} aria-hidden="true" />
         main
@@ -149,19 +142,26 @@ const Statusline = ({ mode, activeId, onOpenCmdline, onOpenQuestLog, onOpenRegio
           /{searchState.query} {searchCount(searchState)}
         </span>
       )}
-      <button
-        type="button"
-        onClick={onOpenQuestLog}
-        aria-label={`Quest log, ${found.length} of ${RELIC_IDS.length} relics found`}
-        className="flex items-center gap-1 px-3 text-accent tabular-nums transition-colors hover:bg-raised"
-      >
-        ✦ {found.length}/{RELIC_IDS.length}
-      </button>
+      {/* the score only shows up after the first find, so nobody knows there's a hunt until they stumble into it */}
+      {found.length > 0 && (
+        <button
+          type="button"
+          onClick={onOpenQuestLog}
+          aria-label={`Quest log, ${found.length} of ${RELIC_IDS.length} relics found`}
+          className="flex items-center gap-1.5 bg-[#1d2a8a] px-3 font-pixel text-[12px] tracking-wider text-white uppercase tabular-nums transition-colors [text-shadow:1px_1px_0_#0b0f3a] hover:bg-[#3b4fc4]"
+        >
+          {/* the same 16 bit voice as the counter that shows up during a relic's moment */}
+          <span className="text-[#ffe066]">▶</span>
+          {String(found.length).padStart(2, "0")}/{RELIC_IDS.length}
+        </button>
+      )}
       <span className="hidden md:flex">
         <Runes />
       </span>
       <span className="hidden items-center gap-1.5 px-3 text-faint xl:flex" title="My local time in Rosarito, Mexico">
         <span className="text-muted tabular-nums">{time}</span> {status}
+        {/* on call means someone has to answer the signal, the clock is where it lives */}
+        <BatSignal zoom={0.09} />
       </span>
       <button
         type="button"

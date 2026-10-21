@@ -12,7 +12,11 @@ const TONES = {
 
 // the soft band of shadow the words sit on: darkest across the middle, melting away to the top, bottom and both edges
 const BAND = "radial-gradient(ellipse 70% 50% at 50% 50%, rgb(0 0 0 / 0.92) 0%, rgb(0 0 0 / 0.75) 45%, rgb(0 0 0 / 0.35) 75%, transparent 100%)";
-const LIGHT_BAND = "radial-gradient(ellipse 60% 45% at 50% 50%, rgb(0 0 0 / 0.55) 0%, rgb(0 0 0 / 0.25) 60%, transparent 100%)";
+// area names still hang lightly, but dark enough under the words that they read over any section
+const LIGHT_BAND = "radial-gradient(ellipse 75% 65% at 50% 50%, rgb(0 0 0 / 0.88) 0%, rgb(0 0 0 / 0.68) 50%, rgb(0 0 0 / 0.3) 80%, transparent 100%)";
+
+// a tight dark edge around every letter plus a wide soft shadow, so the words read over the page and the glow
+const LEGIBLE_SHADOW = "0 1px 2px rgb(0 0 0 / 0.95), 0 0 6px rgb(0 0 0 / 0.9), 0 0 18px rgb(0 0 0 / 0.8)";
 
 // a thin rule that glows at the middle and fades to nothing at its tips
 const Rule = ({ color }) => (
@@ -28,7 +32,7 @@ const Rule = ({ color }) => (
 const Letters = ({ text, staggerMs, color, isDeath }) => (
   <p
     className="font-display text-[clamp(1.6rem,6.4vw,4.5rem)] leading-none font-medium whitespace-pre"
-    style={{ color, textShadow: `0 0 32px color-mix(in oklab, ${color} 55%, transparent)` }}
+    style={{ color, textShadow: `${LEGIBLE_SHADOW}, 0 0 32px color-mix(in oklab, ${color} 55%, transparent)` }}
     aria-label={text}
   >
     {spacedLetters(text).map((letter, index) => (
@@ -80,7 +84,8 @@ const Banner = () => {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.8 }}
-              className="max-w-xl font-display text-[11px] tracking-[0.32em] text-fg/75 uppercase sm:text-xs"
+              className="max-w-xl font-display text-[11px] tracking-[0.32em] text-fg/90 uppercase sm:text-xs"
+              style={{ textShadow: LEGIBLE_SHADOW }}
             >
               {banner.subtitle}
             </motion.p>

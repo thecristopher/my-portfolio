@@ -1,21 +1,18 @@
 import SectionIntro, { Gold } from "../../components/SectionIntro";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetAboutQuery } from "../../api/aboutApi";
-import { useGetProjectsQuery } from "../../api/projectsApi";
 import Philosophy from "./Philosophy";
-import Glance from "./Glance";
 import Bio from "./Bio";
-import Principles from "./Principles";
+import Day from "./Day";
 
-/** about.md: the philosophy, the page at a glance, the story and how I lead. */
+/** about.md: the philosophy, the story in my own words, and what a weekday here looks like. */
 const About = ({ number }) => {
   const { data: about, isLoading, isError } = useGetAboutQuery();
-  const { data: projects = [] } = useGetProjectsQuery();
 
   return (
     <section id="about" className="relative">
       <Philosophy />
-      <div className="mx-auto flex max-w-6xl flex-col gap-24 px-4 pb-24 sm:gap-32 sm:px-6 sm:pb-36">
+      <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 pb-24 sm:gap-20 sm:px-6 sm:pb-36">
         <SectionIntro
           sectionId="about"
           number={number}
@@ -24,13 +21,11 @@ const About = ({ number }) => {
               From the editor <Gold>to the org chart.</Gold>
             </>
           }
-          lead={about?.summary}
         />
         {isLoading && <SkeletonLines lines={6} />}
         {isError && <LoadError what="the bio" />}
-        {about && <Glance about={about} current={projects[0]} />}
         {about && <Bio description={about.description} />}
-        {about?.principles?.length > 0 && <Principles principles={about.principles} />}
+        <Day />
       </div>
     </section>
   );

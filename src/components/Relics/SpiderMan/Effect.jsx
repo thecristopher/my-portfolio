@@ -25,7 +25,8 @@ const CRAWL_AT = 2.6;
 const TAKEOVER_AT = 3.15;
 const EMBLEM_AT = 3.8;
 const CAPTION_AT = 4.2;
-const LENGTH_MS = 6000;
+// the school line lands at 5.7 s, so the frame has settled by 6
+const SETTLES_MS = 6000;
 
 // the Spider-Sense: jagged lines crackling around the edges of the screen, and a tighter ring around the middle
 const EDGE_SQUIGGLES = spokeAngles(16, 0.25).map((angle) => squigglePath({ center: [0, 0], angle, from: 31, to: 49, zigs: 7, amplitude: 1.6 }));
@@ -268,7 +269,7 @@ const SymbioteRising = ({ isReduced }) => (
 
 // the game's tagline in a comic caption box, and the line that ties it to school
 const Caption = () => (
-  <div className="absolute inset-x-4 bottom-[7vh] flex flex-col items-center gap-3 text-center">
+  <div className="absolute inset-x-4 bottom-[max(7.5rem,12vh)] flex flex-col items-center gap-3 text-center">
     <motion.p
       className="w-full max-w-md -rotate-1 border-2 border-black px-5 py-3 font-sans text-base font-black tracking-wide text-black uppercase shadow-[4px_4px_0_#000]"
       style={{ background: COMIC_YELLOW }}
@@ -279,12 +280,12 @@ const Caption = () => (
       <TypedText text="Be greater. Together." startAt={CAPTION_AT + 0.15} perLetter={0.045} />
     </motion.p>
     <motion.p
-      className="font-mono text-xs text-white/80"
+      className="max-w-md rounded-md bg-black/70 px-3 py-2 font-mono text-[clamp(0.7rem,2.8vw,0.8rem)] leading-relaxed text-pretty text-white/90"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, delay: CAPTION_AT + 1.1 }}
     >
-      Peter was a student first.
+      Peter was a student first. So was Cristopher: B.S. in Computer Systems Engineering, Instituto Tecnológico de Tijuana.
     </motion.p>
   </div>
 );
@@ -292,7 +293,7 @@ const Caption = () => (
 /** Spider-Man 2: the Spider-Sense tingles, a thwip spins the web, the mask drops in and the symbiote takes it black. */
 const BeGreater = ({ onDone }) => {
   const isReduced = useReducedMotion();
-  useMomentLength(LENGTH_MS, onDone);
+  useMomentLength(SETTLES_MS, onDone);
 
   // the screen shudders while the Spider-Sense screams, the way the game shakes the camera
   const shudder = isReduced ? undefined : { x: [0, -5, 5, -4, 4, -2, 0], y: [0, 2, -2, 1, -1, 0, 0] };

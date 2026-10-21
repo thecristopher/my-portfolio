@@ -19,7 +19,7 @@ const RAYS = Array.from({ length: 12 }, (_, index) => {
  * Tanjiro's hanafuda earring, hanging off its ring over a swatch of his checkered haori and swaying.
  * Once Total Concentration is reached, the sun on the card burns and glows for good.
  */
-export const Trigger = ({ className = "" }) => {
+export const Trigger = ({ className = "", zoom = 1 }) => {
   const { isFound, touch } = useRelic("hanafuda");
   const isReduced = useReducedMotion();
   // react's ids carry characters a url(#id) reference can trip on
@@ -27,7 +27,7 @@ export const Trigger = ({ className = "" }) => {
   const sun = isFound ? SUN_RED : DIM_SUN;
 
   return (
-    <RelicButton id="hanafuda" isFound={isFound} onTouch={() => touch()} className={className}>
+    <RelicButton id="hanafuda" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
       <svg viewBox="0 0 40 80" className="h-20 w-10 overflow-visible" aria-hidden="true">
         <defs>
           <pattern id={checkerId} width="8" height="8" patternUnits="userSpaceOnUse">

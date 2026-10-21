@@ -6,15 +6,18 @@ export { formatMonth, formatRange };
 export const SKILL_CATEGORY_ORDER = ["Languages", "Frontend", "Backend", "Cloud & DevOps", "Data", "AI"];
 
 /**
- * The title a company knew me by last, with where I started there, the way a promotion reads on a resume.
- * Plain words instead of an arrow, so applicant tracking systems and the pdf's built in font both read it.
+ * The title a company knew me by last, with the steps it took to get there, the way a promotion reads on a resume.
+ * Plain words instead of arrows, so applicant tracking systems and the pdf's built in font both read it.
  * @param {string[]} roles titles, oldest first
- * @returns {string | null} like "Senior Developer (promoted from Developer)"
+ * @returns {string | null} like "Engineering Manager (promoted from Tech Lead and Senior Application Developer)"
  */
 export const formatRoles = (roles = []) => {
   if (roles.length === 0) return null;
   const latest = roles.at(-1);
-  return roles.length === 1 ? latest : `${latest} (promoted from ${roles[0]})`;
+  const earlier = roles.slice(0, -1).reverse();
+  if (earlier.length === 0) return latest;
+  const steps = earlier.length === 1 ? earlier[0] : `${earlier.slice(0, -1).join(", ")} and ${earlier.at(-1)}`;
+  return `${latest} (promoted from ${steps})`;
 };
 
 /**
@@ -39,7 +42,13 @@ const professionalLinks = (contact) =>
     .filter((social) => social.name !== "Instagram")
     .map((social) => ({ label: social.url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""), url: social.url }));
 
-const experienceFrom = (project) => ({
+// a case study becomes one bullet under its company, with its numbers once there are any
+const studyBullet = (study) => {
+  const metrics = (study.metrics ?? []).map((metric) => `${metric.value} ${metric.label}`).join(", ");
+  return `${study.title}: ${study.summary.replace(/\.$/, "")}${metrics ? ` (${metrics})` : ""}`;
+};
+
+const experienceFrom = (project, caseStudies) => ({
   company: project.title,
   website: hostnameFromUrl(project.url),
   title: formatRoles(project.roles),
@@ -47,7 +56,8 @@ const experienceFrom = (project) => ({
   location: [project.location, project.work_mode].filter(Boolean).join(" · ") || null,
   teamSize: project.team_size ?? null,
   summary: project.description,
-  bullets: project.highlights ?? [],
+  // the case studies first, they're the biggest wins, then whatever else the role did, each said once
+  bullets: [...caseStudies.filter((study) => study.company === project.title).map(studyBullet), ...(project.highlights ?? [])],
   stack: (project.technologies ?? []).map(cleanTechName),
 });
 
@@ -73,14 +83,7 @@ export const buildResume = ({ about, projects = [], caseStudies = [], contact, s
   site,
   openTo: about?.open_to ?? null,
   summary: about?.summary ?? "",
-  experience: projects.map(experienceFrom),
-  projects: caseStudies.slice(0, 4).map((study) => ({
-    title: study.title,
-    context: `${study.company} · ${study.role}`,
-    summary: study.summary,
-    outcome: study.outcome,
-    metrics: study.metrics ?? [],
-  })),
+  experience: projects.map((project) => experienceFrom(project, caseStudies)),
   skills: groupSkills(about?.skill_levels),
   expertise: about?.expertise ?? [],
   education: (about?.education ?? []).map((school) => ({

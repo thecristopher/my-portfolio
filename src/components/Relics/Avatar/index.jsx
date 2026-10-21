@@ -13,7 +13,7 @@ const SPOTS = ["left-1/2 top-0 -translate-x-1/2", "right-0 top-1/2 -translate-y-
  * The four nations in a slow orbit around a small center, waiting for someone to master them all.
  * Mastered, every emblem lights up in its own color and stays that way.
  */
-export const Trigger = ({ className = "" }) => {
+export const Trigger = ({ className = "", zoom = 1 }) => {
   const { isFound, touch } = useRelic("airbender");
   const isCalm = useReducedMotion();
   // the ring turns one way and each emblem turns back, so they circle without ever going upside down
@@ -21,7 +21,7 @@ export const Trigger = ({ className = "" }) => {
     isCalm ? {} : { animate: { rotate: direction * 360 }, transition: { duration: ORBIT_S, repeat: Infinity, ease: "linear" } };
 
   return (
-    <RelicButton id="airbender" isFound={isFound} onTouch={() => touch()} className={className}>
+    <RelicButton id="airbender" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
       <motion.span {...orbit(1)} className="relative block size-28" aria-hidden="true">
         <span
           className="absolute top-1/2 left-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full"

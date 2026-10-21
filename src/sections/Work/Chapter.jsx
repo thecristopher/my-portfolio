@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
-import { formatRange, hostnameFromUrl, slugify, splitParagraphs, usesTech } from "../../actions";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { formatRange, hostnameFromUrl, slugify, usesTech } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
+import { scrollToSection } from "../../lib/smoothScroll";
 import { formatRoles } from "../../lib/resume/buildResume";
 import { StackList } from "./pieces";
 
@@ -52,11 +53,35 @@ const Highlight = ({ text, index }) => (
   </motion.li>
 );
 
+// the work told in full lives in projects, so a chapter only points there instead of saying it twice
+const CaseStudyLinks = ({ studies }) => (
+  <div className="flex flex-col gap-4">
+    <p className="font-mono text-xs text-faint">
+      <span className="text-accent">$</span> ls ../projects
+    </p>
+    <ul className="flex flex-col divide-y divide-line border-y border-line">
+      {studies.map((study) => (
+        <li key={study.slug}>
+          <button
+            type="button"
+            onClick={() => scrollToSection(`project-${study.slug}`)}
+            className="group flex w-full items-center gap-4 py-5 text-left text-[clamp(1.25rem,2.4vw,1.75rem)] font-medium tracking-tight transition-colors hover:text-accent"
+          >
+            <span className="flex-1">{study.title}</span>
+            <span className="font-mono text-[11px] text-faint">{study.kind}</span>
+            <ArrowRight size={18} className="text-faint transition-transform group-hover:translate-x-1 group-hover:text-accent" aria-hidden="true" />
+          </button>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
 /**
- * One company as one chapter: the masthead pinned on the left and the wins lighting up one by one on the right,
- * with the longer story underneath.
+ * One company as one chapter: the masthead pinned on the left, and on the right the pitch, the wins that have no
+ * case study of their own lighting up one by one, and the way into the ones that do.
  */
-const Chapter = ({ project, index, pickedTech }) => (
+const Chapter = ({ project, index, pickedTech, studies }) => (
   <article
     id={`work-${slugify(project.title)}`}
     className={`grid gap-10 border-t border-line pt-14 transition-[opacity,filter] duration-500 lg:grid-cols-12 lg:gap-16 ${usesTech(project, pickedTech) ? "" : FILTERED_OUT}`}
@@ -65,7 +90,7 @@ const Chapter = ({ project, index, pickedTech }) => (
       <Masthead project={project} index={index} pickedTech={pickedTech} />
     </div>
     <div className="flex flex-col gap-10 lg:col-span-7">
-      <p className="text-xl leading-relaxed text-muted text-pretty">{project.description}</p>
+      <p className="text-[clamp(1.35rem,2.6vw,2rem)] leading-snug font-medium tracking-tight text-pretty">{project.description}</p>
       {project.highlights?.length > 0 && (
         <ol className="divide-y divide-line">
           {project.highlights.map((highlight, at) => (
@@ -73,16 +98,7 @@ const Chapter = ({ project, index, pickedTech }) => (
           ))}
         </ol>
       )}
-      <div className="flex flex-col gap-4 rounded-2xl border border-line bg-panel/40 p-6 sm:p-8">
-        <p className="font-mono text-xs text-faint">
-          <span className="text-accent">$</span> cat story.md
-        </p>
-        {splitParagraphs(project.detailed_description).map((paragraph) => (
-          <p key={paragraph.slice(0, 24)} className="leading-relaxed text-muted text-pretty">
-            {paragraph}
-          </p>
-        ))}
-      </div>
+      {studies.length > 0 && <CaseStudyLinks studies={studies} />}
     </div>
   </article>
 );

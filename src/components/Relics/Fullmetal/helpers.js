@@ -147,7 +147,8 @@ export const crackleTimes = (start, end, count) =>
     return Math.round((start + ((end - start) * (index + wobble)) / count) * 1000) / 1000;
   });
 
-// the moment's beats in seconds, shared with the jingle so the chord lands exactly when the cross stamps
+// the moment's beats in seconds, shared with the jingle so the chord lands exactly when the cross stamps.
+// lastsMs is when the tagline has settled and the circle, cross and text just hold
 export const BEATS = {
   clap: 0.25,
   drawCircle: 0.4,
@@ -157,8 +158,9 @@ export const BEATS = {
   stamp: 1.84,
   title: 2.1,
   narration: 2.5,
-  tagline: 3.85,
-  lastsMs: 5300,
+  payoff: 3.75,
+  tagline: 4.35,
+  lastsMs: 4900,
 };
 
 // the circle seen lying on the floor, in the 100 by 60 box the crackle is drawn in

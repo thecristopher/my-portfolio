@@ -5,6 +5,7 @@ import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetCaseStudiesQuery } from "../../api/caseStudiesApi";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import CaseStudyCard from "./CaseStudyCard";
+import { Trigger as FourNations } from "../../components/Relics/Avatar";
 
 const NO_STUDIES = [];
 
@@ -69,8 +70,12 @@ const Projects = ({ number }) => {
               Things I'd walk you <Gold>through.</Gold>
             </>
           }
-          lead="What was hard, how I went at it and what changed. Keep scrolling and they slide past."
+          lead="The work I'd bring up if we grabbed a coffee: what was hard, what I did about it and what changed after. Keep scrolling, they slide past on their own."
         />
+        {/* four kinds of work in the gallery, four nations beside it */}
+        <div className="-mt-6 flex justify-end">
+          <FourNations zoom={0.22} />
+        </div>
         {isLoading && <SkeletonLines lines={4} />}
         {isError && <LoadError what="the projects" />}
       </div>

@@ -220,7 +220,7 @@ export const localClock = (date, timeZone) => {
   return { hour: Number(parts.hour), time: `${parts.hour}:${parts.minute}`, isWeekend: ["Sat", "Sun"].includes(parts.weekday) };
 };
 
-const WEEKDAY_STATUS = [
+export const WEEKDAY_STATUS = [
   [7, "asleep. the pipeline isn't"],
   [9, "coffee, then standup"],
   [13, "in 1:1s and code reviews"],
@@ -237,6 +237,29 @@ const WEEKEND_STATUS = [
 ];
 
 // a guess at what I'm up to right now, for the statusline
+/**
+ * The weekday as blocks of time, each from where the last one ended, for the day timeline in about.
+ * @returns {{ from: number, until: number, label: string }[]} hours on a 24 hour clock
+ */
+export const dayBlocks = () => WEEKDAY_STATUS.map(([until, label], index) => ({ from: index === 0 ? 0 : WEEKDAY_STATUS[index - 1][0], until, label }));
+
+/**
+ * How many hours ahead of me someone is, from both clocks' current offsets.
+ * @param {Date} date the moment to compare at
+ * @param {string} homeZone my IANA timezone
+ * @returns {number} hours the visitor is ahead (negative when behind)
+ */
+export const hoursAhead = (date, homeZone) => {
+  const home = localClock(date, homeZone);
+  const [homeHours, homeMinutes] = home.time.split(":").map(Number);
+  const visitorMinutes = date.getHours() * 60 + date.getMinutes();
+  let difference = visitorMinutes - (homeHours * 60 + homeMinutes);
+  // across midnight the raw difference wraps, so keep it within half a day either way
+  if (difference > 720) difference -= 1440;
+  if (difference < -720) difference += 1440;
+  return Math.round(difference / 30) / 2;
+};
+
 export const nowStatus = ({ hour, isWeekend }) =>
   (isWeekend ? WEEKEND_STATUS : WEEKDAY_STATUS).find(([until]) => hour < until)[1];
 
@@ -244,7 +267,7 @@ const file = (name, targetId) => ({ name, targetId });
 
 // what each section holds when the file tree opens it as a directory. a section left out stays a single file
 const SECTION_FILES = {
-  about: () => [file("philosophy.md", "philosophy"), file("about.md", "bio"), file("principles.md", "principles")],
+  about: () => [file("philosophy.md", "philosophy"), file("about.md", "bio"), file("day.log", "day")],
   work: ({ projects }) => {
     const { featured, earlier } = splitFeatured(projects);
     return [

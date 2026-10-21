@@ -3,7 +3,6 @@ import SectionIntro, { Gold } from "../../components/SectionIntro";
 import SpotlightCard from "../../components/SpotlightCard";
 import EditorWindow from "../../components/EditorWindow";
 import { Trigger as FaceDownCard } from "../../components/Relics/DarkMagician";
-import { Trigger as FourNations } from "../../components/Relics/Avatar";
 import { MAGIC_BLUE, MAGIC_PINK, useMagicBuff } from "../../lib/magic";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetSkillsQuery } from "../../api/skillsApi";
@@ -198,6 +197,35 @@ const StackHealth = ({ mainStack, skillLevels, isBuffed }) => {
   );
 };
 
+// lazy.nvim's plugin list, one line per thing I'm good at, the way every plugin reports itself loaded
+const Expertise = ({ areas }) => (
+  <EditorWindow path={["cristopher", "skills", "lazy.nvim"]}>
+    <div className="flex flex-col gap-5 font-mono text-xs">
+      <p className="flex flex-wrap items-center justify-between gap-2 text-muted">
+        <span>
+          <span className="text-accent">:</span>Lazy <span className="text-faint">· what I lead with</span>
+        </span>
+        <span className="rounded-full bg-string/15 px-2.5 py-0.5 text-string">● {areas.length} loaded</span>
+      </p>
+      <ul className="grid gap-x-10 gap-y-3 sm:grid-cols-2">
+        {areas.map((area, index) => (
+          <motion.li
+            key={area}
+            initial={{ opacity: 0, x: -8 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: index * 0.05, ease: easeOutExpo }}
+            className="flex items-center gap-3"
+          >
+            <span className="text-string">●</span>
+            <span className="text-[15px] text-fg">{area}</span>
+          </motion.li>
+        ))}
+      </ul>
+    </div>
+  </EditorWindow>
+);
+
 /** skills.lua: how I lead as a deck of cards, the four elements I bend, and the tools as a :checkhealth report. */
 const Skills = ({ number }) => {
   const { data: skills = [], isLoading, isError } = useGetSkillsQuery();
@@ -215,23 +243,27 @@ const Skills = ({ number }) => {
               How I lead, <Gold>and what I reach for.</Gold>
             </>
           }
-          lead="Six things I'm good at, then every tool I've shipped with, rated the way nvim checks its own health."
+          lead="How I work, what I lead with, and every tool I've shipped with, graded honestly. Click any tool and the jobs that used it light up."
         />
 
         {isLoading && <SkeletonLines lines={4} />}
         {isError && <LoadError what="skills" />}
 
+        {/* a card set face down at the very start of the deck she buffs */}
+        <p className="-mb-10 flex items-center gap-3 font-mono text-xs text-faint">
+          <FaceDownCard zoom={0.25} />
+          <span>
+            <span className="text-accent">--</span> cards.lua
+          </span>
+        </p>
         <div id="skill-cards" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {skills.map((skill, index) => (
             <CapabilityCard key={skill.title} skill={skill} index={index} isBuffed={isBuffed} />
           ))}
         </div>
 
-        {/* a card set face down beside the deck, and the four nations: frontend, backend, cloud and people */}
-        <div className="flex flex-wrap items-center justify-center gap-16 py-6 sm:gap-24">
-          <FaceDownCard />
-          <FourNations />
-        </div>
+
+        {about?.expertise?.length > 0 && <Expertise areas={about.expertise} />}
 
         {about && (
           <div id="checkhealth">

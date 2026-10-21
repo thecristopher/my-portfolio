@@ -16,18 +16,20 @@ export const BEATS = {
   detective: 2.3,
   lock: 3.0,
   hud: 3.3,
-  closed: 5.3,
-  end: 6.2,
+  closed: 5.8,
+  // the stamp has landed and the frame holds from here
+  end: 6.3,
 };
 
 // what the case file types out once the scan locks on
 export const HUD_LINES = [
-  { label: "CASE FILE", value: "contact.sh" },
-  { label: "EVIDENCE", value: "every bug leaves some" },
-  { label: "STATUS", value: "on call at 3 a.m." },
+  { label: "CASE FILE", value: "Cristopher Cervantes" },
+  { label: "LOCATION", value: "Rosarito, Pacific Time" },
+  { label: "SPECIALTY", value: "border apps to AI agents" },
+  { label: "STATUS", value: "on call for teams that ship" },
 ];
 
-export const HUD_TIMING = { startAt: BEATS.hud, perLetter: 0.02, pause: 0.12 };
+export const HUD_TIMING = { startAt: BEATS.hud, perLetter: 0.015, pause: 0.12 };
 
 /**
  * Gives each HUD line its start time, so a line only starts typing once the one above it is done.

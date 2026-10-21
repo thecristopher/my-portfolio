@@ -8,7 +8,7 @@ import { verdictFor } from "../../../lib/dice";
 import { easeOutExpo } from "../../../lib/motion";
 import { playRecipe } from "../../../lib/sound";
 import { Die } from "./Die";
-import { D20_CRIMSON, D20_GOLD, MOMENT_MS, PERSUASION_DC, TUMBLE_MS, VERDICT_LOOKS, lastFace, nextFlickerFace, rollWithPatience } from "./helpers";
+import { D20_CRIMSON, D20_GOLD, PERSUASION_DC, TUMBLE_MS, VERDICT_LOOKS, VERDICT_SETTLE_MS, lastFace, nextFlickerFace, rollWithPatience } from "./helpers";
 import { VERDICT_SOUNDS } from "./sound";
 
 const PARCHMENT = "#efe3c4";
@@ -167,7 +167,7 @@ const TumblingDie = ({ result, verdict, isStill }) => {
 };
 
 const Verdict = ({ verdict }) => {
-  const { color, line } = VERDICT_LOOKS[verdict.tone];
+  const { color, line, bonus } = VERDICT_LOOKS[verdict.tone];
   return (
     <div className="flex flex-col items-center gap-3 text-center">
       <motion.p
@@ -180,7 +180,7 @@ const Verdict = ({ verdict }) => {
         {verdict.label}
       </motion.p>
       <motion.p
-        className="max-w-xs text-sm italic"
+        className="max-w-xs text-sm text-pretty italic"
         style={{ color: PARCHMENT }}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
@@ -188,8 +188,25 @@ const Verdict = ({ verdict }) => {
       >
         {line}
       </motion.p>
+      {bonus && (
+        <motion.p
+          className="max-w-xs text-sm font-semibold text-pretty"
+          style={{ color: D20_GOLD, textShadow: `0 0 14px ${D20_GOLD}66` }}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1 }}
+        >
+          {bonus}
+        </motion.p>
+      )}
     </div>
   );
+};
+
+// mounts only once the die has landed, so the moment counts as settled after the roll and never while it tumbles
+const SettlesAfterLanding = ({ onDone }) => {
+  useMomentLength(VERDICT_SETTLE_MS, onDone);
+  return null;
 };
 
 /**
@@ -200,12 +217,11 @@ const PersuasionCheck = ({ onDone }) => {
   const isStill = useReducedMotion();
   const result = useRoll();
   const verdict = result ? verdictFor(result) : null;
-  useMomentLength(MOMENT_MS, onDone);
 
   return (
     <EffectLayer
       background={`${easedGlow("rgb(48 34 16)", { strength: 0.85, shape: "ellipse", reach: 90 })}, rgba(5,4,3,0.94)`}
-      className="flex items-center justify-center px-4"
+      className="flex items-center justify-center px-4 pt-4 pb-24"
     >
       <motion.div
         className="relative flex w-full max-w-md flex-col items-center gap-6 border px-5 pt-9 pb-8 sm:px-8"
@@ -222,6 +238,7 @@ const PersuasionCheck = ({ onDone }) => {
         <Header />
         <TumblingDie result={result} verdict={verdict} isStill={isStill} />
         <div className="flex min-h-28 items-start justify-center">{verdict && <Verdict verdict={verdict} />}</div>
+        {verdict && <SettlesAfterLanding onDone={onDone} />}
       </motion.div>
     </EffectLayer>
   );

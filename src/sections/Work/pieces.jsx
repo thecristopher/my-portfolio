@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
 import { X } from "lucide-react";
 import EditorWindow from "../../components/EditorWindow";
+import { Trigger as TallGrass } from "../../components/Relics/Pokemon";
 import TechIcon from "../../components/TechIcon";
 import { careerCommits, cleanTechName } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
@@ -50,8 +51,12 @@ export const CareerLog = ({ projects }) => {
     <div id="career-log">
       <EditorWindow path={["cristopher", "work", "career.log"]}>
         <div className="flex flex-col gap-4 font-mono text-xs">
-          <p className="text-muted">
-            <span className="text-accent">$</span> git log --graph --oneline --all
+          {/* every commit below is an evolution, so the grass grows beside the log that lists them */}
+          <p className="flex items-center justify-between text-muted">
+            <span>
+              <span className="text-accent">$</span> git log --graph --oneline --all
+            </span>
+            <TallGrass zoom={0.28} />
           </p>
           <ol ref={listRef} className="relative flex flex-col">
             <span className="absolute top-3 bottom-3 left-[5px] w-px bg-line" aria-hidden="true" />

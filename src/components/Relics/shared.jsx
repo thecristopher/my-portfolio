@@ -4,42 +4,29 @@ import { easedGlow, softBeams, softRing } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 
 /**
- * The visible object a relic lives in: a real button with a halo in the relic's color that breathes until it's
- * touched, and a label that says what to do. Found, it glows steady and names its franchise.
- * @param {{ id: string, isFound: boolean, onTouch: () => void, className?: string, children: React.ReactNode, labelSide?: "bottom" | "top" }} props
+ * The object a relic lives in: a real button, tiny and nearly see through, with no label, no glow and no cursor
+ * change, so only a careful eye finds it. Hovering lifts it a little out of the page. Found, it keeps a touch more
+ * color so a returning visit can spot its own finds.
+ * @param {{ id: string, isFound: boolean, onTouch: () => void, className?: string, zoom?: number, children: React.ReactNode }} props
+ *   zoom shrinks the object without leaving its full size behind in the layout
  */
-export const RelicButton = ({ id, isFound, onTouch, className = "", children, labelSide = "bottom" }) => {
+export const RelicButton = ({ id, isFound, onTouch, className = "", zoom = 1, children }) => {
   const relic = RELICS[id];
-  const halo = easedGlow(relic.color, { strength: isFound ? 0.55 : 0.4 });
-  const labelPosition = labelSide === "top" ? "bottom-full mb-2" : "top-full mt-2";
-
   return (
     <button
       type="button"
       onClick={onTouch}
-      aria-label={isFound ? `${relic.name}, ${relic.franchise}. Touch to replay` : `${relic.name}. ${relic.touch}`}
+      aria-label={isFound ? `${relic.name}, ${relic.franchise}` : "?"}
       data-relic={id}
-      className={`group relative inline-grid touch-manipulation place-items-center rounded-full outline-none ${className}`}
+      className={`group relative inline-grid touch-manipulation place-items-center outline-none ${className}`}
     >
       <span
-        className={`pointer-events-none absolute -inset-[45%] rounded-full ${isFound ? "" : "relic-breathe"}`}
-        style={{ background: halo }}
-        aria-hidden="true"
-      />
-      <span className="relative transition-transform duration-500 ease-[var(--ease-out-expo)] group-hover:scale-110 group-focus-visible:scale-110 group-active:scale-95">
-        {children}
-      </span>
-      <span
-        className={`pointer-events-none absolute left-1/2 ${labelPosition} -translate-x-1/2 rounded-full border border-line-strong bg-mantle/90 px-2.5 py-1 font-mono text-[10px] whitespace-nowrap text-muted opacity-70 backdrop-blur transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100`}
-        aria-hidden="true"
+        className={`relative transition-[opacity,filter] duration-700 group-hover:opacity-70 group-focus-visible:opacity-70 ${
+          isFound ? "opacity-45 saturate-50" : "opacity-15 saturate-0"
+        }`}
+        style={{ zoom }}
       >
-        {isFound ? (
-          <span style={{ color: relic.color }}>✦ {relic.franchise}</span>
-        ) : (
-          <>
-            <span style={{ color: relic.color }}>✦</span> {relic.touch}
-          </>
-        )}
+        {children}
       </span>
     </button>
   );

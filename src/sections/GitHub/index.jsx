@@ -3,13 +3,70 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight, FolderGit2, GitFork, Star } from "lucide-react";
 import SectionIntro, { Gold } from "../../components/SectionIntro";
 import TechIcon from "../../components/TechIcon";
-import { LoadError, SkeletonLines } from "../../components/Skeleton";
+import { SkeletonLines } from "../../components/Skeleton";
 import { Trigger as Chest } from "../../components/Relics/Zelda";
 import { GITHUB_USER, useGetReposQuery } from "../../api/githubApi";
 import { brandColorFor, slugify } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 
 const NO_REPOS = [];
+
+// the config this whole site is drawn from, pinned above the rest. what it does comes from its own README
+const MAIN_QUEST = {
+  name: "nvim-config",
+  title: "Eldentree",
+  url: `https://github.com/${GITHUB_USER}/nvim-config`,
+  pitch:
+    "A Neovim config forged in the Lands Between. Catppuccin Mocha, recolored for whichever Elden Ring region you wake up in, with banners, runes and a Site of Grace that lets you rest when you step away.",
+  modules: [
+    ["themes", "six region palettes, a fresh roll every launch"],
+    ["hub", "a living dashboard with gold headers and rising embers"],
+    ["banner", "ENEMY FELLED for commits, PRs and test runs"],
+    ["runes", "a rune tally in the statusline, saves pay out"],
+    ["rest", "five idle minutes and the editor rests at grace"],
+    ["trial", "runs the project's tests and announces the verdict"],
+  ],
+};
+
+// this page is the config's twin: the regions, the hub, the banners, the runes and the rest all came from here
+const MainQuest = () => (
+  <a
+    href={MAIN_QUEST.url}
+    target="_blank"
+    rel="noreferrer"
+    className="group relative grid gap-8 overflow-hidden rounded-3xl border border-line bg-panel/70 p-7 transition-colors hover:border-accent/50 sm:p-10 lg:grid-cols-[1fr_1.1fr]"
+  >
+    <div className="flex flex-col gap-4">
+      <p className="font-mono text-xs text-accent">main quest · {MAIN_QUEST.name}</p>
+      <h3 className="shimmer w-fit font-display text-[clamp(2.25rem,5vw,3.75rem)] leading-none font-semibold tracking-[0.08em] uppercase">{MAIN_QUEST.title}</h3>
+      <p className="text-lg leading-relaxed text-muted text-pretty">{MAIN_QUEST.pitch}</p>
+      <p className="text-sm text-faint">Everything this page does with regions, banners, runes and resting started here.</p>
+      <span className="mt-auto flex w-fit items-center gap-1.5 text-sm text-accent">
+        Open on GitHub
+        <ArrowUpRight size={14} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+      </span>
+    </div>
+    <ul className="flex flex-col divide-y divide-line self-start rounded-2xl border border-line bg-mantle/60 font-mono text-[13px]">
+      {MAIN_QUEST.modules.map(([module, what]) => (
+        <li key={module} className="flex gap-4 px-4 py-3">
+          <span className="w-24 shrink-0 text-rose">core/{module}</span>
+          <span className="text-muted">{what}</span>
+        </li>
+      ))}
+    </ul>
+  </a>
+);
+
+// when GitHub can't be reached the shelf still points somewhere useful instead of leaving a hole
+const Offline = () => (
+  <p className="rounded-2xl border border-line bg-panel/50 px-6 py-5 text-muted">
+    GitHub isn't answering right now. The rest of the side quests are on{" "}
+    <a href={`https://github.com/${GITHUB_USER}`} target="_blank" rel="noreferrer" className="text-accent underline-offset-4 hover:underline">
+      github.com/{GITHUB_USER}
+    </a>
+    .
+  </p>
+);
 
 // how long ago a repo was last pushed, in the words a person would use
 const lastPushed = (isoDate) => {
@@ -123,6 +180,7 @@ const Picker = ({ repos }) => {
 /** side-quests.yml: my public repos, live from GitHub, browsed the way telescope browses files. */
 const GitHub = ({ number }) => {
   const { data: repos = NO_REPOS, isLoading, isError } = useGetReposQuery();
+  const sideQuests = repos.filter((repo) => repo.name !== MAIN_QUEST.name);
 
   return (
     <section id="github" className="relative py-24 sm:py-36">
@@ -135,14 +193,15 @@ const GitHub = ({ number }) => {
               Side quests, <Gold>live from GitHub.</Gold>
             </>
           }
-          lead="What I build when nobody asks me to. Each one pitched by its own README."
+          lead="What I build when nobody's asking, starting with the editor this whole page is drawn from. The rest load live from GitHub, each one pitched by its own README."
         />
+        <MainQuest />
         {isLoading && <SkeletonLines lines={4} />}
-        {isError && <LoadError what="the repos" />}
-        {repos.length > 0 && <Picker repos={repos} />}
+        {isError && repos.length === 0 && <Offline />}
+        {sideQuests.length > 0 && <Picker repos={sideQuests} />}
         {/* every dungeon hides one last chest past the final room */}
-        <div className="flex justify-center pt-4">
-          <Chest />
+        <div className="-mt-8 flex justify-end pr-2">
+          <Chest zoom={0.25} />
         </div>
       </div>
     </section>

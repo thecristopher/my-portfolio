@@ -19,14 +19,14 @@ const ChalkFilter = ({ id }) => (
 /**
  * A transmutation circle chalked next to the philosophy, waiting for someone to clap. Once used, its lines keep glowing blue.
  */
-export const Trigger = ({ className = "" }) => {
+export const Trigger = ({ className = "", zoom = 1 }) => {
   const { isFound, touch } = useRelic("alchemy");
   // useId has characters a url(#id) reference chokes on
   const chalkId = `chalk-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const color = isFound ? ALCHEMY_BLUE : CHALK;
 
   return (
-    <RelicButton id="alchemy" isFound={isFound} onTouch={() => touch()} className={className}>
+    <RelicButton id="alchemy" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
       <ChalkFilter id={chalkId} />
       <TransmutationCircle
         color={color}

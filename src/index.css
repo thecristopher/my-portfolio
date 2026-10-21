@@ -6,6 +6,8 @@
   --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
   /* carved capitals for the Elden Ring banners and region names, never for body copy */
   --font-display: "Cinzel", "Trajan Pro", ui-serif, serif;
+  /* the 16 bit face the relic hud and its dialog boxes speak in */
+  --font-pixel: "Pixelify Sans", ui-monospace, monospace;
 
   /* every color is a region of Eldentree, the nvim config this site is drawn from: catppuccin mocha recolored for
      wherever in the Lands Between you wake up. leyndell is the default, gold on ash stone. each token keeps the
@@ -382,21 +384,19 @@ body::after {
   }
 }
 
-/* the soft breathing every untouched relic does, so the eye finds it without a hint */
-.relic-breathe {
-  animation: relic-breathe 2.8s ease-in-out infinite;
-}
-
-@keyframes relic-breathe {
-  0%,
-  100% {
-    opacity: 0.45;
-    transform: scale(0.92);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.08);
-  }
+/* a 16 bit menu window, the blue box with the white frame SNES role playing games draw every menu in */
+.snes-window {
+  background: linear-gradient(180deg, #3b4fc4 0%, #1d2a8a 55%, #101763 100%);
+  border: 3px solid #f4f4f4;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 2px #0b0f3a,
+    inset 0 0 0 2px #0b0f3a,
+    0 10px 30px rgb(0 0 0 / 0.55);
+  color: #fff;
+  font-family: var(--font-pixel);
+  image-rendering: pixelated;
+  text-shadow: 2px 2px 0 #0b0f3a;
 }
 
 /* a ring of light on a card's border that follows the cursor around the edge */
@@ -506,7 +506,6 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
   .caret,
   .shimmer,
-  .relic-breathe,
   .badge-sheen,
   .group:hover .badge-sheen {
     animation: none;

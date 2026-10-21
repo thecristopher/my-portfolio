@@ -14,9 +14,11 @@ describe("elementBeat", () => {
 });
 
 describe("BEATS", () => {
-  it("speaks the harmony line before Claire and Inde's roles, and wraps up inside six seconds", () => {
+  it("speaks the harmony line before Claire and Inde's roles, names the one who masters all four, and settles inside six seconds", () => {
     expect(BEATS.together).toBeLessThan(BEATS.harmony);
     expect(BEATS.harmony).toBeLessThan(BEATS.roles);
+    expect(BEATS.roles).toBeLessThan(BEATS.master);
+    expect(BEATS.master * 1000).toBeLessThan(BEATS.lastsMs);
     expect(BEATS.lastsMs).toBeGreaterThanOrEqual(3000);
     expect(BEATS.lastsMs).toBeLessThanOrEqual(6000);
   });

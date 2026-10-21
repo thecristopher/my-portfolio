@@ -8,6 +8,7 @@ export const BEATS = {
   together: 3.35,
   harmony: 3.65,
   roles: 4.9,
+  master: 5.55,
   lastsMs: 6000,
 };
 

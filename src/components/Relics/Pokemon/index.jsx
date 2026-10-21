@@ -29,12 +29,12 @@ const GrassRow = ({ tiles, top, delay, isStill }) => (
  * A patch of GBA tall grass in the hero that rustles now and then, the place every wild encounter starts.
  * Once the catch is made, a Poké Ball stays half hidden in it.
  */
-export const Trigger = ({ className = "" }) => {
+export const Trigger = ({ className = "", zoom = 1 }) => {
   const { isFound, touch } = useRelic("pokeball");
   const isStill = useReducedMotion();
 
   return (
-    <RelicButton id="pokeball" isFound={isFound} onTouch={() => touch()} className={className}>
+    <RelicButton id="pokeball" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
       <svg viewBox="0 0 48 14" shapeRendering="crispEdges" className="w-24 overflow-visible sm:w-28" aria-hidden="true">
         <GrassRow tiles={BACK_ROW} top={0} delay={0} isStill={isStill} />
         {isFound && (

@@ -16,12 +16,12 @@ const STREAMS = [
  * A site of grace on the ground at the end of the page: a point of gold light with threads curling up off it.
  * Before it's touched it gutters low and pale; touched, it burns bright gold and the sigil hangs above it.
  */
-export const Trigger = ({ className = "" }) => {
+export const Trigger = ({ className = "", zoom = 1 }) => {
   const { isFound, touch } = useRelic("grace");
   const strength = isFound ? 1 : 0.55;
 
   return (
-    <RelicButton id="grace" isFound={isFound} onTouch={() => touch()} className={className}>
+    <RelicButton id="grace" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
       <span className="relative block h-24 w-20" aria-hidden="true">
         <span
           className="absolute inset-x-0 bottom-0 h-6 rounded-full"

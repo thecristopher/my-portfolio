@@ -51,7 +51,8 @@ const Pointer = () => {
     // works out what sits under the mouse right now. a click can move the page under a still mouse (a filter
     // fading jobs, a banner sliding in, smooth scrolling), so this runs every frame instead of trusting the last move
     const resolve = (element) => {
-      const control = element?.closest(MORPHS_ONTO);
+      // a relic stays a plain cursor, wrapping around it would give the hunt away
+      const control = element?.closest("[data-relic]") ? null : element?.closest(MORPHS_ONTO);
       const field = element?.closest(TYPES_INTO);
       const box = control?.getBoundingClientRect();
       // a control too big to hug, like a whole card that is a link, keeps the block instead
