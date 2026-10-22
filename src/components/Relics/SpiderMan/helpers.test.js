@@ -6,7 +6,7 @@ describe("pointOn", () => {
     expect(pointOn([50, 50], 0, 10)).toEqual([60, 50]);
   });
 
-  it("stretches the circle taller when asked, like the web on Claire's Halloween mask", () => {
+  it("stretches the circle taller when asked, like the web on the Halloween mask Inde made for Claire", () => {
     expect(pointOn([0, 0], Math.PI / 2, 10, 1.5)).toEqual([0, 15]);
   });
 });
@@ -46,7 +46,7 @@ describe("squigglePath", () => {
     expect(squiggle.match(/[ML]/g)).toHaveLength(5);
   });
 
-  it("starts and ends right on the ray, like Inde's heartbeat on a good day", () => {
+  it("starts and ends right on the ray, like Inde's heartbeat when Claire walks in", () => {
     expect(squiggle.startsWith("M10 0 ")).toBe(true);
     expect(squiggle.endsWith("L20 0")).toBe(true);
   });
@@ -75,7 +75,7 @@ describe("tendrilPath", () => {
     expect(tendril).toContain("55 105 Z");
   });
 
-  it("reaches its tip where Claire pointed it", () => {
+  it("reaches its tip right where Claire pointed", () => {
     expect(tendril).toContain(" 40 30 C");
   });
 });

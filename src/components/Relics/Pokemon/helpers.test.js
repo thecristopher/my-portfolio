@@ -25,7 +25,7 @@ describe("pixelsToPaths", () => {
 });
 
 describe("typingEnds", () => {
-  it("knows when Inde's love note finishes printing", () => {
+  it("knows when Inde's love note to Claire finishes printing", () => {
     expect(typingEnds("te amo", 1, 0.05)).toBe(1.3);
   });
 
@@ -35,7 +35,7 @@ describe("typingEnds", () => {
 });
 
 describe("wobbleKeyframes", () => {
-  it("rocks three times and rests between, the way Malenia's catch hangs in the balance", () => {
+  it("rocks three times and rests in between before Malenia's catch clicks shut", () => {
     const { rotate, times } = wobbleKeyframes(3);
     expect(rotate).toHaveLength(13);
     expect(rotate.filter((angle) => angle < 0)).toHaveLength(3);
@@ -57,7 +57,7 @@ describe("wobbleKeyframes", () => {
 });
 
 describe("spritePaths", () => {
-  it("paints Inde's rose from its rows and palette", () => {
+  it("paints the rose Inde brings to Claire from its rows and palette", () => {
     expect(spritePaths(["R.", "G"], { R: "#e0245e", G: "#2f7a32" })).toEqual([
       { color: "#e0245e", d: "M0 0h1v1h-1z" },
       { color: "#2f7a32", d: "M0 1h1v1h-1z" },

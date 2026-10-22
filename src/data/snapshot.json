@@ -344,7 +344,7 @@
       "work_mode": null,
       "start": null,
       "end": null,
-      "note": "Erika Soto, gracias por todo. Tqm.",
+      "note": "Gracias a Erika Soto por la confianza y por todo lo que me enseñó.",
       "team_size": null,
       "featured": false
     },
@@ -470,22 +470,22 @@
       "metrics": []
     },
     {
-      "slug": "firstword-brands",
-      "title": "One codebase, three brands",
+      "slug": "firstword-manager",
+      "title": "FirstWord Manager",
       "company": "PSL Group",
       "role": "Tech Lead",
-      "kind": "Frontend",
-      "summary": "Every FirstWord brand running on the same React app, each one still looking like itself.",
-      "challenge": "Three brands meant three apps quietly drifting apart, and every fix landing three times, or worse, twice.",
+      "kind": "Platform",
+      "summary": "The workspace the FirstWord team runs its day from, with the information in one place and the busywork on autopilot.",
+      "challenge": "What the team needed lived across several tools, and a good part of every week went to repeating the same steps by hand.",
       "approach": [
-        "Made the brand a setting instead of a fork, colors, copy and all",
-        "Shared the components, the data layer and the tests across every brand",
-        "Built FirstWord Manager in Next.js, the workspace the team runs everything from"
+        "Built FirstWord Manager in Next.js, the one workspace the team runs everything from",
+        "Centralized the information that was spread across tools, so everyone works from the same source",
+        "Automated the processes the team used to run by hand"
       ],
-      "outcome": "A fix lands once and every brand gets it the same morning.",
+      "outcome": "Less time hunting for data and repeating steps, more time on the work that actually moves FirstWord forward.",
       "technologies": [
-        "React",
         "Next.js",
+        "React",
         "TypeScript",
         "Node.js"
       ],

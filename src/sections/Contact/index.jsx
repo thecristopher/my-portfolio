@@ -149,7 +149,7 @@ const ContactTerminal = ({ contact }) => {
               <span>
                 <span className="text-accent">#</span> touch grace any time, Tarnished.
               </span>
-              <SiteOfGrace zoom={0.25} />
+              <SiteOfGrace zoom={0.17} />
             </p>
           </motion.div>
         )}

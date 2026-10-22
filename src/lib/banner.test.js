@@ -2,25 +2,25 @@ import { describe, expect, it } from "vitest";
 import { BANNER_KINDS, spacedLetters } from "./banner";
 
 describe("spacedLetters", () => {
-  it("spaces Malenia's defeat the way the game carves it", () => {
+  it("carves ENEMY FELLED wide after Malenia wins her sparring match with Radahn", () => {
     expect(spacedLetters("enemy felled").join("")).toBe("ENEMY  FELLED");
   });
 
-  it("keeps a single word as plain letters", () => {
+  it("spells Leyndell as plain letters for Claire's arrival", () => {
     expect(spacedLetters("Leyndell")).toEqual([..."LEYNDELL"]);
   });
 
-  it("returns nothing for an empty banner", () => {
+  it("returns no letters for an empty banner", () => {
     expect(spacedLetters("")).toEqual([]);
   });
 });
 
 describe("BANNER_KINDS", () => {
-  it("lets YOU DIED seep in all at once", () => {
+  it("shows YOU DIED all at once, so Inde can get right back up", () => {
     expect(BANNER_KINDS.died.staggerMs).toBe(0);
   });
 
-  it("gives every banner time to be read", () => {
+  it("keeps every banner up long enough for Claire to read it", () => {
     Object.values(BANNER_KINDS).forEach((kind) => expect(kind.durationMs).toBeGreaterThanOrEqual(2500));
   });
 });

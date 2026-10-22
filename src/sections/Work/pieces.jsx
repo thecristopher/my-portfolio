@@ -56,7 +56,7 @@ export const CareerLog = ({ projects }) => {
             <span>
               <span className="text-accent">$</span> git log --graph --oneline --all
             </span>
-            <TallGrass zoom={0.28} />
+            <TallGrass zoom={0.18} />
           </p>
           <ol ref={listRef} className="relative flex flex-col">
             <span className="absolute top-3 bottom-3 left-[5px] w-px bg-line" aria-hidden="true" />

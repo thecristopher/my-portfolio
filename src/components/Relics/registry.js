@@ -11,9 +11,10 @@ import { sound as spider } from "./SpiderMan/sound";
 import { sound as grace } from "./EldenRing/sound";
 import { sound as bat } from "./Batman/sound";
 import { sound as d20 } from "./BaldursGate/sound";
+import { sound as willow } from "./Obsession/sound";
 
 // every relic's jingle, small enough to ship up front so it plays the instant the relic is touched
-export const RELIC_SOUNDS = { scott, pokeball, alchemy, umbrella, magician, airbender, triforce, hanafuda, spider, grace, bat, d20 };
+export const RELIC_SOUNDS = { scott, pokeball, alchemy, umbrella, magician, airbender, triforce, hanafuda, spider, grace, bat, d20, willow };
 
 // the moments themselves only download the first time someone touches their relic
 export const RELIC_EFFECTS = {
@@ -29,4 +30,5 @@ export const RELIC_EFFECTS = {
   grace: lazy(() => import("./EldenRing/Effect")),
   bat: lazy(() => import("./Batman/Effect")),
   d20: lazy(() => import("./BaldursGate/Effect")),
+  willow: lazy(() => import("./Obsession/Effect")),
 };

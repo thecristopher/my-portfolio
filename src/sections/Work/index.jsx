@@ -40,11 +40,12 @@ const EarlierRoles = ({ projects, pickedTech, caseStudies }) => (
               ))}
             </ul>
             <p className="font-mono text-[11px] text-faint">{project.technologies.map(cleanTechName).join(" · ")}</p>
-            {project.note && <p className="text-sm text-rose italic">{project.note}</p>}
+            {/* a quiet thank you, it reads like a footnote instead of a headline */}
+            {project.note && <p className="text-xs text-muted italic">{project.note}</p>}
             {/* yes, I really worked at a company called Umbrella. the save room had to be here */}
             {project.title === "Umbrella Seguros" && (
               <span className="flex justify-end">
-                <Typewriter zoom={0.22} />
+                <Typewriter zoom={0.15} />
               </span>
             )}
             {caseStudies

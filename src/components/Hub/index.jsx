@@ -5,8 +5,8 @@ import { SHOWS_SPLASH, SPLASH_HOLD_S, markBooted } from "../../lib/intro";
 import { scrollToSection } from "../../lib/smoothScroll";
 import { easeOutExpo } from "../../lib/motion";
 import { currentRegionName, resolveRegion } from "../../lib/regions";
-import { showBanner } from "../../lib/banner";
 import { PLAYER_MESSAGES } from "../Telescope/commands";
+import { RELIC_IDS } from "../../lib/relics";
 
 const ENTRIES = [
   { key: "a", icon: User, label: "About me", run: () => scrollToSection("about") },
@@ -79,7 +79,7 @@ const Entries = () => (
 /**
  * The first thing a visit sees: Eldentree's hub. The name shimmers in the region's gold, embers rise, a player
  * message writes itself, then the camera pushes through into the page. Any key or click skips it, and a hub key
- * runs its entry. After it, the region's name rolls across the screen like entering an area in the game.
+ * runs its entry. The region's name only rolls across the screen when the visitor travels to one on purpose.
  */
 const Hub = () => {
   const [isShown, setIsShown] = useState(SHOWS_SPLASH);
@@ -92,7 +92,6 @@ const Hub = () => {
     const close = (entry) => {
       setIsShown(false);
       if (entry) setTimeout(entry.run, 500);
-      else setTimeout(() => showBanner("region", { text: region.title, subtitle: region.subtitle }), 700);
     };
     const timer = setTimeout(() => close(null), SPLASH_HOLD_S * 1000);
     const skip = (event) => close(ENTRIES.find((item) => item.key === event.key) ?? null);
@@ -103,7 +102,7 @@ const Hub = () => {
       window.removeEventListener("keydown", skip);
       window.removeEventListener("pointerdown", skip);
     };
-  }, [isShown, region]);
+  }, [isShown]);
 
   return (
     <AnimatePresence>
@@ -135,7 +134,7 @@ const Hub = () => {
             transition={{ duration: 0.5, delay: 0.9 }}
             className="font-mono text-[11px] text-faint"
           >
-            <span className="text-string">⚡</span> eldentree loaded 12 relics · 8 buffers in 23ms
+            <span className="text-string">⚡</span> eldentree loaded {RELIC_IDS.length} relics · 8 buffers in 23ms
           </motion.p>
         </motion.div>
       )}

@@ -12,23 +12,23 @@ import {
   rollWithPatience,
 } from "./helpers";
 
-// Claire persuades Inde to a second date, and the API agrees
-const claireAsksInde = { roll: 17, dc: 8, success: true, message: "Check passed. Nice roll." };
+// Claire rolls Persuasion to ask Inde on a second date, and the API agrees
+const claireAsksInde = { roll: 17, dc: 8, success: true, message: "Persuasion passed. See you Friday, Inde." };
 
 describe("isValidRoll", () => {
-  it("trusts Claire's 17", () => {
+  it("accepts Claire's 17 on her persuasion check", () => {
     expect(isValidRoll(claireAsksInde)).toBe(true);
   });
 
-  it("refuses a face the die doesn't have", () => {
+  it("rejects a 21, since the die stops at 20", () => {
     expect(isValidRoll({ ...claireAsksInde, roll: 21 })).toBe(false);
   });
 
-  it("refuses an answer with no verdict", () => {
+  it("rejects a roll that arrives without a verdict", () => {
     expect(isValidRoll({ roll: 12 })).toBe(false);
   });
 
-  it("refuses nothing at all", () => {
+  it("rejects an empty answer", () => {
     expect(isValidRoll(null)).toBe(false);
   });
 });
@@ -40,17 +40,17 @@ describe("rollWithPatience", () => {
     await expect(rollWithPatience(async () => claireAsksInde)).resolves.toEqual(claireAsksInde);
   });
 
-  it("rolls locally when the API fails, so Malenia still gets her natural 20", async () => {
+  it("rolls locally when the API is offline, and Malenia still gets her natural 20", async () => {
     const result = await rollWithPatience(() => Promise.reject(new Error("offline")), { random: () => 0.99 });
     expect(result.roll).toBe(20);
   });
 
-  it("rolls locally when the API answers nonsense", async () => {
+  it("rolls locally when the API answers with words instead of a number", async () => {
     const result = await rollWithPatience(async () => ({ roll: "twenty" }), { random: () => 0 });
     expect(result.roll).toBe(1);
   });
 
-  it("stops waiting once the patience runs out", async () => {
+  it("rolls locally once the patience runs out, so Inde gets their answer anyway", async () => {
     vi.useFakeTimers();
     const pending = rollWithPatience(() => new Promise(() => {}), { patienceMs: 1500, random: () => 0.5 });
     await vi.advanceTimersByTimeAsync(1500);
@@ -59,7 +59,7 @@ describe("rollWithPatience", () => {
 });
 
 describe("nextFlickerFace", () => {
-  it("never shows the same face twice in a row", () => {
+  it("moves on to a fresh face instead of showing the 20 again", () => {
     expect(nextFlickerFace(20, () => 0.99)).toBe(1);
   });
 
@@ -73,7 +73,7 @@ describe("cleanFace", () => {
     expect(cleanFace(14)).toBe(14);
   });
 
-  it("drops a broken save", () => {
+  it("returns null for a saved face that isn't a real d20 number", () => {
     expect(cleanFace(37)).toBeNull();
     expect(cleanFace("20")).toBeNull();
   });
@@ -88,7 +88,7 @@ describe("faceToShow", () => {
     expect(faceToShow(true, 6)).toBe(6);
   });
 
-  it("falls back to 20 when the last face was lost", () => {
+  it("shows a 20 when there is no last face to bring back", () => {
     expect(faceToShow(true, null)).toBe(20);
   });
 });
@@ -99,12 +99,12 @@ describe("VERDICT_LOOKS", () => {
     expect(VERDICT_LOOKS.success.line).toBe(SUCCESS_LINE);
   });
 
-  it("adds the whole team only on a natural 20", () => {
+  it("brings the whole party along only on a natural 20", () => {
     const bonuses = Object.entries(VERDICT_LOOKS).filter(([, look]) => look.bonus);
     expect(bonuses).toEqual([["critical", expect.objectContaining({ bonus: CRITICAL_BONUS })]]);
   });
 
-  it("nudges every failure toward the email", () => {
+  it("points every missed check toward the email, so the conversation keeps going", () => {
     expect(VERDICT_LOOKS.failure.line).toBe(FAILURE_LINE);
     expect(VERDICT_LOOKS.fumble.line).toBe(FAILURE_LINE);
   });

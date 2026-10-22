@@ -251,7 +251,7 @@ const Skills = ({ number }) => {
 
         {/* a card set face down at the very start of the deck she buffs */}
         <p className="-mb-10 flex items-center gap-3 font-mono text-xs text-faint">
-          <FaceDownCard zoom={0.25} />
+          <FaceDownCard zoom={0.17} />
           <span>
             <span className="text-accent">--</span> cards.lua
           </span>

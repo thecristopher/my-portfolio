@@ -220,3 +220,89 @@ export const SMILE = {
 
 // the near arm's guard drops a pixel when he relaxes to say hi
 export const GUARD_ARM = { maxX: 11, minY: 27, maxY: 38 };
+
+// the combo moves are frames of their own, drawn pixel by pixel like a real fighting game sprite, instead of bending
+// the idle pose. each one wipes part of him and paints its own pose over the gap. nothing ever rotates, so every
+// pixel stays square
+
+// everything of the front leg below the crotch, wiped before a kick frame goes on
+export const LEG_ERASE = { minX: 20, minY: 42 };
+
+// the knee comes up first, thigh straight out and the shin hanging under it. the shoryuken rises on this leg too
+export const KICK_CHAMBER = {
+  left: 20,
+  top: 40,
+  rows: [
+    "........KKKKKKK....",
+    "PPPPPPPPPPPPPKK....",
+    "PPPPPPPPPPPPPPK....",
+    "PPPPPPPPPppPPPK....",
+    "PPPPPPPPPPPPPPK....",
+    "ppppppppppppppK....",
+    "ppppppppppppppK....",
+    "KKKKKKKKPPPPPpK....",
+    ".......KPPPPPpK....",
+    ".......KPPPPPpK....",
+    ".......KppppppK....",
+    ".......KppppppK....",
+    ".......KKqqWWWWqK..",
+    ".......KqqWWWWWWqK.",
+    "......KqWqWWWWWWWqK",
+    "......KqWqWWWWWWWqK",
+    ".......KWqWWWWWWWqK",
+    "........KKKKKKKKKK.",
+  ],
+};
+
+// then the leg snaps out flat at hip height with the sneaker turned up, sole first
+export const KICK_EXTEND = {
+  left: 20,
+  top: 37,
+  rows: [
+    ".........................KKK.",
+    "........................KqqqK",
+    ".......................KqWWWK",
+    "........KKKKKK.........qWWWWK",
+    "PPPPPPPPPPPPPPKKKKK....WWWWWK",
+    "PPPPPPPPPPPPPPPPPPPKKKKWWWWWK",
+    "PPPPPPPPPPPPPPPPPPPPPPPWWWWWK",
+    "PPPPPPPPPPPPPppPPPPPPPPWWWWWK",
+    "pppppppppppppppppppppppqWWWWK",
+    "pppppppppppppppppppppppqqqqqK",
+    "KKKKKKKKKKKKKKKKKKKKKKKKqWWWK",
+    ".......................KKqqK.",
+  ],
+};
+
+// the uppercut arm climbs up and out of the sleeve in steps, fist closed above his head
+export const UPPERCUT_ARM = {
+  left: 30,
+  top: 3,
+  rows: [
+    "...........KKKKKKK..",
+    "..........KSSaSSaSK.",
+    "..........KSSaSSaSsK",
+    "..........KsSaSSaSsK",
+    "..........KsSSSSSSsK",
+    "...........KKsSSSsKK",
+    "...........KSSSsK...",
+    "...........KSSSsK...",
+    "...........KSSSsK...",
+    "...........KSSSsK...",
+    "...........KSSSsK...",
+    "...........KSSSsK...",
+    "...........KSSSsK...",
+    "...........KSSSsK...",
+    "...........KSSSsK...",
+    "..........KSSSsK....",
+    "..........KSSSsK....",
+    "TTKKK....KSSSsK.....",
+    "ttTTTKK..KSSSsK.....",
+    "tttttTTKKSSSsK......",
+    ".ttttttKKSSSsK......",
+    "ttttttuKSSSsK.......",
+    ".tttttuKSSSsK.......",
+    "uuuuuuKSSSsK........",
+    ".KKKKKKKKKKK........",
+  ],
+};

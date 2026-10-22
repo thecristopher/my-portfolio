@@ -26,7 +26,7 @@ const Diploma = ({ school }) => {
     <div className="relative">
       {/* Peter Parker was a student first, so the spider hangs off the diploma */}
       <div className="absolute -top-2 right-8 z-10">
-        <HangingSpider zoom={0.4} />
+        <HangingSpider zoom={0.28} />
       </div>
       <EditorWindow path={["cristopher", "education", "degree.toml"]}>
       <div className="flex flex-col gap-8 p-2 sm:p-5">
@@ -168,7 +168,7 @@ const Education = ({ number }) => {
                   <span className="text-accent">$</span> aws certifications list <span className="text-fg">→ {certifications.length} earned</span>
                 </p>
                 {/* the exams took total concentration, so Tanjiro's earring hangs beside them */}
-                <HanafudaEarring zoom={0.22} />
+                <HanafudaEarring zoom={0.17} />
               </div>
               {certifications.map((cert, index) => (
                 <CertBadge key={cert.name} cert={cert} index={index} />
