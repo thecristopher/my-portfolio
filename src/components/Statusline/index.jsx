@@ -161,7 +161,7 @@ const Statusline = ({ mode, activeId, onOpenQuestLog, onOpenRegions }) => {
       <span className="hidden items-center gap-1.5 px-3 text-faint xl:flex" title="My local time in Rosarito, Mexico">
         <span className="text-muted tabular-nums">{time}</span> {status}
         {/* on call means someone has to answer the signal, the clock is where it lives */}
-        <BatSignal zoom={0.09} />
+        <BatSignal zoom={0.08} />
       </span>
       <button
         type="button"

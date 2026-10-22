@@ -1,19 +1,4 @@
 export const SCOTT_PINK = "#ff5ca8";
-export const COMBO_HITS = 3;
-export const COMBO_WINDOW_MS = 2500;
-
-/**
- * Adds a poke to the running combo. Pokes older than the window fall off, and landing the last hit empties it.
- * @param {number[]} pokes times of the pokes still in the combo, in ms
- * @param {number} now time of this poke, in ms
- * @param {{ hits?: number, windowMs?: number }} options how many hits make a combo and how fast they have to land
- * @returns {{ pokes: number[], isCombo: boolean }} the combo after this poke, and whether it just landed
- */
-export const registerPoke = (pokes, now, { hits = COMBO_HITS, windowMs = COMBO_WINDOW_MS } = {}) => {
-  const recent = [...pokes, now].filter((at) => now - at < windowMs);
-  const isCombo = recent.length >= hits;
-  return { pokes: isCombo ? [] : recent, isCombo };
-};
 
 /**
  * The points of a comic book impact burst, spikes alternating long and short around the middle.

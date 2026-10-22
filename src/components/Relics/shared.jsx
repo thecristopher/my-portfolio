@@ -4,9 +4,9 @@ import { easedGlow, softBeams, softRing } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 
 /**
- * The object a relic lives in: a real button, tiny and nearly see through, with no label, no glow and no cursor
- * change, so only a careful eye finds it. Hovering lifts it a little out of the page. Found, it keeps a touch more
- * color so a returning visit can spot its own finds.
+ * The object a relic lives in: a real button, the size of an icon and nearly see through, with no label and no
+ * cursor change, so only a careful eye finds it. The reward for finding it comes on hover: it wakes up in its own
+ * color, glows and lifts out of the page. Found, it keeps a touch more color so a returning visit can spot its own finds.
  * @param {{ id: string, isFound: boolean, onTouch: () => void, className?: string, zoom?: number, children: React.ReactNode }} props
  *   zoom shrinks the object without leaving its full size behind in the layout
  */
@@ -18,15 +18,17 @@ export const RelicButton = ({ id, isFound, onTouch, className = "", zoom = 1, ch
       onClick={onTouch}
       aria-label={isFound ? `${relic.name}, ${relic.franchise}` : "?"}
       data-relic={id}
-      className={`group relative inline-grid touch-manipulation place-items-center outline-none ${className}`}
+      className={`group relative inline-grid touch-manipulation place-items-center p-1 outline-none ${className}`}
+      style={{ "--relic-glow": relic.color }}
     >
       <span
-        className={`relative transition-[opacity,filter] duration-700 group-hover:opacity-70 group-focus-visible:opacity-70 ${
-          isFound ? "opacity-45 saturate-50" : "opacity-15 saturate-0"
+        className={`relative block transition-[opacity,filter,scale] duration-500 group-hover:scale-125 group-hover:opacity-100 group-hover:saturate-100 group-hover:drop-shadow-[0_0_6px_var(--relic-glow)] group-focus-visible:scale-125 group-focus-visible:opacity-100 group-focus-visible:saturate-100 ${
+          isFound ? "opacity-40 saturate-50" : "opacity-[0.12] saturate-0"
         }`}
-        style={{ zoom }}
       >
-        {children}
+        <span className="block" style={{ zoom }}>
+          {children}
+        </span>
       </span>
     </button>
   );

@@ -35,7 +35,7 @@ const Philosophy = () => {
                 <motion.span style={{ scaleX: reading }} className="absolute inset-0 origin-left bg-accent" />
               </span>
             )}
-            <TransmutationCircle zoom={0.25} />
+            <TransmutationCircle zoom={0.15} />
           </div>
         </motion.div>
       </div>

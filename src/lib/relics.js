@@ -1,6 +1,6 @@
 import { createStore } from "./store";
 
-// the twelve relics: one small object per franchise, spread across the whole page and its chrome, each hiding
+// the relics: one small object per franchise, spread across the whole page and its chrome, each hiding
 // where its line on the page fits it. section null means it lives in the editor chrome, not in a section.
 // touching one plays its moment, and the quest log keeps what you found and gives a riddle for the rest. the ids
 // are the old secret ids, so anyone who found one before keeps the credit
@@ -112,6 +112,15 @@ export const RELICS = {
     touch: "roll persuasion",
     riddle: "Picking a time to call is a persuasion check. The dice wait by the clock.",
     quip: "Persuasion check passed. Now you just have to send the email.",
+  },
+  willow: {
+    franchise: "Obsession",
+    name: "One Wish Willow",
+    color: "#9ed36a",
+    section: null,
+    touch: "make a wish",
+    riddle: "Where the page signs off, a little twig waits. One wish, then snap it in half.",
+    quip: "Wish granted. No fine print, just an inbox that always answers.",
   },
 };
 

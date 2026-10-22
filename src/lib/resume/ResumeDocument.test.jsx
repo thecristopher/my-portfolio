@@ -17,7 +17,7 @@ describe("ResumeDocument", () => {
     expect(buffer.subarray(0, 4).toString()).toBe("%PDF");
   }, 20000);
 
-  it("still writes when Claire has only filled in her name", async () => {
+  it("still writes a full pdf when Claire has only filled in her name so far", async () => {
     const buffer = await renderToBuffer(<ResumeDocument resume={buildResume({ about: { name: "Claire Redfield" } })} />);
     expect(buffer.length).toBeGreaterThan(1000);
   }, 20000);

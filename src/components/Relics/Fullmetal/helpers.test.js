@@ -16,7 +16,7 @@ import {
 const floor = { cx: 50, cy: 36, rx: 46, ry: 19 };
 
 describe("pointOnCircle", () => {
-  it("puts angle zero straight up, like noon on the clock Claire and Inde set for their date", () => {
+  it("puts angle zero straight up, like noon on the clock Claire set for her lunch date with Inde", () => {
     expect(pointOnCircle(50, 50, 10, 0)).toEqual({ x: 50, y: 40 });
   });
 
@@ -50,7 +50,7 @@ describe("hexagramPaths", () => {
 });
 
 describe("glyphMarks", () => {
-  it("spreads Inde's love notes evenly in the band and cycles through the glyph kinds", () => {
+  it("spreads Inde's love notes evenly around the band, cycling through the glyph kinds", () => {
     const marks = glyphMarks(50, 50, 43, 6);
     expect(marks).toHaveLength(6);
     expect(marks.map(({ kind }) => kind)).toEqual(["tick", "dot", "bar", "tick", "dot", "bar"]);
@@ -59,7 +59,7 @@ describe("glyphMarks", () => {
 });
 
 describe("seededRandom", () => {
-  it("replays the same sequence for the same seed", () => {
+  it("gives Claire and Inde the same sequence when they share a seed", () => {
     const claire = seededRandom(1998);
     const inde = seededRandom(1998);
     expect([claire(), claire(), claire()]).toEqual([inde(), inde(), inde()]);
@@ -118,7 +118,7 @@ describe("crackleBolts", () => {
     });
   });
 
-  it("gives a new shape every time Malenia blinks", () => {
+  it("grows a fresh shape on every call, so the sparks Malenia watches never repeat", () => {
     const random = seededRandom(21);
     expect(crackleBolts({ floor, random })).not.toEqual(crackleBolts({ floor, random }));
   });
@@ -141,7 +141,7 @@ describe("crackleTimes", () => {
 });
 
 describe("BEATS", () => {
-  it("claps, stamps, speaks, then transmutes, and settles inside six seconds", () => {
+  it("claps, stamps, speaks, then transmutes the gift, all inside six seconds", () => {
     expect(BEATS.clap).toBeLessThan(BEATS.stamp);
     expect(BEATS.stamp).toBeLessThan(BEATS.title);
     expect(BEATS.title).toBeLessThan(BEATS.narration);

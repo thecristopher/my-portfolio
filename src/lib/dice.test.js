@@ -2,30 +2,30 @@ import { describe, expect, it } from "vitest";
 import { PERCEPTION_DC, localRoll, verdictFor } from "./dice";
 
 describe("localRoll", () => {
-  it("rolls a natural 20 off the top of the range", () => {
+  it("gives Inde a natural 20 from the top of the range", () => {
     expect(localRoll(() => 0.999)).toEqual({ roll: 20, dc: PERCEPTION_DC, success: true, message: "Natural 20! Critical success." });
   });
 
-  it("rolls a natural 1 off the bottom", () => {
+  it("gives a natural 1 from the bottom of the range, a story for date night", () => {
     expect(localRoll(() => 0)).toMatchObject({ roll: 1, success: false, message: "Natural 1. Critical failure." });
   });
 
-  it("passes on the DC itself", () => {
+  it("lets Claire spot the clue on a roll equal to the DC", () => {
     expect(localRoll(() => (PERCEPTION_DC - 1) / 20)).toMatchObject({ roll: PERCEPTION_DC, success: true });
   });
 
-  it("fails just under the DC", () => {
+  it("asks Malenia for another look on a roll one under the DC", () => {
     expect(localRoll(() => (PERCEPTION_DC - 2) / 20)).toMatchObject({ roll: PERCEPTION_DC - 1, success: false });
   });
 });
 
 describe("verdictFor", () => {
-  it("calls out the crits", () => {
+  it("names a 20 and a 1 as critical", () => {
     expect(verdictFor({ roll: 20, success: true }).label).toBe("Critical Success");
     expect(verdictFor({ roll: 1, success: false }).label).toBe("Critical Failure");
   });
 
-  it("keeps it plain for everything in between", () => {
+  it("keeps the label plain for every roll in between", () => {
     expect(verdictFor({ roll: 12, success: true }).label).toBe("Success");
     expect(verdictFor({ roll: 3, success: false }).label).toBe("Failure");
   });

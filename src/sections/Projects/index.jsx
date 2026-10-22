@@ -74,7 +74,7 @@ const Projects = ({ number }) => {
         />
         {/* four kinds of work in the gallery, four nations beside it */}
         <div className="-mt-6 flex justify-end">
-          <FourNations zoom={0.22} />
+          <FourNations zoom={0.15} />
         </div>
         {isLoading && <SkeletonLines lines={4} />}
         {isError && <LoadError what="the projects" />}

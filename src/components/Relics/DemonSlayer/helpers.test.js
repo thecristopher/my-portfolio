@@ -6,7 +6,7 @@ describe("ichimatsu", () => {
     expect(ichimatsu()).toBe("repeating-conic-gradient(#1f7a4d 0 25%, #121212 0 50%) 0 0 / 2.5rem 2.5rem");
   });
 
-  it("lets Malenia pick her own colors and tile size", () => {
+  it("uses the colors and tile size Malenia picks for her own kimono", () => {
     expect(ichimatsu({ green: "#c33", black: "#fff", size: "1rem" })).toBe("repeating-conic-gradient(#c33 0 25%, #fff 0 50%) 0 0 / 1rem 1rem");
   });
 });
@@ -18,7 +18,7 @@ describe("waveCrests", () => {
     expect(crests.map(({ x }) => x)).toEqual([10, 50, 90]);
   });
 
-  it("drops every other crest a little, like the waves Claire watched on her beach date", () => {
+  it("lowers every other crest a little, like the waves Claire and Inde watched on their beach date", () => {
     expect(crests.map(({ height }) => height)).toEqual([20, 14.4, 20]);
   });
 });
@@ -45,7 +45,7 @@ describe("waveBodyPath", () => {
 });
 
 describe("crestTip", () => {
-  it("finds where the curl of Malenia's wave ends", () => {
+  it("finds the tip where the curl of the wave lands", () => {
     expect(crestTip({ x: 0, width: 100, height: 20 }, 50)).toEqual([95, 39]);
   });
 });
@@ -53,7 +53,7 @@ describe("crestTip", () => {
 describe("foamClaws", () => {
   const crest = { x: 0, width: 100, height: 20 };
 
-  it("hangs one claw per finger asked for", () => {
+  it("hangs one foam claw per finger asked for", () => {
     expect(foamClaws(crest, 50, 5)).toHaveLength(5);
   });
 
@@ -69,7 +69,7 @@ describe("foamClaws", () => {
 });
 
 describe("brushDelays", () => {
-  it("paints Claire's love note one glyph after another", () => {
+  it("paints Claire's love note to Inde one glyph after another", () => {
     expect(brushDelays(["全集中"], { startAt: 1, perGlyph: 0.1 })).toEqual([[1, 1.1, 1.2]]);
   });
 
