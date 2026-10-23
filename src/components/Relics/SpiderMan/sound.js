@@ -5,31 +5,39 @@ const TINGLE = Array.from({ length: 12 }, (_, index) => {
 });
 const TINGLE_HIGH = TINGLE.map(([semitones, start, length, tweaks]) => [semitones + 5, start + 0.04, length, { ...tweaks, slideTo: tweaks.slideTo + 5, volume: 0.02 }]);
 
-// Spider-Man 2: the Spider-Sense tingles, two thwips fire, a heroic brass call rises while the mask drops in,
-// then the symbiote growls underneath and the whole thing lands on a darker chord when the suit turns black
+// the 1967 cartoon theme, "Spider-Man, Spider-Man, does whatever a spider can", as [semitones, offset, length]
+const THEME_1967 = [
+  [3, 0, 0.28],
+  [6, 0.3, 0.14],
+  [10, 0.45, 0.5],
+  [9, 1.2, 0.28],
+  [6, 1.5, 0.14],
+  [3, 1.65, 0.5],
+  [3, 2.4, 0.28],
+  [6, 2.7, 0.14],
+  [10, 2.85, 0.28],
+  [11, 3.15, 0.14],
+  [10, 3.3, 0.28],
+  [9, 3.6, 0.28],
+  [6, 3.9, 0.14],
+  [3, 4.05, 0.6],
+];
+const THEME_AT = 1.4;
+// a touch quicker than the cartoon so the last "can" lands before the frame settles
+const THEME_TEMPO = 0.85;
+const theme = THEME_1967.map(([semitones, offset, length]) => [semitones, THEME_AT + offset * THEME_TEMPO, length * THEME_TEMPO, { wave: "square" }]);
+
+// Spider-Man: the Spider-Sense tingles, two thwips fire, then the 1967 theme sings as Spidey swings in
 export const sound = {
   wave: "sawtooth",
   volume: 0.04,
   notes: [
     ...TINGLE,
     ...TINGLE_HIGH,
-    // the brass call, climbing a fifth to the octave like a hero arriving
-    [-7, 1.4, 0.22],
-    [-2, 1.62, 0.22],
-    [0, 1.84, 0.45],
-    [-2, 2.28, 0.14],
-    [0, 2.42, 0.14],
-    [3, 2.56, 0.6],
-    [-19, 1.4, 1.2, { wave: "triangle", volume: 0.1 }],
-    [-14, 1.4, 1.2, { wave: "triangle", volume: 0.06 }],
-    // the symbiote: a low growl sliding down under everything
-    [-31, 2.65, 1.5, { slideTo: -37, volume: 0.06, attack: 0.3 }],
-    [-30, 2.7, 1.4, { slideTo: -36, volume: 0.04, attack: 0.3 }],
-    // the black suit: a diminished chord, same root, nothing heroic left in it
-    [-19, 3.8, 1.8, { wave: "triangle", volume: 0.12 }],
-    [-7, 3.8, 1.6, { volume: 0.035, attack: 0.08 }],
-    [-4, 3.8, 1.6, { volume: 0.035, attack: 0.08 }],
-    [-1, 3.8, 1.6, { volume: 0.03, attack: 0.08 }],
+    ...theme,
+    // the bass walking under the theme, one long root per phrase
+    [-21, THEME_AT, 1.1 * THEME_TEMPO, { wave: "triangle", volume: 0.12 }],
+    [-21, THEME_AT + 2.4 * THEME_TEMPO, 2.2 * THEME_TEMPO, { wave: "triangle", volume: 0.12 }],
   ],
   noises: [
     // the shimmer riding on top of the tingle
@@ -37,9 +45,5 @@ export const sound = {
     // thwip, thwip
     [1.1, 0.13, { filter: "bandpass", frequency: 1200, sweepTo: 7000, volume: 0.35 }],
     [1.26, 0.12, { filter: "bandpass", frequency: 1400, sweepTo: 8000, volume: 0.28 }],
-    // the symbiote crawling up out of the floor
-    [2.6, 0.9, { filter: "lowpass", frequency: 320, sweepTo: 90, volume: 0.4 }],
-    // the suit snapping into place
-    [3.8, 0.3, { filter: "lowpass", frequency: 900, sweepTo: 120, volume: 0.35 }],
   ],
 };

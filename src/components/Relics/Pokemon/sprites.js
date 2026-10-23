@@ -1,20 +1,5 @@
 export const POKE_RED = "#e3350d";
 
-// the two greens of the tall grass on the Hoenn routes
-export const GRASS_PALETTE = { d: "#2f7a32", l: "#7cc85a" };
-
-// one 16 pixel tile of tall grass, two tufts with dark blade outlines over a light fill
-export const GRASS_TILE = [
-  "...d.......d....",
-  "..dld.....dld...",
-  "..dld..d..dld..d",
-  ".dlld.dld.dlld.d",
-  ".dlldddlddllldld",
-  "dllllldllllllldl",
-  "dlllllllllllllll",
-  "llldllllllldllll",
-];
-
 // the trainer as seen from behind in a Gen 3 battle: red cap, brown hair, a jacket and the backpack straps
 export const TRAINER_PALETTE = {
   K: "#202020",

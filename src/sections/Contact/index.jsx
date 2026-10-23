@@ -5,7 +5,7 @@ import TextReveal from "../../components/TextReveal";
 import EditorWindow from "../../components/EditorWindow";
 import TypeLine from "../../components/TypeLine";
 import FileIcon from "../../components/FileIcon";
-import { Trigger as SiteOfGrace } from "../../components/Relics/EldenRing";
+import { Trigger as GraceSigil } from "../../components/Relics/EldenRing";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetContactQuery } from "../../api/contactApi";
 import { socialIconMap } from "../../lib/socialIconMap";
@@ -149,7 +149,7 @@ const ContactTerminal = ({ contact }) => {
               <span>
                 <span className="text-accent">#</span> touch grace any time, Tarnished.
               </span>
-              <SiteOfGrace zoom={0.17} />
+              <GraceSigil zoom={0.42} />
             </p>
           </motion.div>
         )}

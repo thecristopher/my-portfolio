@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
 import { X } from "lucide-react";
 import EditorWindow from "../../components/EditorWindow";
-import { Trigger as TallGrass } from "../../components/Relics/Pokemon";
+import { Trigger as PokeBall } from "../../components/Relics/Pokemon";
 import TechIcon from "../../components/TechIcon";
 import { careerCommits, cleanTechName } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
@@ -56,7 +56,7 @@ export const CareerLog = ({ projects }) => {
             <span>
               <span className="text-accent">$</span> git log --graph --oneline --all
             </span>
-            <TallGrass zoom={0.18} />
+            <PokeBall zoom={0.42} />
           </p>
           <ol ref={listRef} className="relative flex flex-col">
             <span className="absolute top-3 bottom-3 left-[5px] w-px bg-line" aria-hidden="true" />

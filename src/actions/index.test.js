@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  repoLanguages,
   hintLabels,
   stepSection,
   auroraLayout,
@@ -738,5 +739,20 @@ describe("hoursAhead", () => {
   it("given Malenia calling from Kiritimati, expect the gap within half a day", () => {
     const value = hoursAhead(new Date(), "Pacific/Kiritimati");
     expect(Math.abs(value)).toBeLessThanOrEqual(12);
+  });
+});
+
+describe("repoLanguages", () => {
+  it("keeps every language of Claire's webcam app, Swift first, then Rust", () => {
+    expect(repoLanguages({ language: "Swift", languages: ["Swift", "Rust"] })).toEqual(["Swift", "Rust"]);
+  });
+
+  it("falls back to the single language on Malenia's older repo data", () => {
+    expect(repoLanguages({ language: "Lua" })).toEqual(["Lua"]);
+  });
+
+  it("leaves Inde's README only repo without languages", () => {
+    expect(repoLanguages({ language: null, languages: [] })).toEqual([]);
+    expect(repoLanguages()).toEqual([]);
   });
 });

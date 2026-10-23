@@ -1,48 +1,18 @@
-import { motion, useReducedMotion } from "framer-motion";
-import { RelicButton } from "../shared";
+import { RelicButton, EMBLEM_CLASS } from "../shared";
 import { useRelic } from "../useRelic";
-import { BallPixels, PixelPaths } from "./pieces";
-import { spritePaths } from "./helpers";
-import { GRASS_PALETTE, GRASS_TILE } from "./sprites";
 
-const GRASS_PATHS = spritePaths(GRASS_TILE, GRASS_PALETTE);
-const BACK_ROW = [8, 24];
-const FRONT_ROW = [0, 16, 32];
-
-// a quick shiver every few seconds, like something just moved in there
-const rustle = (delay) => ({
-  animate: { skewX: [0, -9, 7, -4, 0] },
-  transition: { duration: 0.6, delay, repeat: Infinity, repeatDelay: 2.8, ease: "easeInOut" },
-});
-
-const GrassRow = ({ tiles, top, delay, isStill }) => (
-  <motion.g style={{ transformBox: "fill-box", originY: 1 }} {...(isStill ? {} : rustle(delay))}>
-    {tiles.map((left) => (
-      <g key={left} transform={`translate(${left} ${top})`}>
-        <PixelPaths paths={GRASS_PATHS} />
-      </g>
-    ))}
-  </motion.g>
-);
-
-/**
- * A patch of GBA tall grass in the hero that rustles now and then, the place every wild encounter starts.
- * Once the catch is made, a Poké Ball stays half hidden in it.
- */
+/** A Poké Ball beside the career log, waiting to be thrown. */
 export const Trigger = ({ className = "", zoom = 1 }) => {
   const { isFound, touch } = useRelic("pokeball");
-  const isStill = useReducedMotion();
 
   return (
     <RelicButton id="pokeball" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
-      <svg viewBox="0 0 48 14" shapeRendering="crispEdges" className="w-24 overflow-visible sm:w-28" aria-hidden="true">
-        <GrassRow tiles={BACK_ROW} top={0} delay={0} isStill={isStill} />
-        {isFound && (
-          <g transform="translate(20 2)">
-            <BallPixels />
-          </g>
-        )}
-        <GrassRow tiles={FRONT_ROW} top={6} delay={0.12} isStill={isStill} />
+      <svg viewBox="0 0 16 16" className={EMBLEM_CLASS} aria-hidden="true">
+        <path d="M1 8 A7 7 0 0 1 15 8 Z" fill="#e3350d" />
+        <path d="M1 8 A7 7 0 0 0 15 8 Z" fill="#f5f5f5" />
+        <circle cx="8" cy="8" r="7" fill="none" stroke="#111111" strokeWidth="0.9" />
+        <path d="M1 8 H15" stroke="#111111" strokeWidth="1.1" />
+        <circle cx="8" cy="8" r="2.1" fill="#f5f5f5" stroke="#111111" strokeWidth="0.9" />
       </svg>
     </RelicButton>
   );

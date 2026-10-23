@@ -4,9 +4,9 @@ import SectionIntro, { Gold } from "../../components/SectionIntro";
 import TechIcon from "../../components/TechIcon";
 import SpotlightCard from "../../components/SpotlightCard";
 import { SkeletonLines } from "../../components/Skeleton";
-import { Trigger as Chest } from "../../components/Relics/Zelda";
+import { Trigger as Triforce } from "../../components/Relics/Zelda";
 import { GITHUB_USER, useGetReposQuery } from "../../api/githubApi";
-import { brandColorFor, formatIndex, slugify } from "../../actions";
+import { brandColorFor, formatIndex, repoLanguages, slugify } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 
 const NO_REPOS = [];
@@ -88,12 +88,12 @@ const isWide = (index) => index % 4 === 0 || index % 4 === 3;
 
 const RepoMeta = ({ repo }) => (
   <dl className="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs text-muted">
-    {repo.language && (
-      <div className="flex items-center gap-2 rounded-full border border-line bg-mantle/70 px-2.5 py-1">
-        <LanguageDot language={repo.language} />
-        <dd>{repo.language}</dd>
+    {repoLanguages(repo).map((language) => (
+      <div key={language} className="flex items-center gap-2 rounded-full border border-line bg-mantle/70 px-2.5 py-1">
+        <LanguageDot language={language} />
+        <dd>{language}</dd>
       </div>
-    )}
+    ))}
     <div className="flex items-center gap-1.5">
       <Star size={12} aria-hidden="true" />
       <dd className="tabular-nums">{repo.stars}</dd>
@@ -106,11 +106,20 @@ const RepoMeta = ({ repo }) => (
   </dl>
 );
 
-// one repo as a card that takes the color of its language: a glow in the corner, its logo pressed into the panel
-// like a watermark, and the spotlight border following the cursor in that same color
+// where each language's logo is pressed into the card, main language biggest, the rest stacked around it
+const WATERMARK_SPOTS = [
+  "-right-6 -bottom-8 size-44 -rotate-12",
+  "right-32 -bottom-10 size-28 rotate-6",
+  "-right-4 bottom-32 size-20 rotate-12",
+];
+
+// one repo as a card dressed in its languages: a glow per language, every logo pressed into the panel like a
+// watermark, and the spotlight border following the cursor in the main language's color
 const RepoCard = ({ repo, index }) => {
   const wide = isWide(index);
-  const color = languageColor(repo.language);
+  const languages = repoLanguages(repo).slice(0, WATERMARK_SPOTS.length);
+  const color = languageColor(languages[0]);
+  const secondColor = languages[1] ? languageColor(languages[1]) : null;
 
   return (
     <motion.li
@@ -131,10 +140,20 @@ const RepoCard = ({ repo, index }) => {
             style={{ background: color }}
             aria-hidden="true"
           />
-          <TechIcon
-            tech={repo.language}
-            className="pointer-events-none absolute -right-6 -bottom-8 size-44 -rotate-12 opacity-[0.05] transition-[transform,opacity] duration-700 group-hover:scale-110 group-hover:-rotate-6 group-hover:opacity-[0.12]"
-          />
+          {secondColor && (
+            <span
+              className="pointer-events-none absolute -bottom-28 -left-20 size-64 rounded-full opacity-10 blur-3xl transition-opacity duration-700 group-hover:opacity-25"
+              style={{ background: secondColor }}
+              aria-hidden="true"
+            />
+          )}
+          {languages.map((language, spot) => (
+            <TechIcon
+              key={language}
+              tech={language}
+              className={`pointer-events-none absolute ${WATERMARK_SPOTS[spot]} opacity-[0.05] transition-[transform,opacity] duration-700 group-hover:scale-110 group-hover:-rotate-6 group-hover:opacity-[0.12]`}
+            />
+          ))}
           <div className="relative flex items-center justify-between gap-4 font-mono text-[11px] text-faint">
             <span>
               side quest {formatIndex(index)} · <span className="text-muted">~/{GITHUB_USER}</span>
@@ -192,9 +211,9 @@ const GitHub = ({ number }) => {
         {isLoading && <SkeletonLines lines={4} />}
         {isError && repos.length === 0 && <Offline />}
         {sideQuests.length > 0 && <SideQuests repos={sideQuests} />}
-        {/* every dungeon hides one last chest past the final room */}
+        {/* every dungeon hides the Triforce past the final room */}
         <div className="-mt-8 flex justify-end pr-2">
-          <Chest zoom={0.17} />
+          <Triforce zoom={0.42} />
         </div>
       </div>
     </section>

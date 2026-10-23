@@ -1,7 +1,6 @@
 export const SPIDER_RED = "#e23636";
 export const SPIDER_BLUE = "#1f4fd1";
 export const COMIC_YELLOW = "#ffe14d";
-export const SYMBIOTE_BLACK = "#050608";
 export const WEB_WHITE = "#f4f1ea";
 
 // svg numbers rounded to one decimal, plenty for a web and much easier to read in the devtools
@@ -69,20 +68,3 @@ export const starburstPoints = ({ spikes, outer, inner, center = [50, 50] }) =>
     const angle = (index * Math.PI) / spikes - Math.PI / 2;
     return pointOn(center, angle, index % 2 === 0 ? outer : inner).join(",");
   }).join(" ");
-
-/**
- * A symbiote tendril: thick where it rises out of the ground, thinning to a point as it reaches up.
- * @param {{ baseX: number, baseWidth: number, tipX: number, tipY: number, sway?: number, ground?: number }} options
- * @returns {string} a closed svg path
- */
-export const tendrilPath = ({ baseX, baseWidth, tipX, tipY, sway = 8, ground = 105 }) => {
-  const left = round(baseX - baseWidth / 2);
-  const right = round(baseX + baseWidth / 2);
-  const midY = round((ground + tipY) / 2);
-  return [
-    `M${left} ${ground}`,
-    `C${left} ${midY} ${round(tipX - sway)} ${round(tipY + 12)} ${tipX} ${tipY}`,
-    `C${round(tipX + sway * 0.6)} ${round(tipY + 14)} ${right} ${midY} ${right} ${ground}`,
-    "Z",
-  ].join(" ");
-};

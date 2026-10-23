@@ -24,3 +24,21 @@ export const useMagicBuff = () => {
 
   return isBuffed;
 };
+
+// real cards top out at level 12, and roughly every 400 ATK earns another star
+const MAX_LEVEL = 12;
+const ATK_PER_STAR = 400;
+
+/**
+ * The level a skill card shows as stars, worked out from its base ATK the way stronger monsters sit higher.
+ * @param {number} attack the card's ATK before any buff
+ * @returns {number} a level from 1 to 12
+ */
+export const monsterLevel = (attack = 0) => Math.min(MAX_LEVEL, Math.max(1, Math.ceil(attack / ATK_PER_STAR)));
+
+/**
+ * The set code printed under the art, like CRIS-EN001, so the deck reads as one booster set.
+ * @param {number} index the card's position in the deck, starting at 0
+ * @returns {string} the set code
+ */
+export const cardSetCode = (index) => `CRIS-EN${String(index + 1).padStart(3, "0")}`;

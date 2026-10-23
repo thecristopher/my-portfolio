@@ -1,7 +1,7 @@
 import { BEATS, HUD_LINES, HUD_TIMING, scheduleLines } from "./helpers";
 
-// the low brass riff that drives the night: a pedal note that keeps stepping up and falling back, Arkham style
-const OSTINATO = [-31, -31, -28, -31, -31, -26, -27, -31];
+// the 1966 theme's "na na na na na na na na", the chromatic walk down and back, played in low brass for Arkham's night
+const OSTINATO = [-28, -28, -29, -29, -30, -30, -29, -29];
 const OSTINATO_STEP = 0.18;
 
 const brassRiff = OSTINATO.flatMap((semitones, index) => {
@@ -16,8 +16,8 @@ const brassRiff = OSTINATO.flatMap((semitones, index) => {
 // one blip of the scanner per case file line, as each one starts typing
 const hudBlips = scheduleLines(HUD_LINES, HUD_TIMING).map(({ at }) => [22, at, 0.08, { wave: "sine", volume: 0.035 }]);
 
-// Batman Arkham: rain on the rooftops, thunder rolls, the brass riff swings the signal up, detective mode hums in,
-// the scanner pings on the lock, and a low brass chord closes the case
+// Batman Arkham: rain on the rooftops, thunder rolls, the 1966 riff in low brass swings the signal up, detective mode hums in,
+// the scanner pings on the lock, and "Bat-man!" closes the case
 export const sound = {
   wave: "sawtooth",
   volume: 0.05,
@@ -28,6 +28,10 @@ export const sound = {
     [27, BEATS.lock, 0.3, { wave: "sine", volume: 0.07 }],
     [27, BEATS.lock + 0.32, 0.25, { wave: "sine", volume: 0.03 }],
     ...hudBlips,
+    // "Bat-man!": a short stab on "Bat", then the full chord rings out on "man"
+    [-31, BEATS.closed - 0.3, 0.2, { attack: 0.03, volume: 0.06 }],
+    [-24, BEATS.closed - 0.3, 0.2, { attack: 0.03 }],
+    [-19, BEATS.closed - 0.3, 0.2, { attack: 0.03 }],
     [-31, BEATS.closed, 0.9, { attack: 0.03, volume: 0.06 }],
     [-24, BEATS.closed, 0.9, { attack: 0.03 }],
     [-19, BEATS.closed, 0.9, { attack: 0.03 }],
