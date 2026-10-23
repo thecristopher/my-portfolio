@@ -2,7 +2,8 @@ import { motion } from "framer-motion";
 import SectionIntro, { Gold } from "../../components/SectionIntro";
 import SpotlightCard from "../../components/SpotlightCard";
 import EditorWindow from "../../components/EditorWindow";
-import { Trigger as FaceDownCard } from "../../components/Relics/DarkMagician";
+import DuelMonsterCard from "../../components/DuelMonsterCard";
+import { Trigger as MillenniumPuzzle } from "../../components/Relics/DarkMagician";
 import { MAGIC_BLUE, MAGIC_PINK, useMagicBuff } from "../../lib/magic";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetSkillsQuery } from "../../api/skillsApi";
@@ -27,31 +28,6 @@ const MAX_LEVEL = 5;
 const BUFFED_BAR = { backgroundImage: `linear-gradient(to right, ${MAGIC_PINK}, ${MAGIC_BLUE})`, boxShadow: `0 0 8px ${MAGIC_PINK}` };
 
 const BUFF_ATK = 500;
-const BUFFED_CARD = {
-  borderColor: `${MAGIC_PINK}aa`,
-  boxShadow: `0 0 0 1px ${MAGIC_PINK}55, 0 0 36px -6px ${MAGIC_PINK}66, 0 0 70px -20px ${MAGIC_BLUE}88`,
-};
-
-// what a card turns into once she buffs the page: a duel monster with its stats and effect, +500 ATK included
-const DuelStats = ({ skill }) => (
-  <motion.div
-    initial={{ opacity: 0, height: 0 }}
-    animate={{ opacity: 1, height: "auto" }}
-    transition={{ duration: 0.6, delay: 0.3, ease: easeOutExpo }}
-    className="overflow-hidden"
-  >
-    <div className="flex flex-col gap-3 border-t pt-4 font-mono text-[11px]" style={{ borderColor: `${MAGIC_PINK}55` }}>
-      <p className="text-faint">[Spellcaster / Effect]</p>
-      <p className="leading-relaxed text-pretty text-muted">{skill.effect}</p>
-      <p className="flex justify-end gap-4 text-fg">
-        <span>
-          ATK/{skill.attack + BUFF_ATK} <span style={{ color: MAGIC_PINK }}>+{BUFF_ATK}</span>
-        </span>
-        <span>DEF/{skill.defense}</span>
-      </p>
-    </div>
-  </motion.div>
-);
 
 // the first card takes a big square of the grid, the bento layout Apple lays its feature tiles out in
 const CapabilityCard = ({ skill, index, isBuffed }) => {
@@ -69,50 +45,38 @@ const CapabilityCard = ({ skill, index, isBuffed }) => {
       style={{ perspective: 1200, transformPerspective: 1200, transformOrigin: "50% 100%" }}
       className={isLead ? "lg:col-span-2 lg:row-span-2" : ""}
     >
-      {/* a returning visitor's cards are already monsters, so only a fresh cast plays the flip */}
+      {/* a returning visitor's cards are already monsters, so only a fresh cast plays the flip into a real card */}
       <motion.div
         initial={false}
         animate={{ rotateY: isDuelMonster ? 360 : 0 }}
         transition={{ duration: 0.9, delay: (index % 3) * 0.12, ease: easeOutExpo }}
         className="h-full"
       >
-        <SpotlightCard
-          className="group flex h-full flex-col gap-6 rounded-3xl border border-line bg-panel/80 p-7 transition-[border-color,box-shadow] duration-500 hover:border-line-strong sm:p-8"
-          style={isDuelMonster ? BUFFED_CARD : undefined}
-        >
-          <div className="flex items-center justify-between">
-            <span className="grid size-11 place-items-center rounded-xl border border-line bg-ink text-muted transition-all duration-500 group-hover:border-accent/40 group-hover:text-accent">
-              {Icon && <Icon size={20} aria-hidden="true" />}
-            </span>
-            {isDuelMonster ? (
-              <motion.span
-                initial={{ opacity: 0, scale: 0.6 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.5 + (index % 3) * 0.12, ease: easeOutExpo }}
-                className="rounded-full px-2.5 py-1 font-mono text-[11px] text-white"
-                style={{ backgroundImage: `linear-gradient(to right, ${MAGIC_PINK}, ${MAGIC_BLUE})`, boxShadow: `0 0 14px ${MAGIC_PINK}88` }}
-              >
-                ★ +{BUFF_ATK}
-              </motion.span>
-            ) : (
+        {isDuelMonster ? (
+          <DuelMonsterCard skill={skill} Icon={Icon} index={index} isLead={isLead} buff={BUFF_ATK} />
+        ) : (
+          <SpotlightCard className="group flex h-full flex-col gap-6 rounded-3xl border border-line bg-panel/80 p-7 transition-[border-color,box-shadow] duration-500 hover:border-line-strong sm:p-8">
+            <div className="flex items-center justify-between">
+              <span className="grid size-11 place-items-center rounded-xl border border-line bg-ink text-muted transition-all duration-500 group-hover:border-accent/40 group-hover:text-accent">
+                {Icon && <Icon size={20} aria-hidden="true" />}
+              </span>
               <span className="font-mono text-[11px] text-faint">{formatIndex(index)}</span>
+            </div>
+            {isLead && Icon && (
+              <Icon
+                aria-hidden="true"
+                strokeWidth={0.8}
+                className="mx-auto my-auto hidden size-48 text-line-strong transition-colors duration-700 group-hover:text-accent/40 lg:block"
+              />
             )}
-          </div>
-          {isLead && Icon && (
-            <Icon
-              aria-hidden="true"
-              strokeWidth={0.8}
-              className="mx-auto my-auto hidden size-48 text-line-strong transition-colors duration-700 group-hover:text-accent/40 lg:block"
-            />
-          )}
-          <div className="flex flex-col gap-4">
-            <h3 className={isLead ? "text-gold text-3xl font-semibold tracking-[-0.03em] sm:text-5xl" : "text-xl font-medium tracking-tight"}>
-              {skill.title}
-            </h3>
-            <p className={`leading-relaxed text-muted text-pretty ${isLead ? "max-w-lg text-base sm:text-lg" : "text-sm"}`}>{skill.description}</p>
-          </div>
-          {isDuelMonster && <DuelStats skill={skill} />}
-        </SpotlightCard>
+            <div className="flex flex-col gap-4">
+              <h3 className={isLead ? "text-gold text-3xl font-semibold tracking-[-0.03em] sm:text-5xl" : "text-xl font-medium tracking-tight"}>
+                {skill.title}
+              </h3>
+              <p className={`leading-relaxed text-muted text-pretty ${isLead ? "max-w-lg text-base sm:text-lg" : "text-sm"}`}>{skill.description}</p>
+            </div>
+          </SpotlightCard>
+        )}
       </motion.div>
     </motion.div>
   );
@@ -249,9 +213,9 @@ const Skills = ({ number }) => {
         {isLoading && <SkeletonLines lines={4} />}
         {isError && <LoadError what="skills" />}
 
-        {/* a card set face down at the very start of the deck she buffs */}
+        {/* the Millennium Puzzle at the very start of the deck she buffs */}
         <p className="-mb-10 flex items-center gap-3 font-mono text-xs text-faint">
-          <FaceDownCard zoom={0.17} />
+          <MillenniumPuzzle zoom={0.42} />
           <span>
             <span className="text-accent">--</span> cards.lua
           </span>

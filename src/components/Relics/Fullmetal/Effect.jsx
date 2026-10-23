@@ -4,7 +4,8 @@ import { EffectLayer, Shockwave, Sparks, TypedText } from "../shared";
 import { useMomentLength, veil } from "../moment";
 import { easeOutExpo } from "../../../lib/motion";
 import { TransmutationCircle } from "./Circle";
-import { ALCHEMY_BLUE, FLAMEL, FLAMEL_RED } from "./flamel";
+import { ALCHEMY_BLUE, FLAMEL_RED } from "./flamel";
+import { FlamelPaths } from "./Emblem";
 import { BEATS, FLOOR, crackleBolts } from "./helpers";
 
 const GLOVE = "#f6f3ec";
@@ -113,17 +114,7 @@ const FlamelCross = ({ isCalm }) => (
     transition={{ duration: isCalm ? 0.3 : 0.16, delay: BEATS.stamp - (isCalm ? 0 : 0.16), ease: "easeIn" }}
     style={{ filter: `drop-shadow(0 0 2px #2a0006) drop-shadow(0 0 18px ${FLAMEL_RED})` }}
   >
-    <g fill={FLAMEL_RED}>
-      <path d={FLAMEL.wing} />
-      <path d={FLAMEL.wing} transform="translate(100 0) scale(-1 1)" />
-      {FLAMEL.cross.map((path) => (
-        <path key={path} d={path} />
-      ))}
-      <path d={FLAMEL.crown} />
-      <path d={FLAMEL.serpent} fill="none" stroke={FLAMEL_RED} strokeWidth="5" strokeLinecap="round" />
-      <path d={FLAMEL.serpent} fill="none" stroke="#2a0006" strokeWidth="1" strokeDasharray="2 4" />
-      <path d={FLAMEL.serpentHead} />
-    </g>
+    <FlamelPaths />
   </motion.svg>
 );
 

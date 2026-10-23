@@ -3,7 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import SectionIntro, { Gold } from "../../components/SectionIntro";
 import EditorWindow from "../../components/EditorWindow";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
-import { Trigger as Typewriter } from "../../components/Relics/ResidentEvil";
+import { Trigger as UmbrellaLogo } from "../../components/Relics/ResidentEvil";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useGetCaseStudiesQuery } from "../../api/caseStudiesApi";
 import { cleanTechName, countUsing, formatRange, slugify, splitFeatured, usesTech } from "../../actions";
@@ -42,10 +42,10 @@ const EarlierRoles = ({ projects, pickedTech, caseStudies }) => (
             <p className="font-mono text-[11px] text-faint">{project.technologies.map(cleanTechName).join(" · ")}</p>
             {/* a quiet thank you, it reads like a footnote instead of a headline */}
             {project.note && <p className="text-xs text-muted italic">{project.note}</p>}
-            {/* yes, I really worked at a company called Umbrella. the save room had to be here */}
+            {/* yes, I really worked at a company called Umbrella. its logo had to be here */}
             {project.title === "Umbrella Seguros" && (
               <span className="flex justify-end">
-                <Typewriter zoom={0.15} />
+                <UmbrellaLogo zoom={0.42} />
               </span>
             )}
             {caseStudies

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pointOn, spokeAngles, squigglePath, starburstPoints, tendrilPath, webRing } from "./helpers";
+import { pointOn, spokeAngles, squigglePath, starburstPoints, webRing } from "./helpers";
 
 describe("pointOn", () => {
   it("finds the point straight right of the middle at angle zero", () => {
@@ -64,18 +64,5 @@ describe("starburstPoints", () => {
 
   it("points the first tip straight up", () => {
     expect(starburstPoints({ spikes: 6, outer: 40, inner: 30 }).split(" ")[0]).toBe("50,10");
-  });
-});
-
-describe("tendrilPath", () => {
-  const tendril = tendrilPath({ baseX: 50, baseWidth: 10, tipX: 40, tipY: 30 });
-
-  it("rises out of the ground at both sides of its base", () => {
-    expect(tendril.startsWith("M45 105 ")).toBe(true);
-    expect(tendril).toContain("55 105 Z");
-  });
-
-  it("reaches its tip right where Claire pointed", () => {
-    expect(tendril).toContain(" 40 30 C");
   });
 });

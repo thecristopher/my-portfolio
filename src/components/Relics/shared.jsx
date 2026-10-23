@@ -10,6 +10,9 @@ import { easeOutExpo } from "../../lib/motion";
  * @param {{ id: string, isFound: boolean, onTouch: () => void, className?: string, zoom?: number, children: React.ReactNode }} props
  *   zoom shrinks the object without leaving its full size behind in the layout
  */
+// every relic is one simple emblem drawn at this size, then each spot on the page scales it with zoom
+export const EMBLEM_CLASS = "block size-16 overflow-visible";
+
 export const RelicButton = ({ id, isFound, onTouch, className = "", zoom = 1, children }) => {
   const relic = RELICS[id];
   return (
@@ -23,7 +26,8 @@ export const RelicButton = ({ id, isFound, onTouch, className = "", zoom = 1, ch
     >
       <span
         className={`relative block transition-[opacity,filter,scale] duration-500 group-hover:scale-125 group-hover:opacity-100 group-hover:saturate-100 group-hover:drop-shadow-[0_0_6px_var(--relic-glow)] group-focus-visible:scale-125 group-focus-visible:opacity-100 group-focus-visible:saturate-100 ${
-          isFound ? "opacity-40 saturate-50" : "opacity-[0.12] saturate-0"
+          // found relics keep their franchise color and glow so the hunter can tell at a glance what's already theirs
+          isFound ? "opacity-100 saturate-100 drop-shadow-[0_0_6px_var(--relic-glow)]" : "opacity-[0.12] saturate-0"
         }`}
       >
         <span className="block" style={{ zoom }}>

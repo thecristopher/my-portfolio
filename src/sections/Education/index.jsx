@@ -4,8 +4,8 @@ import { FaAws } from "react-icons/fa";
 import SectionIntro, { Gold } from "../../components/SectionIntro";
 import SpotlightCard from "../../components/SpotlightCard";
 import EditorWindow from "../../components/EditorWindow";
-import { Trigger as HanafudaEarring } from "../../components/Relics/DemonSlayer";
-import { Trigger as HangingSpider } from "../../components/Relics/SpiderMan";
+import { Trigger as NichirinBlade } from "../../components/Relics/DemonSlayer";
+import { Trigger as SpiderEmblem } from "../../components/Relics/SpiderMan";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { hostnameFromUrl } from "../../actions";
@@ -24,9 +24,9 @@ const Diploma = ({ school }) => {
 
   return (
     <div className="relative">
-      {/* Peter Parker was a student first, so the spider hangs off the diploma */}
+      {/* Peter Parker was a student first, so his spider clings to the diploma */}
       <div className="absolute -top-2 right-8 z-10">
-        <HangingSpider zoom={0.28} />
+        <SpiderEmblem zoom={0.5} />
       </div>
       <EditorWindow path={["cristopher", "education", "degree.toml"]}>
       <div className="flex flex-col gap-8 p-2 sm:p-5">
@@ -167,8 +167,8 @@ const Education = ({ number }) => {
                 <p className="font-mono text-xs text-faint">
                   <span className="text-accent">$</span> aws certifications list <span className="text-fg">→ {certifications.length} earned</span>
                 </p>
-                {/* the exams took total concentration, so Tanjiro's earring hangs beside them */}
-                <HanafudaEarring zoom={0.17} />
+                {/* the exams took total concentration, so Tanjiro's blade rests beside them */}
+                <NichirinBlade zoom={0.42} />
               </div>
               {certifications.map((cert, index) => (
                 <CertBadge key={cert.name} cert={cert} index={index} />

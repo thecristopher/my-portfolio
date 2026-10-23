@@ -46,7 +46,7 @@ const Day = () => {
               <span className="text-accent">//</span> a weekday in Rosarito
             </span>
             {/* when to book a call is a persuasion check like any other */}
-            <D20 zoom={0.15} />
+            <D20 zoom={0.42} />
           </p>
           <p className="text-2xl font-semibold tracking-tight sm:text-3xl">
             It's <span className="text-accent tabular-nums">{clock.time}</span> here. {overlapLine(ahead)}

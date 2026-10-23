@@ -1,9 +1,8 @@
-import { motion, useReducedMotion } from "framer-motion";
-import { RelicButton } from "../shared";
+import { RelicButton, EMBLEM_CLASS } from "../shared";
 import { useRelic } from "../useRelic";
 import { SPIDER_RED } from "./helpers";
 
-// the little spider from the chest of the suit: two body segments and four legs a side, on a 16 unit grid
+// the spider from the chest of the suit: two body segments and four legs a side, on a 16 unit grid
 const SPIDER_LEGS = [
   "M6.6 6.6 L3.5 3.8 L2.6 1",
   "M9.4 6.6 L12.5 3.8 L13.4 1",
@@ -15,33 +14,21 @@ const SPIDER_LEGS = [
   "M9.1 11.4 L11 13.5 L11.4 15.4",
 ];
 
-/**
- * A little spider hanging off the top of the degree on its silk, swinging gently. Peter Parker was a student first.
- * Once its thread is pulled, it wears the classic red for good.
- */
+/** The black spider from Spider-Man's chest on a red disc, clinging to the corner of the degree. */
 export const Trigger = ({ className = "", zoom = 1 }) => {
   const { isFound, touch } = useRelic("spider");
-  const isReduced = useReducedMotion();
-  const fill = isFound ? SPIDER_RED : "currentColor";
 
   return (
     <RelicButton id="spider" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
-      <svg viewBox="0 0 24 64" className="h-16 w-6 overflow-visible text-muted" aria-hidden="true">
-        {/* it swings from the top of its thread, so the pivot is where the silk is anchored */}
-        <motion.g
-          style={{ transformOrigin: "12px 0px" }}
-          animate={isReduced ? undefined : { rotate: [-9, 9, -9] }}
-          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <path d="M12 0 V43" stroke="currentColor" strokeWidth="0.6" opacity="0.7" />
-          <g transform="translate(0.8 40) scale(1.4)" style={{ filter: isFound ? `drop-shadow(0 0 3px ${SPIDER_RED})` : undefined }}>
-            {SPIDER_LEGS.map((leg) => (
-              <path key={leg} d={leg} fill="none" stroke={fill} strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" />
-            ))}
-            <ellipse cx="8" cy="6.4" rx="1.5" ry="1.7" fill={fill} stroke="#111111" strokeWidth={isFound ? 0.3 : 0} />
-            <ellipse cx="8" cy="10.2" rx="1.9" ry="2.6" fill={fill} stroke="#111111" strokeWidth={isFound ? 0.3 : 0} />
-          </g>
-        </motion.g>
+      <svg viewBox="0 0 16 16" className={EMBLEM_CLASS} aria-hidden="true">
+        <circle cx="8" cy="8" r="7.6" fill={SPIDER_RED} stroke="#111111" strokeWidth="0.5" />
+        <g transform="translate(2.4 2.2) scale(0.7)">
+          {SPIDER_LEGS.map((leg) => (
+            <path key={leg} d={leg} fill="none" stroke="#111111" strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round" />
+          ))}
+          <ellipse cx="8" cy="6.4" rx="1.5" ry="1.7" fill="#111111" />
+          <ellipse cx="8" cy="10.2" rx="1.9" ry="2.6" fill="#111111" />
+        </g>
       </svg>
     </RelicButton>
   );

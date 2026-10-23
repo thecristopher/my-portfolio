@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import ScrollText from "../../components/ScrollText";
-import { Trigger as TransmutationCircle } from "../../components/Relics/Fullmetal";
+import { Trigger as FlamelCross } from "../../components/Relics/Fullmetal";
 
 const STATEMENT =
   "Hand me a hard problem and a team that wants to ship. I'll dig in until it works, and leave code a tired dev can still read at 2 AM.";
@@ -35,7 +35,7 @@ const Philosophy = () => {
                 <motion.span style={{ scaleX: reading }} className="absolute inset-0 origin-left bg-accent" />
               </span>
             )}
-            <TransmutationCircle zoom={0.15} />
+            <FlamelCross zoom={0.42} />
           </div>
         </motion.div>
       </div>

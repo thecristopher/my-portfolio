@@ -339,6 +339,16 @@ const TECH_COLORS = {
 
 export const brandColorFor = (tech = "") => TECH_COLORS[cleanTechName(tech)] ?? null;
 
+/**
+ * Every language a repo is built with, main one first. Falls back to GitHub's single language for older data.
+ * @param {{ language?: string | null, languages?: string[] }} repo a repo as the service sends it
+ * @returns {string[]} language names, empty when GitHub found none
+ */
+export const repoLanguages = ({ language, languages } = {}) => {
+  if (languages?.length) return languages;
+  return language ? [language] : [];
+};
+
 // a conic gradient of soft light beams. each beam fades in and out around its own angle instead of starting on a
 // hard edge, and they sit at uneven angles with uneven widths and strengths, so it reads as light, not a sunburst
 export const softBeams = (beams = [], color = "white") => {
