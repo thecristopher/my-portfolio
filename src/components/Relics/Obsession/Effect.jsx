@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { EffectLayer, Shockwave, Sparks, TypedText } from "../shared";
 import { useMomentLength } from "../moment";
 import PixelArt from "../../PixelArt";
-import { bandedGlow } from "../../../actions";
+import { easedGlow } from "../../../actions";
 import { pixelSteps } from "../../../lib/motion";
 import { TwigHalf } from "./pieces";
 import { BOX_CREAM, BOX_RED, BOX_RED_DARK, BOY_ROWS, FACE_PALETTE, GIRL_ROWS, TWIG_HALVES } from "./willow";
@@ -91,7 +91,7 @@ const OneWish = ({ onDone }) => {
   return (
     // a dim warm room so the box art and the words own the screen, the page never reads through
     <EffectLayer
-      background={`${bandedGlow(BOX_CREAM, { strength: 0.16, shape: "ellipse", reach: 75, bands: 5 })}, #1c100c`}
+      background={`${easedGlow(BOX_CREAM, { strength: 0.16, shape: "ellipse", reach: 75 })}, #1c100c`}
       className="flex flex-col items-center justify-center gap-6 px-4 pt-20 pb-24 sm:gap-8 sm:pt-0 sm:pb-20"
     >
       <motion.div

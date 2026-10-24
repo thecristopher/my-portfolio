@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { EffectLayer, Shockwave, TypedText } from "../shared";
 import { useMomentLength } from "../moment";
-import { bandedGlow } from "../../../actions";
+import { easedGlow } from "../../../actions";
 import { pixelSteps } from "../../../lib/motion";
 import PixelArt from "../../PixelArt";
 import {
@@ -152,7 +152,7 @@ const Emblem = () => (
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.9, delay: BEATS.lit - 0.6, ease: pixelSteps(6) }}
   >
-    <span className="absolute -inset-[18%]" style={{ background: bandedGlow(SIGNAL_YELLOW, { strength: 0.35, bands: 4 }) }} />
+    <span className="absolute -inset-[18%]" style={{ background: easedGlow(SIGNAL_YELLOW, { strength: 0.35 }) }} />
     <PixelArt rows={SIGNAL_ROWS} palette={SIGNAL_PALETTE} className="relative block size-full" />
   </motion.div>
 );
@@ -257,7 +257,7 @@ const BatSignal = ({ onDone }) => {
     <EffectLayer background={GOTHAM_NIGHT}>
       <span
         className="absolute top-[20vh] left-1/2 size-[160vmax] -translate-x-1/2 -translate-y-1/2"
-        style={{ background: bandedGlow("#1a2233", { strength: 0.9, bands: 5 }) }}
+        style={{ background: easedGlow("#1a2233", { strength: 0.9 }) }}
       />
       <Clouds />
       {!isStill && <Lightning />}

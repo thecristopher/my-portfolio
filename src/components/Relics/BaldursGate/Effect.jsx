@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { EffectLayer, LightRays, Shockwave, Sparks } from "../shared";
 import { useMomentLength } from "../moment";
-import { bandedGlow } from "../../../actions";
+import { easedGlow } from "../../../actions";
 import { useLazyGetRollQuery } from "../../../api/rollApi";
 import { verdictFor } from "../../../lib/dice";
 import { pixelSteps } from "../../../lib/motion";
@@ -171,7 +171,7 @@ const TumblingDie = ({ result, verdict, isStill }) => {
     <div className="relative grid size-[min(46vw,13rem,30vh)] place-items-center">
       {verdict && <Flourish key="landed" tone={verdict.tone} />}
       {!isDull && (
-        <span className="absolute -inset-[20%]" style={{ background: bandedGlow(D20_GOLD, { strength: result ? 0.45 : 0.25, bands: 4 }) }} />
+        <span className="absolute -inset-[20%]" style={{ background: easedGlow(D20_GOLD, { strength: result ? 0.45 : 0.25 }) }} />
       )}
       <motion.div className="relative size-full" {...dieMotion(verdict, isStill)} style={{ filter: isDull ? "saturate(0.4) brightness(0.7)" : undefined }}>
         <Die face={result ? result.roll : flicker} size={HERO_SIZE} numberColor={isCracked ? D20_CRIMSON : undefined} className="block size-full">
@@ -236,7 +236,7 @@ const PersuasionCheck = ({ onDone }) => {
 
   return (
     <EffectLayer
-      background={`${bandedGlow("rgb(48 34 16)", { strength: 0.85, reach: 90, bands: 5 })}, rgba(5,4,3,0.94)`}
+      background={`${easedGlow("rgb(48 34 16)", { strength: 0.85, reach: 90 })}, rgba(5,4,3,0.94)`}
       className="flex items-center justify-center px-4 pt-4 pb-24"
     >
       <motion.div

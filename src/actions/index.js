@@ -402,18 +402,6 @@ export const pixelBeams = (beams = [], color = "white") => {
   return stops.length === 0 ? "none" : `conic-gradient(from 0deg, transparent 0deg, ${stops.join(", ")}, transparent 360deg)`;
 };
 
-// a glow in a few flat bands instead of a smooth fade, the way a 16 bit palette can only afford a handful of shades
-export const bandedGlow = (color, { strength = 1, reach = 100, bands = 4, shape = "closest-side", at = null } = {}) => {
-  const stops = Array.from({ length: bands }, (_, index) => {
-    const amount = Math.round(strength * glowFalloff(index / bands) * 1000) / 10;
-    const from = Math.round(((index * reach) / bands) * 10) / 10;
-    const to = Math.round((((index + 1) * reach) / bands) * 10) / 10;
-    const tint = `color-mix(in oklab, ${color} ${amount}%, transparent)`;
-    return `${tint} ${from}%, ${tint} ${to}%`;
-  });
-  return `radial-gradient(${shape}${at ? ` at ${at}` : ""}, ${stops.join(", ")}, transparent ${reach}%)`;
-};
-
 // how strong a glow is at a point between its center (0) and its edge (1). flat at both ends, so there's no hot
 // spot in the middle and no ring where it runs out, the falloff a straight two stop gradient can't give
 export const glowFalloff = (t) => (1 - t * t) ** 2;
