@@ -52,6 +52,12 @@ export const PIXEL_FONT = {
   1: [".#.", "##.", ".#.", ".#.", "###"],
   9: [".##.", "#..#", ".###", "...#", ".##."],
   "!": ["#", "#", "#", ".", "#"],
+  ".": [".", ".", ".", ".", "#"],
+  O: [".##.", "#..#", "#..#", "#..#", ".##."],
+  W: ["#...#", "#...#", "#.#.#", "##.##", "#...#"],
+  B: ["###.", "#..#", "###.", "#..#", "###."],
+  M: ["#...#", "##.##", "#.#.#", "#...#", "#...#"],
+  K: ["#..#", "#.#.", "##..", "#.#.", "#..#"],
   " ": ["..", "..", "..", "..", ".."],
 };
 
@@ -82,4 +88,42 @@ export const textToPixelPath = (text) => {
     return part;
   });
   return { d: parts.join(""), width: Math.max(left - 1, 0), height: 5 };
+};
+
+// how far out the burst reaches at an angle: long spikes, every other one a bit short, dips in between
+const burstReach = (angle, spikes, outer, inner) => {
+  const slot = ((angle + Math.PI / 2) / (Math.PI * 2)) * spikes * 2;
+  const wrapped = ((slot % (spikes * 2)) + spikes * 2) % (spikes * 2);
+  const index = Math.floor(wrapped);
+  const between = wrapped - index;
+  const reachOf = (point) => {
+    const at = point % (spikes * 2);
+    if (at % 2 === 1) return inner;
+    return at % 4 === 0 ? outer : outer * 0.82;
+  };
+  return reachOf(index) + (reachOf(index + 1) - reachOf(index)) * between;
+};
+
+/**
+ * A comic impact burst on a pixel grid, the same star burstPoints draws, filled in with a one pixel ink outline and
+ * its lower right half in the shade color.
+ * @param {number} size width and height of the grid
+ * @param {number} spikes how many points the burst has
+ * @returns {string[]} rows using K for the outline, S for the star, s for its shade and . for empty
+ */
+export const burstRows = (size, spikes) => {
+  const center = (size - 1) / 2;
+  const isInside = (x, y) => {
+    const dx = x - center;
+    const dy = y - center;
+    // the outer reach goes half a pixel past the edge so every spike tip keeps a pixel
+    return Math.hypot(dx, dy) <= burstReach(Math.atan2(dy, dx), spikes, size / 2 + 0.5, size * 0.27);
+  };
+  const isEdge = (x, y) => !isInside(x - 1, y) || !isInside(x + 1, y) || !isInside(x, y - 1) || !isInside(x, y + 1);
+  const pixelAt = (x, y) => {
+    if (!isInside(x, y)) return ".";
+    if (isEdge(x, y)) return "K";
+    return x + y > size * 1.15 ? "s" : "S";
+  };
+  return Array.from({ length: size }, (_, y) => Array.from({ length: size }, (_, x) => pixelAt(x, y)).join(""));
 };

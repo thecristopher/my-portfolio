@@ -4,6 +4,7 @@ import {
   AVATAR_PALETTE,
   AVATAR_ROWS,
   BLINK_SWAPS,
+  COMBO_POSES,
   GUARD_ARM,
   HEAD_UNTIL_ROW,
   KICK_CHAMBER,
@@ -17,10 +18,10 @@ import {
   WAVE_ERASE,
   WAVE_FRAMES,
 } from "../../lib/avatarSprite";
-import { crouchLegs, idleMoveDelay, isInRegion, overlaySprite, pickIdleMove, pingPong, spriteToPixels } from "../../actions";
+import { crouchLegs, idleMoveDelay, isInRegion, overlaySprite, pickIdleMove, pingPong, pixelsToPaths, spriteToPixels } from "../../actions";
 import { playSound } from "../../lib/sound";
 import { COMBO_WINDOW_MS, isFinisher, landHit } from "../../lib/avatarCombo";
-import { IMPACT_MS, JAB_REACH, SHORYUKEN_LANDS_MS, pixelsToPaths, throwKick, throwPunch, throwShoryuken } from "./actions";
+import { IMPACT_MS, JAB_REACH, SHORYUKEN_LANDS_MS, shiftTransform, throwKick, throwPunch, throwShoryuken } from "./actions";
 
 const WIDTH = AVATAR_ROWS[0].length;
 const HEIGHT = AVATAR_ROWS.length;
@@ -122,8 +123,10 @@ const WAVE_SEQUENCE = pingPong(WAVE_FRAMES.frames.length);
 const WAVE_FRAME_MS = 110;
 const POSE_SHIFT = { duration: 0.15, ease: snapToPixel };
 
+const NO_SHIFT = {};
+
 const pickFrame = ({ pose, isWaving, waveFrame, isBlinking }) => {
-  if (pose) return FRAMES[pose];
+  if (pose) return FRAMES[COMBO_POSES[pose].frame];
   if (isWaving) return FRAMES.wave[waveFrame];
   return isBlinking ? FRAMES.idleBlink : FRAMES.idle;
 };
@@ -330,7 +333,7 @@ const ShoryukenShout = () => (
     animate={{ opacity: 1, scale: [0.4, 1.15, 1], y: 0, rotate: -6 }}
     exit={{ opacity: 0, y: -12, transition: { duration: 0.3 } }}
     transition={{ duration: 0.35, delay: 0.12, ease: "easeOut" }}
-    className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 font-display text-base font-black tracking-wider whitespace-nowrap text-[#ffe066] italic sm:text-lg"
+    className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 font-pixel text-base font-bold tracking-wider whitespace-nowrap text-[#ffe066] sm:text-lg"
     style={{ textShadow: "2px 2px 0 #ff5ca8, -1px -1px 0 #140812, 1px -1px 0 #140812, -1px 1px 0 #140812, 1px 1px 0 #140812" }}
     aria-hidden="true"
   >
@@ -481,8 +484,11 @@ const PixelAvatar = ({ className = "", entersAfterMs = 0, firstWaveAfterMs = FIR
   const waveFrame = useWaveFrame(isWaving, !prefersReducedMotion);
   const frame = pickFrame({ pose, isWaving, waveFrame, isBlinking });
   // he stands up straight to say hi and plants his feet to fight, so the bounce only runs while he waits
-  const isCrouched = useBounce(!prefersReducedMotion && !isWaving && !attack);
+  const isBouncedDown = useBounce(!prefersReducedMotion && !isWaving && !attack);
+  // a combo pose can bend his knees too, and then everything above the belt drops with them
+  const isCrouched = isBouncedDown || Boolean(pose && COMBO_POSES[pose].isCrouched);
   const bob = isCrouched ? 1 : 0;
+  const shift = pose ? COMBO_POSES[pose].shift : NO_SHIFT;
 
   useEffect(
     () => () => {
@@ -527,23 +533,32 @@ const PixelAvatar = ({ className = "", entersAfterMs = 0, firstWaveAfterMs = FIR
           {/* standing up straight to say hi lifts everything above the belt a pixel */}
           <motion.g animate={{ y: isWaving ? -1 : 0 }} transition={POSE_SHIFT}>
             <g transform={`translate(0 ${bob})`}>
+              {/* in a combo pose each layer leans on its own, a pixel or two at a time, so the whole body acts */}
               <motion.g animate={chestControls}>
                 {attack === "punch" &&
                   ARM_SMEAR.map(({ x, y, color }) => (
                     <rect key={`smear-${y}`} x={x} y={y} width={JAB_REACH} height="1" fill={color} />
                   ))}
-                <PixelLayer pixels={frame.neck} />
-                <PixelLayer pixels={frame.shoulder} />
-                <PixelLayer pixels={frame.chest} />
+                <g transform={shiftTransform(shift.chest)}>
+                  <PixelLayer pixels={frame.neck} />
+                  <PixelLayer pixels={frame.shoulder} />
+                  <PixelLayer pixels={frame.chest} />
+                </g>
               </motion.g>
               {/* the guard hand relaxes and drops while he waves */}
               <motion.g animate={{ y: isWaving ? GUARD_DROP : 0 }} transition={POSE_SHIFT}>
-                <PixelLayer pixels={frame.guard} />
+                <g transform={shiftTransform(shift.guard)}>
+                  <PixelLayer pixels={frame.guard} />
+                </g>
               </motion.g>
               <motion.g animate={armControls}>
-                <PixelLayer pixels={frame.arm} />
+                <g transform={shiftTransform(shift.arm)}>
+                  <PixelLayer pixels={frame.arm} />
+                </g>
               </motion.g>
-              <PixelLayer pixels={frame.head} />
+              <g transform={shiftTransform(shift.head)}>
+                <PixelLayer pixels={frame.head} />
+              </g>
             </g>
           </motion.g>
         </motion.svg>

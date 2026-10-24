@@ -4,7 +4,7 @@ import { formatRange, hostnameFromUrl, slugify, usesTech } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 import { scrollToSection } from "../../lib/smoothScroll";
 import { formatRoles } from "../../lib/resume/buildResume";
-import { StackList } from "./pieces";
+import { CompanyMark, StackList } from "./pieces";
 
 // a job that never shipped with the picked tool fades back, so the ones that did stand out
 const FILTERED_OUT = "opacity-25 grayscale";
@@ -15,7 +15,8 @@ const Masthead = ({ project, index, pickedTech }) => {
   const details = [dates, project.location, project.work_mode, project.team_size ? `team of ${project.team_size}` : null].filter(Boolean);
 
   return (
-    <div className="flex flex-col gap-6 lg:sticky lg:top-24">
+    <div className="relative isolate flex flex-col gap-6 lg:sticky lg:top-24">
+      <CompanyMark company={project.title} />
       <p className="font-mono text-sm text-accent">{String(index + 1).padStart(2, "0")}</p>
       <h3 className="text-[clamp(2.5rem,5vw,4.25rem)] leading-[0.95] font-semibold tracking-[-0.045em]">{project.title}</h3>
       {project.roles?.length > 0 && <p className="text-lg text-fg">{formatRoles(project.roles)}</p>}
@@ -84,7 +85,7 @@ const CaseStudyLinks = ({ studies }) => (
 const Chapter = ({ project, index, pickedTech, studies }) => (
   <article
     id={`work-${slugify(project.title)}`}
-    className={`grid gap-10 border-t border-line pt-14 transition-[opacity,filter] duration-500 lg:grid-cols-12 lg:gap-16 ${usesTech(project, pickedTech) ? "" : FILTERED_OUT}`}
+    className={`group grid gap-10 border-t border-line pt-14 transition-[opacity,filter] duration-500 lg:grid-cols-12 lg:gap-16 ${usesTech(project, pickedTech) ? "" : FILTERED_OUT}`}
   >
     <div className="lg:col-span-5">
       <Masthead project={project} index={index} pickedTech={pickedTech} />

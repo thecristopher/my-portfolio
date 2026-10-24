@@ -1,16 +1,17 @@
+import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { EffectLayer, TypedText } from "../shared";
 import { useMomentLength } from "../moment";
-import { spriteToPixels } from "../../../actions";
+import PixelArt from "../../PixelArt";
+import { pixelRingRows, spriteToPixels } from "../../../actions";
 import { AVATAR_PALETTE, AVATAR_ROWS } from "../../../lib/avatarSprite";
-import { easeOutExpo } from "../../../lib/motion";
-import { pixelsToPaths, spritePaths, typingEnds, wobbleKeyframes } from "./helpers";
-import { PixelPaths, PokeBallSprite } from "./pieces";
-import { POKE_RED, TRAINER_BACK, TRAINER_PALETTE } from "./sprites";
+import { pixelSteps } from "../../../lib/motion";
+import { frameAt, pixelsToPaths, spinSchedule, spritePaths, typingEnds, wobbleKeyframes, wobbleSchedule } from "./helpers";
+import { PixelPaths, Platform, PokeBallSprite } from "./pieces";
+import { CATCH_STAR, POKE_RED, STAR_PALETTE, TRAINER_BACK, TRAINER_PALETTE } from "./sprites";
 
 const INK = "#202020";
 const HP_GREEN = "#58d080";
-const STAR_YELLOW = "#ffd84a";
 
 // every beat lines up with its note in sound.js
 const BARS_AT = 0.4;
@@ -41,7 +42,15 @@ const ENEMY_PATHS = pixelsToPaths(ENEMY_PIXELS);
 // the same sprite in one solid color, for the red flash as he's pulled into the ball
 const ENEMY_RED = pixelsToPaths(ENEMY_PIXELS.map((pixel) => ({ ...pixel, color: "#ff5040" })));
 const TRAINER_PATHS = spritePaths(TRAINER_BACK, TRAINER_PALETTE);
-const WOBBLE = wobbleKeyframes(3);
+// the ball spins two full turns on the way up, sits still, then rocks three times before it locks
+const BALL_SCHEDULE = [
+  ...spinSchedule(THROW_AT, (CAUGHT_AT - THROW_AT) * 0.19, 2),
+  ...wobbleSchedule(WOBBLE_AT, CAUGHT_AT - WOBBLE_AT, wobbleKeyframes(3)),
+];
+// the white pop is a red disc with a white heart, both drawn as filled pixel rings
+const BURST_RED = pixelRingRows(16, 8, "r");
+const BURST_WHITE = pixelRingRows(16, 5, "w");
+const BURST_PALETTE = { r: "#ff5040", w: "#ffffff" };
 
 /** The screen flashes white twice, the instant you know something jumped out of the grass. */
 const EncounterFlash = () => (
@@ -49,7 +58,7 @@ const EncounterFlash = () => (
     className="absolute inset-0 bg-white"
     initial={{ opacity: 0 }}
     animate={{ opacity: [0, 1, 0, 1, 0] }}
-    transition={{ duration: BARS_AT, ease: "linear" }}
+    transition={{ duration: BARS_AT, ease: pixelSteps(2) }}
   />
 );
 
@@ -67,25 +76,20 @@ const BattleWipe = ({ isGentle }) => (
         style={{ originX: band % 2 === 0 ? 0 : 1 }}
         initial={isGentle ? { opacity: 0 } : { scaleX: 0 }}
         animate={isGentle ? { opacity: 1 } : { scaleX: 1 }}
-        transition={{ duration: 0.25, delay: BARS_AT + band * 0.03, ease: "easeIn" }}
+        transition={{ duration: 0.25, delay: BARS_AT + band * 0.03, ease: pixelSteps(5) }}
       />
     ))}
   </motion.div>
 );
 
-/** A grass battle platform, the flat oval every Gen 3 Pokémon stands on. */
-const Platform = ({ className }) => (
-  <div className={`absolute rounded-[50%] border-b-4 border-[#5aa040] bg-[#a8e070] ${className}`} />
-);
-
 /** The enemy's box: name, gender, level and a full green HP bar. */
 const EnemyStatus = () => (
   <motion.div
-    className="absolute top-[7%] left-[4%] w-[46%] rounded-md rounded-br-2xl border-2 bg-[#f8f8d8] px-[3%] py-[2%] font-mono text-[clamp(9px,2.6vw,15px)] leading-tight font-bold text-[#404040] shadow-[3px_3px_0_#404040]"
+    className="absolute top-[7%] left-[4%] w-[46%] border-4 bg-[#f8f8d8] px-[3%] py-[2%] font-pixel text-[clamp(9px,2.6vw,15px)] leading-tight text-[#404040] shadow-[4px_4px_0_#404040]"
     style={{ borderColor: INK }}
     initial={{ x: "-130%" }}
     animate={{ x: 0 }}
-    transition={{ duration: 0.3, delay: SCENE_AT + 0.4, ease: easeOutExpo }}
+    transition={{ duration: 0.3, delay: SCENE_AT + 0.4, ease: pixelSteps(5) }}
   >
     <div className="flex items-baseline justify-between gap-1 whitespace-nowrap">
       <span>
@@ -94,9 +98,9 @@ const EnemyStatus = () => (
       <span>Lv9</span>
     </div>
     <div className="mt-[4%] flex items-center gap-1">
-      <span className="rounded-sm bg-[#404040] px-1 text-[0.7em] text-[#f8c040]">HP</span>
-      <span className="h-[0.55em] flex-1 rounded-full border-2 border-[#404040] bg-[#404040]">
-        <span className="block h-full rounded-full" style={{ background: HP_GREEN }} />
+      <span className="bg-[#404040] px-1 text-[0.7em] text-[#f8c040]">HP</span>
+      <span className="h-[0.6em] flex-1 border-2 border-[#404040] bg-[#404040]">
+        <span className="block h-full border-t-2 border-[#a0f0b8]" style={{ background: HP_GREEN }} />
       </span>
     </div>
   </motion.div>
@@ -109,9 +113,9 @@ const WildCristopher = () => (
     initial={{ x: "-180%" }}
     animate={{ x: 0, scale: [1, 1, 0], opacity: [1, 1, 0] }}
     transition={{
-      x: { duration: 0.4, delay: SCENE_AT, ease: "linear" },
-      scale: { duration: 0.35, delay: ZAP_AT, times: [0, 0.3, 1], ease: "easeIn" },
-      opacity: { duration: 0.35, delay: ZAP_AT, times: [0, 0.8, 1] },
+      x: { duration: 0.4, delay: SCENE_AT, ease: pixelSteps(8) },
+      scale: { duration: 0.35, delay: ZAP_AT, times: [0, 0.3, 1], ease: pixelSteps(4) },
+      opacity: { duration: 0.35, delay: ZAP_AT, times: [0, 0.8, 1], ease: pixelSteps(2) },
     }}
   >
     {/* mirrored so he faces the trainer, the way every wild Pokémon squares up */}
@@ -132,79 +136,85 @@ const Trainer = () => (
     className="absolute bottom-[29%] left-[12%] h-[34%] w-auto"
     initial={{ x: "160%" }}
     animate={{ x: 0 }}
-    transition={{ duration: 0.4, delay: SCENE_AT, ease: "linear" }}
+    transition={{ duration: 0.4, delay: SCENE_AT, ease: pixelSteps(8) }}
   >
     <PixelPaths paths={TRAINER_PATHS} />
   </motion.svg>
 );
 
+// plays a flipbook from the moment it mounts, checking the clock often enough that no pose gets skipped
+const useFlipbook = (schedule) => {
+  const [frame, setFrame] = useState(schedule[0][1]);
+
+  useEffect(() => {
+    const startedAt = performance.now();
+    const lastAt = schedule.at(-1)[0];
+    const tick = setInterval(() => {
+      const seconds = (performance.now() - startedAt) / 1000;
+      setFrame(frameAt(schedule, seconds));
+      if (seconds > lastAt) clearInterval(tick);
+    }, 30);
+    return () => clearInterval(tick);
+  }, [schedule]);
+
+  return frame;
+};
+
 /** The ball: thrown in an arc, swallows the target, drops, wobbles three times and clicks shut. */
-const ThrownBall = () => (
-  <motion.div
-    className="absolute aspect-square w-[7%] -translate-x-1/2 -translate-y-1/2"
-    initial={{ left: "14%", top: "70%", opacity: 0 }}
-    animate={{ left: ["14%", "45%", "72%", "72%", "72%"], top: ["70%", "4%", "30%", "30%", "42%"], opacity: 1 }}
-    transition={{
-      duration: WOBBLE_AT - THROW_AT,
-      delay: THROW_AT,
-      times: [0, 0.23, 0.41, 0.73, 0.86],
-      ease: ["easeOut", "easeIn", "linear", "easeIn"],
-      opacity: { duration: 0.01, delay: THROW_AT },
-    }}
-  >
+const ThrownBall = () => {
+  const frame = useFlipbook(BALL_SCHEDULE);
+
+  return (
     <motion.div
-      className="size-full"
-      style={{ originY: 0.85 }}
-      animate={{ rotate: [0, 720, 720, ...WOBBLE.rotate.slice(1).map((angle) => angle + 720)] }}
+      className="absolute aspect-[22/16] w-[9.6%] -translate-x-1/2 -translate-y-1/2"
+      initial={{ left: "14%", top: "70%", opacity: 0 }}
+      animate={{ left: ["14%", "45%", "72%", "72%", "72%"], top: ["70%", "4%", "30%", "30%", "42%"], opacity: 1 }}
       transition={{
-        duration: CAUGHT_AT - THROW_AT,
+        duration: WOBBLE_AT - THROW_AT,
         delay: THROW_AT,
-        times: [0, 0.19, (WOBBLE_AT - THROW_AT) / (CAUGHT_AT - THROW_AT), ...WOBBLE.times.slice(1).map(wobbleTime)],
+        times: [0, 0.23, 0.41, 0.73, 0.86],
+        ease: [pixelSteps(6), pixelSteps(5), pixelSteps(1), pixelSteps(3)],
+        opacity: { duration: 0.01, delay: THROW_AT },
       }}
     >
       <motion.div
         className="size-full"
-        animate={{ filter: ["brightness(1)", "brightness(0.7)", "brightness(1)"] }}
-        transition={{ duration: 0.3, delay: CAUGHT_AT }}
+        animate={{ filter: ["brightness(1)", "brightness(0.6)", "brightness(1)"] }}
+        transition={{ duration: 0.3, delay: CAUGHT_AT, ease: pixelSteps(2) }}
       >
-        <PokeBallSprite className="block size-full" />
+        <PokeBallSprite frame={frame} className="block size-full" />
       </motion.div>
+      <CatchStars />
     </motion.div>
-    <CatchStars />
-  </motion.div>
-);
-
-// maps a wobble keyframe time onto the ball's whole spin and wobble timeline
-function wobbleTime(time) {
-  const wobbleStarts = (WOBBLE_AT - THROW_AT) / (CAUGHT_AT - THROW_AT);
-  return Math.round((wobbleStarts + time * (1 - wobbleStarts)) * 1000) / 1000;
-}
+  );
+};
 
 /** The white pop where the ball opens and pulls him in. */
 const CaptureBurst = () => (
   <motion.div
-    className="absolute top-[30%] left-[72%] size-[22%] -translate-x-1/2 -translate-y-1/2 rounded-full"
-    style={{ background: "radial-gradient(closest-side, #fff 0 40%, rgba(255,80,64,0.6) 60%, transparent)" }}
+    className="absolute top-[30%] left-[72%] size-[22%] -translate-x-1/2 -translate-y-1/2"
     initial={{ scale: 0, opacity: 0 }}
     animate={{ scale: [0, 1.4, 0], opacity: [0, 1, 0] }}
-    transition={{ duration: 0.45, delay: ZAP_AT }}
-  />
+    transition={{ duration: 0.45, delay: ZAP_AT, ease: pixelSteps(4) }}
+  >
+    <PixelArt rows={BURST_RED} palette={BURST_PALETTE} className="absolute inset-0 size-full" />
+    <PixelArt rows={BURST_WHITE} palette={BURST_PALETTE} className="absolute inset-[20%] size-[60%]" />
+  </motion.div>
 );
 
 // three stars pop off the ball the moment it locks
 const STAR_DRIFT = [-1, 0, 1];
 const CatchStars = () =>
   STAR_DRIFT.map((side) => (
-    <motion.svg
+    <motion.div
       key={side}
-      viewBox="0 0 8 8"
-      className="absolute top-0 left-1/2 size-[60%] -translate-x-1/2"
+      className="absolute top-0 left-1/2 size-[50%] -translate-x-1/2"
       initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
-      animate={{ x: `${side * 120}%`, y: ["0%", "-160%", "-110%"], opacity: [0, 1, 0], scale: [0, 1.2, 0.8] }}
-      transition={{ duration: 0.8, delay: CAUGHT_AT + 0.05, ease: "easeOut" }}
+      animate={{ x: `${side * 140}%`, y: ["0%", "-180%", "-130%"], opacity: [0, 1, 0], scale: [0, 1.2, 0.8] }}
+      transition={{ duration: 0.8, delay: CAUGHT_AT + 0.05, ease: pixelSteps(6) }}
     >
-      <path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill={STAR_YELLOW} stroke={INK} strokeWidth="0.5" />
-    </motion.svg>
+      <PixelArt rows={CATCH_STAR} palette={STAR_PALETTE} className="block size-full" />
+    </motion.div>
   ));
 
 /** One line of battle text, typed out and then cleared for the next one. */
@@ -222,7 +232,7 @@ const BattleLine = ({ text, from, until }) => (
 /** The text box along the bottom of the battle screen. */
 const TextBox = () => (
   <div className="absolute inset-x-0 bottom-0 h-[30%] border-t-4 border-[#c84830] bg-[#283850] p-[1.5%]">
-    <div className="relative size-full rounded-md border-2 border-[#f8f8f8]/80 bg-[#3a5068] font-mono text-[clamp(11px,3.4vw,19px)] leading-snug font-bold text-white [text-shadow:2px_2px_0_#202020]">
+    <div className="relative size-full border-4 border-double border-[#f8f8f8] bg-[#3a5068] font-pixel text-[clamp(11px,3.4vw,19px)] leading-snug text-white [text-shadow:2px_2px_0_#202020]">
       <BattleLine text={APPEARED} from={APPEARED_AT} until={GO_AT} />
       <BattleLine text={GO} from={GO_AT} until={CAUGHT_AT} />
       <BattleLine text={GOTCHA} from={CAUGHT_AT + 0.05} />
@@ -233,14 +243,15 @@ const TextBox = () => (
 /** The whole Gen 3 battle screen, in the GBA's 3 by 2 shape. */
 const BattleScreen = () => (
   <motion.div
-    className="relative aspect-[3/2] w-full max-w-xl overflow-hidden rounded-lg border-4 bg-gradient-to-b from-[#f8f8e0] via-[#e0f0c0] to-[#b8e090]"
-    style={{ borderColor: INK }}
+    className="relative aspect-[3/2] w-full max-w-xl overflow-hidden border-4"
+    // the sky to grass fade in three flat bands, the most a 16 bit palette spends on it
+    style={{ borderColor: INK, background: "linear-gradient(#f8f8e0 0 34%, #e0f0c0 34% 62%, #b8e090 62%)" }}
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ duration: 0.01, delay: SCENE_AT }}
   >
-    <Platform className="top-[41%] left-[50%] h-[13%] w-[44%]" />
-    <Platform className="top-[64%] left-[2%] h-[14%] w-[52%]" />
+    <Platform className="top-[41%] left-[50%] w-[44%]" />
+    <Platform className="top-[64%] left-[2%] w-[52%]" />
     <WildCristopher />
     <Trainer />
     <EnemyStatus />
@@ -253,14 +264,14 @@ const BattleScreen = () => (
 /** The Pokédex entry that registers right after the catch. */
 const DexEntry = () => (
   <motion.div
-    className="w-full max-w-xl rounded-lg border-4 p-1"
+    className="w-full max-w-xl border-4 p-1 shadow-[4px_4px_0_#000]"
     style={{ borderColor: INK, background: POKE_RED }}
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.35, delay: DEX_AT, ease: easeOutExpo }}
+    transition={{ duration: 0.35, delay: DEX_AT, ease: pixelSteps(4) }}
   >
-    <div className="rounded-md bg-[#f8f8f0] px-3 py-2 font-mono text-[#202020]">
-      <p className="text-[10px] font-bold tracking-widest text-[#c02a08] uppercase sm:text-xs">
+    <div className="border-2 border-[#a8240a] bg-[#f8f8f0] px-3 py-2 font-pixel text-[#202020]">
+      <p className="text-[10px] tracking-widest text-[#c02a08] uppercase sm:text-xs">
         No. 009 Cristopher <span className="text-[#202020]/60 normal-case">· The Engineering Manager Pokémon</span>
       </p>
       <p className="mt-1 text-xs leading-snug text-pretty sm:text-sm">

@@ -23,12 +23,7 @@ const Diploma = ({ school }) => {
   const years = [school.start_year, school.end_year].filter(Boolean).join(" – ") || null;
 
   return (
-    <div className="relative">
-      {/* Peter Parker was a student first, so his spider clings to the diploma */}
-      <div className="absolute -top-2 right-8 z-10">
-        <SpiderEmblem zoom={0.5} />
-      </div>
-      <EditorWindow path={["cristopher", "education", "degree.toml"]}>
+    <EditorWindow path={["cristopher", "education", "degree.toml"]}>
       <div className="flex flex-col gap-8 p-2 sm:p-5">
         <div className="flex items-start justify-between gap-6">
           <div className="flex flex-col gap-3">
@@ -38,6 +33,8 @@ const Diploma = ({ school }) => {
             </h3>
             <p className="text-muted italic">{school.original_name}</p>
           </div>
+          {/* Peter Parker was a student first, so his spider clings to the corner of the diploma */}
+          <SpiderEmblem zoom={0.42} />
         </div>
 
         <div className="flex flex-col gap-1 border-l-2 border-accent/50 pl-4">
@@ -73,8 +70,7 @@ const Diploma = ({ school }) => {
           <ArrowUpRight size={13} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
         </a>
       </div>
-      </EditorWindow>
-    </div>
+    </EditorWindow>
   );
 };
 

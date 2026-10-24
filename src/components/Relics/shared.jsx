@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { RELICS } from "../../lib/relics";
-import { easedGlow, softBeams, softRing } from "../../actions";
-import { easeOutExpo } from "../../lib/motion";
+import { easedGlow, pixelBeams, pixelRingRows } from "../../actions";
+import { pixelSteps } from "../../lib/motion";
+import PixelArt from "../PixelArt";
 
 /**
  * The object a relic lives in: a real button, the size of an icon and nearly see through, with no label and no
@@ -64,18 +65,25 @@ export const TypedText = ({ text, startAt = 0, perLetter = 0.04 }) =>
     </motion.span>
   ));
 
-/** A ring of light rolling out from the middle of the screen, the beat where a moment lands. */
+// the shockwave ring and the spark star, drawn on the same pixel grid as the relics
+const RING_ROWS = pixelRingRows(24, 2);
+const SPARK_ROWS = ["...#...", "...#...", "..#w#..", "##www##", "..#w#..", "...#...", "...#..."];
+const DOT_ROWS = ["##", "##"];
+
+/** A ring of pixels rolling out from the middle of the screen in a few chunky frames, the beat where a moment lands. */
 export const Shockwave = ({ color, delay = 0, size = "min(80vw,30rem)" }) => (
   <motion.span
-    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
-    style={{ width: size, height: size, background: softRing(color), mixBlendMode: "screen" }}
+    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+    style={{ width: size, height: size, mixBlendMode: "screen", filter: `drop-shadow(0 0 6px ${color})` }}
     initial={{ scale: 0.15, opacity: 0 }}
     animate={{ scale: 2.2, opacity: [0, 0.9, 0] }}
-    transition={{ duration: 1.1, delay, ease: easeOutExpo }}
-  />
+    transition={{ duration: 1.1, delay, ease: pixelSteps(9) }}
+  >
+    <PixelArt rows={RING_ROWS} palette={{ "#": color }} className="size-full" />
+  </motion.span>
 );
 
-/** Motes thrown out evenly around the middle of the screen, cycling through the moment's colors. */
+/** Pixel motes thrown out evenly around the middle of the screen, cycling through the moment's colors. */
 export const Sparks = ({ colors, count = 14, reach = 40, delay = 0, round = false }) =>
   Array.from({ length: count }, (_, index) => {
     const angle = (index / count) * Math.PI * 2;
@@ -87,60 +95,64 @@ export const Sparks = ({ colors, count = 14, reach = 40, delay = 0, round = fals
         className="absolute top-1/2 left-1/2 -mt-2 -ml-2 size-4"
         initial={{ x: 0, y: 0, opacity: 0, scale: 0.4 }}
         animate={{ x: `${Math.cos(angle) * far}vmin`, y: `${Math.sin(angle) * far}vmin`, opacity: [0, 1, 0], scale: [0.4, 1.3, 0.6] }}
-        transition={{ duration: 1.3, delay, ease: easeOutExpo }}
+        transition={{ duration: 1.3, delay, ease: pixelSteps(10) }}
       >
-        {round ? (
-          <span className="block size-2.5 rounded-full" style={{ background: color, boxShadow: `0 0 10px ${color}` }} />
-        ) : (
-          <svg viewBox="0 0 8 8" className="size-full" style={{ filter: `drop-shadow(0 0 5px ${color})` }}>
-            <path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill={color} />
-          </svg>
-        )}
+        <PixelArt
+          rows={round ? DOT_ROWS : SPARK_ROWS}
+          palette={{ "#": color, w: "#ffffff" }}
+          className={round ? "m-auto block size-2.5" : "block size-full"}
+          style={{ filter: `drop-shadow(0 0 4px ${color})` }}
+        />
       </motion.span>
     );
   });
 
 // two sets of beams at uneven angles. the broad ones carry the glow, the thin ones give it the shafts of light
 const BROAD_BEAMS = [
-  { at: 8, width: 9, strength: 0.32 },
-  { at: 61, width: 12, strength: 0.22 },
-  { at: 104, width: 7, strength: 0.3 },
-  { at: 158, width: 13, strength: 0.2 },
-  { at: 207, width: 8, strength: 0.34 },
-  { at: 251, width: 11, strength: 0.24 },
-  { at: 302, width: 9, strength: 0.28 },
-  { at: 339, width: 6, strength: 0.18 },
+  { at: 8, width: 6, strength: 0.26 },
+  { at: 61, width: 8, strength: 0.18 },
+  { at: 104, width: 5, strength: 0.24 },
+  { at: 158, width: 9, strength: 0.16 },
+  { at: 207, width: 6, strength: 0.28 },
+  { at: 251, width: 7, strength: 0.2 },
+  { at: 302, width: 6, strength: 0.24 },
+  { at: 339, width: 4, strength: 0.16 },
 ];
 const THIN_BEAMS = [
-  { at: 27, width: 3.6, strength: 0.3 },
-  { at: 83, width: 3, strength: 0.22 },
-  { at: 131, width: 4.2, strength: 0.28 },
-  { at: 186, width: 2.8, strength: 0.2 },
-  { at: 229, width: 4, strength: 0.3 },
-  { at: 278, width: 3.2, strength: 0.24 },
-  { at: 321, width: 3.6, strength: 0.26 },
+  { at: 27, width: 1.6, strength: 0.34 },
+  { at: 83, width: 1.2, strength: 0.26 },
+  { at: 131, width: 1.8, strength: 0.32 },
+  { at: 186, width: 1.2, strength: 0.24 },
+  { at: 229, width: 1.6, strength: 0.34 },
+  { at: 278, width: 1.4, strength: 0.28 },
+  { at: 321, width: 1.6, strength: 0.3 },
 ];
 
-// the beams are brightest at the source and thin out toward the edge, the way real light falls off
+// the beams fade out smoothly toward the edge, so they read as light instead of rings cut into them
 const BEAM_FALLOFF = easedGlow("black", { reach: 78 });
 
 const BeamLayer = ({ beams, color, turn, duration, delay }) => (
   <motion.div
     className="absolute inset-0 rounded-full"
-    style={{ background: softBeams(beams, color), maskImage: BEAM_FALLOFF, mixBlendMode: "screen" }}
+    style={{ background: pixelBeams(beams, color), maskImage: BEAM_FALLOFF, mixBlendMode: "screen" }}
     initial={{ rotate: 0, opacity: 0 }}
     animate={{ rotate: turn, opacity: 1 }}
-    transition={{ rotate: { duration, ease: "linear" }, opacity: { duration: 1.2, delay, ease: "easeOut" } }}
+    transition={{ rotate: { duration, ease: pixelSteps(Math.abs(turn)) }, opacity: { duration: 0.6, delay, ease: pixelSteps(4) } }}
   />
 );
 
-/** God rays behind a "you got it" moment: broad glow and thin shafts turning against each other, a bloom at the core. */
-export const LightRays = ({ color, delay = 0 }) => (
+/**
+ * God rays behind a "you got it" moment, 16 bit style: hard edged beams ticking around in steps and a soft bloom at
+ * the core. at moves their source, so they pour out of the item itself instead of the middle of its box.
+ * @param {{ color: string, delay?: number, at?: { x: string, y: string } }} props at is a css position in the parent
+ */
+export const LightRays = ({ color, delay = 0, at = { x: "50%", y: "50%" } }) => (
   <motion.div
-    className="absolute top-1/2 left-1/2 size-[min(160vmax,72rem)] -translate-x-1/2 -translate-y-1/2"
+    className="absolute size-[min(160vmax,72rem)] -translate-x-1/2 -translate-y-1/2"
+    style={{ left: at.x, top: at.y }}
     initial={{ scale: 0.7, opacity: 0 }}
     animate={{ scale: [0.7, 1.04, 1], opacity: 1 }}
-    transition={{ duration: 1.6, delay, ease: easeOutExpo }}
+    transition={{ duration: 1.2, delay, ease: pixelSteps(6) }}
   >
     <BeamLayer beams={BROAD_BEAMS} color={color} turn={24} duration={6} delay={delay} />
     {/* the shafts are the item's own color washed toward white, so they glow instead of cutting like lasers */}
@@ -150,7 +162,7 @@ export const LightRays = ({ color, delay = 0 }) => (
       style={{ background: `${easedGlow("#fffbe8", { strength: 0.75, reach: 45 })}, ${easedGlow(color, { strength: 0.45 })}`, mixBlendMode: "screen" }}
       initial={{ opacity: 0, scale: 0.6 }}
       animate={{ opacity: [0, 1, 0.75], scale: [0.6, 1.1, 1] }}
-      transition={{ duration: 1.4, delay: delay + 0.1, ease: easeOutExpo }}
+      transition={{ duration: 1.2, delay: delay + 0.1, ease: pixelSteps(6) }}
     />
   </motion.div>
 );

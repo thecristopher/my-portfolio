@@ -1,5 +1,6 @@
 import { PERCEPTION_DC, localRoll } from "../../../lib/dice";
 import { createStore } from "../../../lib/store";
+import { overlaySprite } from "../../../actions";
 
 export const D20_GOLD = "#d8b25a";
 export const D20_CRIMSON = "#c8443c";
@@ -27,20 +28,124 @@ export const VERDICT_LOOKS = {
   fumble: { color: D20_CRIMSON, line: FAILURE_LINE, flourish: "crack" },
 };
 
-// an icosahedron seen face on, on a 100 box: the ten facets you can see, lit from the top left
+// an icosahedron seen face on, on a 100 box: the ten facets you can see, lit from the top left. each tone is a
+// palette letter, so neighbors never share a shade and the edges read without drawing them
 export const D20_FACETS = [
-  { points: "50,4 10,27 50,30", shade: "#f6dfa0" },
-  { points: "50,4 90,27 50,30", shade: "#e7c674" },
-  { points: "10,27 28,66 50,30", shade: "#d8b25a" },
-  { points: "90,27 50,30 72,66", shade: "#b38a3a" },
-  { points: "10,27 10,73 28,66", shade: "#c49c48" },
-  { points: "90,27 90,73 72,66", shade: "#8d6a28" },
-  { points: "10,73 50,96 28,66", shade: "#a57f34" },
-  { points: "90,73 50,96 72,66", shade: "#7a5a20" },
-  { points: "28,66 72,66 50,96", shade: "#946f2c" },
-  { points: "50,30 72,66 28,66", shade: "#efd28a" },
+  { points: "50,4 10,27 50,30", tone: "L" },
+  { points: "50,4 90,27 50,30", tone: "M" },
+  { points: "10,27 28,66 50,30", tone: "M" },
+  { points: "90,27 50,30 72,66", tone: "D" },
+  { points: "10,27 10,73 28,66", tone: "L" },
+  { points: "90,27 90,73 72,66", tone: "M" },
+  { points: "10,73 50,96 28,66", tone: "M" },
+  { points: "90,73 50,96 72,66", tone: "X" },
+  { points: "28,66 72,66 50,96", tone: "D" },
+  { points: "50,30 72,66 28,66", tone: "H" },
 ];
-export const D20_OUTLINE = "M50 4 L90 27 L90 73 L50 96 L10 73 L10 27 Z";
+
+// the gold of the die in five shades, a dark outline, and "n" for the number so a fumble can paint it red
+export const D20_PALETTE = { K: "#2a1806", H: "#fbe9b4", L: "#efd28a", M: "#d8b25a", D: "#a57f34", X: "#7a5a20", n: "#2a1806" };
+
+// the split that runs down the die on a natural 1, as lines on the 100 box: the main crack and its two branches
+export const CRACK_LINES = [
+  [[52, 4], [46, 24], [56, 38], [43, 55], [55, 70], [47, 96]],
+  [[56, 38], [68, 44]],
+  [[43, 55], [30, 58]],
+];
+
+// a 3 by 5 pixel font for the face numbers, the size every 16 bit menu prints its digits in
+export const DIGIT_FONT = {
+  0: ["nnn", "n.n", "n.n", "n.n", "nnn"],
+  1: [".n.", "nn.", ".n.", ".n.", "nnn"],
+  2: ["nnn", "..n", "nnn", "n..", "nnn"],
+  3: ["nnn", "..n", ".nn", "..n", "nnn"],
+  4: ["n.n", "n.n", "nnn", "..n", "..n"],
+  5: ["nnn", "n..", "nnn", "..n", "nnn"],
+  6: ["nnn", "n..", "nnn", "n.n", "nnn"],
+  7: ["nnn", "..n", "..n", ".n.", ".n."],
+  8: ["nnn", "n.n", "nnn", "n.n", "nnn"],
+  9: ["nnn", "n.n", "nnn", "..n", "nnn"],
+};
+
+/**
+ * A face number in the pixel font, digits side by side with a one pixel gap.
+ * @param {number} face the number to print
+ * @returns {string[]} five rows, "n" where the number is
+ */
+export const numberRows = (face) => {
+  const glyphs = [...String(face)].map((digit) => DIGIT_FONT[digit]);
+  return glyphs[0].map((_, row) => glyphs.map((glyph) => glyph[row]).join("."));
+};
+
+const toPoints = (points) => points.split(" ").map((pair) => pair.split(",").map(Number));
+
+// which side of the line from a to b a point sits on, the sign is all that matters
+const sideOf = ([ax, ay], [bx, by], [px, py]) => (bx - ax) * (py - ay) - (by - ay) * (px - ax);
+
+const isInTriangle = ([a, b, c], point) => {
+  const sides = [sideOf(a, b, point), sideOf(b, c, point), sideOf(c, a, point)];
+  return sides.every((side) => side >= 0) || sides.every((side) => side <= 0);
+};
+
+/**
+ * Fills the die's facets on a pixel grid, each pixel taking the tone of the facet under its center.
+ * @param {number} size width and height of the grid
+ * @returns {string[]} sprite rows of facet tones, "." outside the die
+ */
+export const facetRows = (size) => {
+  const facets = D20_FACETS.map(({ points, tone }) => ({ corners: toPoints(points), tone }));
+  const toneAt = (x, y) => {
+    const center = [((x + 0.5) / size) * 100, ((y + 0.5) / size) * 100];
+    return facets.find(({ corners }) => isInTriangle(corners, center))?.tone ?? ".";
+  };
+  return Array.from({ length: size }, (_, y) => Array.from({ length: size }, (_, x) => toneAt(x, y)).join(""));
+};
+
+/**
+ * Draws a dark outline around a sprite, on the empty pixels that touch it, the way every sprite on the site has one.
+ * @param {string[]} rows sprite rows
+ * @param {string} ink the outline's palette letter
+ * @returns {string[]} the same rows with the outline added
+ */
+export const outlineRows = (rows, ink = "K") => {
+  const isFilled = (x, y) => (rows[y]?.[x] ?? ".") !== ".";
+  const touches = (x, y) => isFilled(x - 1, y) || isFilled(x + 1, y) || isFilled(x, y - 1) || isFilled(x, y + 1);
+  return rows.map((row, y) => [...row].map((char, x) => (char === "." && touches(x, y) ? ink : char)).join(""));
+};
+
+/**
+ * The whole d20 as a sprite: shaded facets, outline, and the face number on the front triangle.
+ * @param {number} size width and height in pixels
+ * @param {number} face the number on the front
+ * @returns {string[]} sprite rows for D20_PALETTE
+ */
+export const d20Rows = (size, face) => {
+  const number = numberRows(face);
+  const left = Math.round(size * 0.5 - number[0].length / 2);
+  const top = Math.round(size * 0.56 - number.length / 2);
+  return overlaySprite(outlineRows(facetRows(size)), { left, top, rows: number });
+};
+
+/**
+ * The crack of a natural 1 on the same grid as the die, so it can lie right on top of it.
+ * @param {number} size width and height in pixels
+ * @returns {string[]} sprite rows, "c" along the crack
+ */
+export const crackRows = (size) => {
+  const cracked = new Set();
+  const toPixel = (value) => Math.min(size - 1, Math.floor((value / 100) * size));
+  CRACK_LINES.forEach((line) =>
+    line.slice(1).forEach(([toX, toY], index) => {
+      const [fromX, fromY] = line[index];
+      const steps = Math.ceil((Math.max(Math.abs(toX - fromX), Math.abs(toY - fromY)) / 100) * size * 2);
+      for (let step = 0; step <= steps; step += 1) {
+        const t = step / steps;
+        cracked.add(`${toPixel(fromX + (toX - fromX) * t)},${toPixel(fromY + (toY - fromY) * t)}`);
+      }
+    })
+  );
+  return Array.from({ length: size }, (_, y) => Array.from({ length: size }, (_, x) => (cracked.has(`${x},${y}`) ? "c" : ".")).join(""));
+};
 
 /**
  * Checks a roll looks like a real d20 result before the page trusts it.

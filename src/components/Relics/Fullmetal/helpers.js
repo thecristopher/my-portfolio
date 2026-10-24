@@ -1,3 +1,5 @@
+import { pixelsToPaths } from "../../../actions";
+
 // svg numbers rounded to two decimals, more than that is just noise in the markup
 const round = (value) => Math.round(value * 100) / 100;
 
@@ -122,7 +124,14 @@ const pointOnFloor = ({ cx, cy, rx, ry }, angle) => ({ x: round(cx + rx * Math.c
  * @param {{ count?: number, floor: { cx: number, cy: number, rx: number, ry: number }, random?: () => number }} options
  * @returns {string[]} polyline points, one per bolt
  */
-export const crackleBolts = ({ count = 8, floor, random = Math.random }) =>
+export const crackleBolts = ({ count = 8, floor, random = Math.random }) => crackleJoints({ count, floor, random }).map(toPolyline);
+
+/**
+ * The same crackle as crackleBolts, as joints instead of polyline text, so it can be drawn on a pixel grid.
+ * @param {{ count?: number, floor: { cx: number, cy: number, rx: number, ry: number }, random?: () => number }} options
+ * @returns {Array<Array<{ x: number, y: number }>>} one list of joints per bolt
+ */
+export const crackleJoints = ({ count = 8, floor, random = Math.random }) =>
   Array.from({ length: count }, (_, index) => {
     const angle = random() * Math.PI * 2;
     const from = pointOnFloor(floor, angle);
@@ -130,7 +139,7 @@ export const crackleBolts = ({ count = 8, floor, random = Math.random }) =>
     const to = isRimArc
       ? pointOnFloor(floor, angle + 0.35 + random() * 0.6)
       : { x: round(from.x + (random() * 2 - 1) * 6), y: round(from.y - floor.ry * (0.6 + random() * 0.9)) };
-    return toPolyline(lightningBolt(from, to, { segments: isRimArc ? 5 : 7, jitter: isRimArc ? 2.2 : 3.2, random }));
+    return lightningBolt(from, to, { segments: isRimArc ? 5 : 7, jitter: isRimArc ? 2.2 : 3.2, random });
   });
 
 /**
@@ -165,3 +174,122 @@ export const BEATS = {
 
 // the circle seen lying on the floor, in the 100 by 60 box the crackle is drawn in
 export const FLOOR = { cx: 50, cy: 36, rx: 46, ry: 19 };
+
+/**
+ * The pixels a straight line covers on a square grid, end to end, one per step like Bresenham draws them.
+ * @param {{ x: number, y: number }} from where it starts, rounded to the nearest pixel
+ * @param {{ x: number, y: number }} to where it ends, rounded to the nearest pixel
+ * @returns {Array<{ x: number, y: number }>} the pixels in drawing order
+ */
+export const linePixels = (from, to) => {
+  const start = { x: Math.round(from.x), y: Math.round(from.y) };
+  const end = { x: Math.round(to.x), y: Math.round(to.y) };
+  const steps = Math.max(Math.abs(end.x - start.x), Math.abs(end.y - start.y));
+  return Array.from({ length: steps + 1 }, (_, step) => {
+    const t = steps === 0 ? 0 : step / steps;
+    return { x: Math.round(start.x + (end.x - start.x) * t), y: Math.round(start.y + (end.y - start.y) * t) };
+  });
+};
+
+/**
+ * The pixels of a line through every joint in turn, each pixel once, in the order a pen would draw them.
+ * @param {Array<{ x: number, y: number }>} joints the corners of the line
+ * @returns {Array<{ x: number, y: number }>}
+ */
+export const pathPixels = (joints) => {
+  const seen = new Set();
+  return joints.slice(1).flatMap((joint, index) =>
+    linePixels(joints[index], joint).filter(({ x, y }) => {
+      const key = `${x},${y}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+  );
+};
+
+/**
+ * A pixel line with its four neighbors filled in, the hard edged halo a 16 bit glow gets instead of a blur.
+ * @param {Array<{ x: number, y: number }>} pixels the line
+ * @returns {Array<{ x: number, y: number }>} the halo, each pixel once, the line itself included
+ */
+export const haloPixels = (pixels) => {
+  const halo = new Map();
+  const NEIGHBORS = [
+    [0, 0],
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+  ];
+  for (const { x, y } of pixels) {
+    for (const [dx, dy] of NEIGHBORS) halo.set(`${x + dx},${y + dy}`, { x: x + dx, y: y + dy });
+  }
+  return [...halo.values()];
+};
+
+/**
+ * Cuts a list into a few runs of nearly the same size, so a line can trace itself in a handful of frames.
+ * @param {Array} items what to cut, in order
+ * @param {number} parts how many runs
+ * @returns {Array<Array>} the runs, never empty ones
+ */
+export const splitRuns = (items, parts) => {
+  const size = Math.ceil(items.length / parts);
+  return Array.from({ length: parts }, (_, index) => items.slice(index * size, (index + 1) * size)).filter((run) => run.length > 0);
+};
+
+// the circle is designed on a 100 unit square with its outer ring 47 out from the middle
+const DESIGN = { cx: 50, cy: 50, radius: 47 };
+
+/**
+ * Lays a point of the circle's 100 unit design down on the floor, squashed into the ellipse the perspective gives it.
+ * @param {{ x: number, y: number }} point on the design
+ * @param {{ cx: number, cy: number, rx: number, ry: number }} floor where the outer ring lands
+ * @returns {{ x: number, y: number }}
+ */
+export const toFloor = ({ x, y }, floor) => ({
+  x: round(floor.cx + ((x - DESIGN.cx) / DESIGN.radius) * floor.rx),
+  y: round(floor.cy + ((y - DESIGN.cy) / DESIGN.radius) * floor.ry),
+});
+
+// rings get enough corners that the pixels can't tell them from a circle
+const RING_CORNERS = 48;
+const closed = (points) => [...points, points[0]];
+
+/**
+ * Every line of the transmutation circle as floor pixels, in the order they draw: outer ring, inner ring, the two
+ * triangles of the hexagram and the core ring.
+ * @param {{ cx: number, cy: number, rx: number, ry: number }} floor where the outer ring lands
+ * @returns {Array<Array<{ x: number, y: number }>>} one pixel list per line, in drawing order
+ */
+export const floorCircleLines = (floor) => {
+  const { cx, cy } = DESIGN;
+  const shapes = [
+    regularPolygon(cx, cy, 47, RING_CORNERS),
+    regularPolygon(cx, cy, 39, RING_CORNERS),
+    regularPolygon(cx, cy, 39, 3),
+    regularPolygon(cx, cy, 39, 3, Math.PI),
+    regularPolygon(cx, cy, 13, RING_CORNERS),
+  ];
+  return shapes.map((shape) => pathPixels(closed(shape).map((point) => toFloor(point, floor))));
+};
+
+/**
+ * The glyphs in the band between the rings as single floor pixels, one per glyph.
+ * @param {{ cx: number, cy: number, rx: number, ry: number }} floor where the outer ring lands
+ * @param {number} count how many glyphs
+ * @returns {Array<{ x: number, y: number }>}
+ */
+export const floorGlyphPixels = (floor, count = 12) =>
+  glyphMarks(DESIGN.cx, DESIGN.cy, 43, count).map((mark) => {
+    const { x, y } = toFloor(mark, floor);
+    return { x: Math.round(x), y: Math.round(y) };
+  });
+
+/**
+ * A set of same colored pixels as one svg path, so a whole line or bolt is a single element.
+ * @param {Array<{ x: number, y: number }>} pixels where the pixels are
+ * @returns {string} svg path data, empty when there are no pixels
+ */
+export const pixelPath = (pixels) => pixelsToPaths(pixels.map(({ x, y }) => ({ x, y, color: "ink" })))[0]?.d ?? "";

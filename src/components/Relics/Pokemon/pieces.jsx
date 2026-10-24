@@ -1,17 +1,18 @@
-import { spritePaths } from "./helpers";
-import { BALL_PALETTE, POKE_BALL } from "./sprites";
+import PixelArt from "../../PixelArt";
+import { ovalRows } from "./helpers";
+import { BALL_FRAMES, BALL_PALETTE, PLATFORM_PALETTE } from "./sprites";
 
 /** Draws prepared sprite paths with crisp square pixels. */
 export const PixelPaths = ({ paths }) => paths.map(({ color, d }) => <path key={color} d={d} fill={color} />);
 
-const BALL_PATHS = spritePaths(POKE_BALL, BALL_PALETTE);
+/** The Poké Ball in one of its poses, sized by its className. */
+export const PokeBallSprite = ({ frame = "up", className = "" }) => (
+  <PixelArt rows={BALL_FRAMES[frame]} palette={BALL_PALETTE} className={className} />
+);
 
-/** The Poké Ball's pixels on a 9 by 9 grid, for dropping into another sprite. */
-export const BallPixels = () => <PixelPaths paths={BALL_PATHS} />;
+const PLATFORM_ROWS = ovalRows(40, 10);
 
-/** The Poké Ball as a crisp little sprite, sized by its className. */
-export const PokeBallSprite = ({ className = "" }) => (
-  <svg viewBox="0 0 9 9" shapeRendering="crispEdges" className={className} aria-hidden="true">
-    <BallPixels />
-  </svg>
+/** A grass battle platform, the flat oval every Gen 3 Pokémon stands on. */
+export const Platform = ({ className = "" }) => (
+  <PixelArt rows={PLATFORM_ROWS} palette={PLATFORM_PALETTE} className={`absolute ${className}`} />
 );

@@ -30,7 +30,7 @@ export const PLAYER_MESSAGES = [
 
 // only typed exactly, never listed. nods to raccoon city and the lands between
 const SECRET_COMMANDS = [
-  { alias: "w", label: "Write", run: () => echo("Progress saved at the typewriter. Ink ribbons left: ∞", "success") },
+  { alias: "w", label: "Write", run: () => echo("Progress saved at the typewriter.", "success") },
   { alias: "q", label: "Quit", run: () => echo("E37: You can't quit. Stay a while and read, stranger.", "error") },
   { alias: "q!", label: "Force quit", run: () => showBanner("died", { subtitle: "There is no escape from this buffer" }) },
   { alias: "wq", label: "Write and quit", run: () => echo("Progress saved. Quitting is still not an option, stranger.", "error") },

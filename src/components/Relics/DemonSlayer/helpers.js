@@ -111,3 +111,12 @@ export const brushDelays = (columns, { startAt = 0, perGlyph = 0.085, columnPaus
     });
   });
 };
+
+/**
+ * A Google Fonts stylesheet url that ships only the glyphs a piece of text needs, so a font with thousands of kanji stays tiny.
+ * @param {string} family the font family, as Google Fonts names it
+ * @param {string} text every character that will be drawn in it
+ * @returns {string} the stylesheet url
+ */
+export const googleFontHref = (family, text) =>
+  `https://fonts.googleapis.com/css2?family=${family.replaceAll(" ", "+")}&text=${encodeURIComponent([...new Set(text.replaceAll(" ", ""))].join(""))}&display=swap`;

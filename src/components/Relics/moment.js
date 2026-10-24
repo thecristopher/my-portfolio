@@ -17,7 +17,7 @@ export const useMomentLength = (lastsMs, onDone) => {
 };
 
 /**
- * The dark a moment plays over: tinted with the relic's color in the middle, deep enough that the page never reads through.
+ * The dark a moment plays over: tinted with the relic's color in the middle, a smooth glow so the sprites over it stand out, deep enough that the page never reads through.
  * @param {string} color the relic's color
  * @param {number} strength how opaque the dark is, 0 to 1
  * @returns {string} a css background

@@ -306,3 +306,22 @@ export const UPPERCUT_ARM = {
     ".KKKKKKKKKKK........",
   ],
 };
+
+// every combo pose: the drawn frame it stands on, whether the standing knee bends, and how far the head, chest and
+// both arms shift against the legs in whole pixels. leaning the body into a move, the way Scott Pilgrim's sprites
+// throw their whole weight around, is what makes him act instead of just swapping limbs. the head never drifts more
+// than a couple of pixels off the chest and never rides above it, so the neck can't tear open
+export const COMBO_POSES = {
+  // knee up, leaning back to load it, the lead fist dropping and the guard hand rising for balance
+  kickChamber: { frame: "kickChamber", isCrouched: true, shift: { head: [-2, 1], chest: [-1, 1], arm: [-3, 2], guard: [-1, -2] } },
+  // the snap: the whole upper body throws itself back against the leg, arms flung out behind
+  kickExtend: { frame: "kickExtend", isCrouched: true, shift: { head: [-4, 2], chest: [-2, 1], arm: [-5, 3], guard: [-2, -3] } },
+  // the leg folds back in while he comes upright again
+  kickRecoil: { frame: "kickChamber", isCrouched: false, shift: { head: [-1, 0], chest: [-1, 0], arm: [-1, 1], guard: [0, -1] } },
+  // the wind up: sinks into his knees, hunched over the fist he's about to throw, cocked down at the hip
+  shoryukenWindup: { frame: "idle", isCrouched: true, shift: { head: [2, 3], chest: [1, 2], arm: [-2, 5], guard: [1, 2] } },
+  // the rise: fist up, knee up, chin tucked behind the shoulder
+  shoryuken: { frame: "shoryuken", isCrouched: false, shift: { head: [1, 1], chest: [0, 0], arm: [0, 0], guard: [0, 0] } },
+  // coming back down tucked, the knee still up and the fist on its way back to guard
+  shoryukenFall: { frame: "kickChamber", isCrouched: false, shift: { head: [0, 1], chest: [0, 1], arm: [1, -3], guard: [0, -1] } },
+};

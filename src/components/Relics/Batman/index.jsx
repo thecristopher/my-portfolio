@@ -1,17 +1,19 @@
 import { RelicButton, EMBLEM_CLASS } from "../shared";
 import { useRelic } from "../useRelic";
-import { BAT_PATH, SIGNAL_YELLOW } from "./helpers";
+import PixelArt from "../../PixelArt";
+import { ovalRows, stampCentered } from "./helpers";
+import { SIGNAL_PALETTE, SMALL_BAT_ROWS } from "./sprites";
 
-/** The bat symbol on its yellow oval, the one Gotham shines on the clouds. */
+// small enough to stay crisp at the statusline's zoom, where the whole emblem is about twenty screen pixels
+const EMBLEM_ROWS = stampCentered(ovalRows(22, 14), SMALL_BAT_ROWS);
+
+/** The bat symbol on its yellow oval in 16 bit, the one Gotham shines on the clouds. */
 export const Trigger = ({ className = "", zoom = 1 }) => {
   const { isFound, touch } = useRelic("bat");
 
   return (
     <RelicButton id="bat" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
-      <svg viewBox="0 0 16 16" className={EMBLEM_CLASS} aria-hidden="true">
-        <ellipse cx="8" cy="8" rx="7.6" ry="4.6" fill={SIGNAL_YELLOW} stroke="#111111" strokeWidth="0.6" />
-        <path d={BAT_PATH} fill="#0a0a0d" transform="translate(1.8 4.9) scale(0.124)" />
-      </svg>
+      <PixelArt rows={EMBLEM_ROWS} palette={SIGNAL_PALETTE} className={EMBLEM_CLASS} />
     </RelicButton>
   );
 };

@@ -1,103 +1,123 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { EffectLayer, Shockwave, TypedText } from "../shared";
 import { useMomentLength } from "../moment";
-import { easedGlow } from "../../../actions";
-import { easeOutExpo } from "../../../lib/motion";
+import { bandedGlow } from "../../../actions";
+import { pixelSteps } from "../../../lib/motion";
+import PixelArt from "../../PixelArt";
 import { AangArrow, NationEmblem } from "./Emblems";
 import { NATIONS } from "./nations";
-import { BEATS, diamondSpots, elementBeat, flameRow, gustArc, rockRow, wavePath } from "./helpers";
+import { FLAME_PALETTE, FLAME_ROWS } from "./sprites";
+import { BEATS, diamondSpots, elementBeat, flameRow, gustRows, mirrorRows, rockRows, waveRows } from "./helpers";
 
-const ARROW_BLUE = "#4aa8ff";
 const SCROLL_GOLD = "#f3d9a4";
+const OUTLINE = "#0b1622";
 // each element holds the screen for its beat plus a little overlap, so one line hands off to the next
 const SCENE_S = BEATS.elementGap + 0.25;
-const ROCKS = rockRow(7);
+const WAVE_ROWS = waveRows({ width: 160, height: 20, level: 7, swell: 4, wavelength: 20 });
+const ROCKS = Array.from({ length: 7 }, (_, index) => ({ index, rows: rockRows(index), left: (index / 7) * 100 - 1 }));
 const FLAMES = flameRow(9);
-const WAVE = wavePath({ width: 200, height: 40, level: 14, swell: 7, wavelength: 25 });
-const GUSTS = [
-  { radius: 30, from: 0, sweep: 200 },
-  { radius: 38, from: 120, sweep: 160 },
-  { radius: 46, from: 240, sweep: 220 },
-  { radius: 22, from: 60, sweep: 140 },
+const FLAME_FLICKER = mirrorRows(FLAME_ROWS);
+const GUST_ARCS = [
+  { radius: 14, from: 0, sweep: 200, fill: "w" },
+  { radius: 18, from: 120, sweep: 160, fill: "#" },
+  { radius: 22, from: 240, sweep: 220, fill: "w" },
+  { radius: 10, from: 60, sweep: 140, fill: "#" },
 ];
+// the gusts spin by being redrawn a few degrees on, frame after frame, so their pixels never leave the grid
+const GUST_FRAMES = [0, 32, 64, 96, 128, 160].map((turn) => gustRows(48, GUST_ARCS, turn));
+// the hard shadow every pixel title wears, a 16 bit drop shadow instead of a blurred glow
+const pixelShadow = (color) => `2px 2px 0 ${color}, 4px 4px 0 ${OUTLINE}`;
 
 // how long a backdrop plays: in fast, held, out with its scene
-const sceneTiming = (index) => ({ duration: SCENE_S, delay: elementBeat(index), times: [0, 0.15, 0.8, 1] });
+const sceneTiming = (index) => ({ duration: SCENE_S, delay: elementBeat(index), times: [0, 0.15, 0.8, 1], ease: pixelSteps(3) });
 
-const WaveRoll = ({ color, isCalm }) => (
-  <div className="absolute inset-x-0 bottom-0 h-[34vh] overflow-hidden">
+const WaveRoll = ({ nation, isCalm }) => (
+  <div className="absolute inset-x-0 bottom-0 h-[40vh] overflow-hidden">
     {[0.45, 1].map((strength, layer) => (
-      <motion.svg
+      <motion.div
         key={strength}
-        viewBox="0 0 200 40"
-        preserveAspectRatio="none"
-        className="absolute bottom-0 left-0 h-full w-[200%]"
+        className="absolute left-0 w-[max(200%,160vh)]"
         style={{ bottom: `${-layer * 4}vh`, opacity: strength }}
         initial={{ x: "0%", y: isCalm ? "0%" : "70%" }}
         animate={{ x: isCalm ? "0%" : `-${25 + layer * 25}%`, y: "0%" }}
-        transition={{ x: { duration: SCENE_S, delay: elementBeat(0), ease: "linear" }, y: { duration: 0.5, delay: elementBeat(0), ease: easeOutExpo } }}
+        transition={{
+          x: { duration: SCENE_S, delay: elementBeat(0), ease: pixelSteps(10) },
+          y: { duration: 0.5, delay: elementBeat(0), ease: pixelSteps(4) },
+        }}
       >
-        <path d={WAVE} fill={color} />
-      </motion.svg>
+        <PixelArt rows={WAVE_ROWS} palette={{ K: OUTLINE, "+": nation.light, "#": nation.color, "-": nation.dark }} className="block h-auto w-full" />
+      </motion.div>
     ))}
   </div>
 );
 
-const RocksRise = ({ color }) =>
-  ROCKS.map(({ left, width, height, delay, outline }) => (
-    <motion.svg
-      key={left}
-      viewBox="0 0 100 100"
-      preserveAspectRatio="none"
-      className="absolute bottom-0"
-      style={{ left: `${left}%`, width: `${width}%`, height: `${height}vh` }}
+const ROCK_PALETTE = { K: OUTLINE, "+": "#8a7458", "#": "#5c4a36", "-": "#3a2e22" };
+
+const RocksRise = ({ nation }) =>
+  ROCKS.map(({ index, rows, left }) => (
+    <motion.div
+      key={index}
+      className="absolute bottom-0 w-[16%]"
+      style={{ left: `${left}%`, filter: `drop-shadow(0 -3px 0 ${nation.color})` }}
       initial={{ y: "110%" }}
-      animate={{ y: "0%" }}
-      transition={{ duration: 0.5, delay: elementBeat(1) + delay, ease: easeOutExpo }}
+      animate={{ y: index % 2 === 0 ? "0%" : "18%" }}
+      transition={{ duration: 0.5, delay: elementBeat(1) + Math.abs(index - 3) * 0.04, ease: pixelSteps(5) }}
     >
-      <polygon points={outline} fill="#5c4a36" stroke={color} strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
-    </motion.svg>
+      <PixelArt rows={rows} palette={ROCK_PALETTE} className="block h-auto w-full" />
+    </motion.div>
   ));
+
+// a tongue of fire flickers by swapping to its mirror image, the two frame loop old games used for every torch
+const Flame = ({ height, flicker, isCalm }) => (
+  <div className="relative" style={{ height: `${height}vh`, aspectRatio: "10 / 16" }}>
+    <PixelArt rows={FLAME_ROWS} palette={FLAME_PALETTE} className="absolute inset-0 size-full" />
+    {!isCalm && (
+      <motion.span
+        className="absolute inset-0"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 1, 0] }}
+        transition={{ duration: flicker * 2, repeat: Infinity, ease: pixelSteps(1) }}
+      >
+        <PixelArt rows={FLAME_FLICKER} palette={FLAME_PALETTE} className="size-full" />
+      </motion.span>
+    )}
+  </div>
+);
 
 const FlamesRise = ({ isCalm }) =>
   FLAMES.map(({ left, height, flicker }) => (
-    <motion.svg
+    <motion.div
       key={left}
-      viewBox="0 0 20 32"
-      preserveAspectRatio="none"
-      className="absolute bottom-0 w-[16%] -translate-x-1/2"
-      style={{ left: `${left}%`, height: `${height}vh`, transformOrigin: "50% 100%", filter: "drop-shadow(0 0 12px #ff6a1a)" }}
-      initial={{ scaleY: 0 }}
-      animate={isCalm ? { scaleY: 1 } : { scaleY: [0, 1.15, 0.9, 1.1, 0.95] }}
-      transition={{ duration: flicker * 4, delay: elementBeat(2), ease: "easeInOut" }}
+      className="absolute bottom-0 -translate-x-1/2"
+      style={{ left: `${left}%` }}
+      initial={{ y: "100%" }}
+      animate={{ y: "0%" }}
+      transition={{ duration: 0.4, delay: elementBeat(2), ease: pixelSteps(4) }}
     >
-      <path d="M10 0 C14 8 20 14 20 22 C20 28 15 32 10 32 C5 32 0 28 0 22 C0 14 6 8 10 0 Z" fill="url(#avatar-flame)" />
-    </motion.svg>
+      <Flame height={height} flicker={flicker} isCalm={isCalm} />
+    </motion.div>
   ));
 
-const GustsSwirl = ({ color, isCalm }) => (
-  <motion.svg
-    viewBox="-50 -50 100 100"
-    className="absolute top-[42%] left-1/2 size-[min(96vw,34rem)] -translate-x-1/2 -translate-y-1/2 overflow-visible"
-    initial={{ rotate: 0 }}
-    animate={isCalm ? undefined : { rotate: 160 }}
-    transition={{ duration: SCENE_S, delay: elementBeat(3), ease: "easeOut" }}
-  >
-    <g fill="none" strokeLinecap="round">
-      {GUSTS.map(({ radius, from, sweep }, index) => (
-        <motion.path
-          key={radius}
-          d={gustArc(radius, from, sweep)}
-          stroke={index % 2 === 0 ? "#fff3dc" : color}
-          strokeWidth={index % 2 === 0 ? 1.2 : 2}
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: [0, 0.9, 0.9, 0] }}
-          transition={{ duration: SCENE_S, delay: elementBeat(3) + index * 0.05, ease: "easeOut" }}
-        />
+const GustsSwirl = ({ nation, isCalm }) => {
+  const frames = isCalm ? GUST_FRAMES.slice(0, 1) : GUST_FRAMES;
+  const frameS = SCENE_S / frames.length;
+  return (
+    <div className="absolute top-[42%] left-1/2 size-[min(96vw,34rem)] -translate-x-1/2 -translate-y-1/2">
+      {frames.map((rows, index) => (
+        <motion.span
+          key={index}
+          className="absolute inset-0"
+          initial={{ opacity: 0 }}
+          // each frame blinks on for its slice of the scene and the last one holds until the scene fades
+          animate={{ opacity: index === frames.length - 1 ? [0, 1, 1, 1] : [0, 1, 1, 0] }}
+          transition={{ duration: frameS, delay: elementBeat(3) + index * frameS, times: [0, 0.01, 0.99, 1], ease: pixelSteps(1) }}
+        >
+          <PixelArt rows={rows} palette={{ w: "#fff3dc", "#": nation.color }} className="size-full" />
+        </motion.span>
       ))}
-    </g>
-  </motion.svg>
-);
+    </div>
+  );
+};
 
 const BACKDROPS = {
   water: WaveRoll,
@@ -111,17 +131,18 @@ const ElementScene = ({ nation, index, isCalm }) => {
   const Backdrop = BACKDROPS[nation.id];
   return (
     <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 1, 0] }} transition={sceneTiming(index)}>
-      <Backdrop color={nation.color} isCalm={isCalm} />
+      <Backdrop nation={nation} isCalm={isCalm} />
       <div className="absolute inset-x-4 top-[42%] flex -translate-y-1/2 flex-col items-center gap-5">
         <motion.span
-          className="block"
-          initial={{ scale: isCalm ? 1 : 0.6 }}
+          className="relative block"
+          initial={{ scale: isCalm ? 1 : 0.5 }}
           animate={{ scale: 1 }}
-          transition={{ duration: 0.6, delay: elementBeat(index), ease: easeOutExpo }}
+          transition={{ duration: 0.4, delay: elementBeat(index), ease: pixelSteps(4) }}
         >
-          <NationEmblem nation={nation} className="block size-[min(40vw,10rem)]" style={{ filter: `drop-shadow(0 0 18px ${nation.color})` }} />
+          <span className="absolute -inset-1/2" style={{ background: bandedGlow(nation.color, { strength: 0.35, bands: 4 }) }} />
+          <NationEmblem nation={nation} className="relative block size-[min(40vw,10rem)]" />
         </motion.span>
-        <p className="font-display text-4xl tracking-[0.12em] text-white sm:text-5xl" style={{ textShadow: `0 0 18px ${nation.color}` }}>
+        <p className="font-pixel text-4xl tracking-[0.12em] text-white sm:text-5xl" style={{ textShadow: pixelShadow(nation.color) }}>
           {nation.word}
         </p>
       </div>
@@ -142,43 +163,43 @@ const Harmony = ({ isCalm }) => {
             className="absolute top-1/2 left-1/2 block size-[26%] -translate-x-1/2 -translate-y-1/2"
             initial={{ opacity: 0, left: "50%", top: "50%", scale: 0.3 }}
             animate={{ opacity: 1, left: `${50 + spots[index].x}%`, top: `${50 + spots[index].y}%`, scale: 1 }}
-            transition={{ duration: 0.7, delay: BEATS.together + index * 0.05, ease: easeOutExpo }}
+            transition={{ duration: 0.6, delay: BEATS.together + index * 0.05, ease: pixelSteps(6) }}
           >
-            <NationEmblem nation={nation} className="block size-full" style={{ filter: `drop-shadow(0 0 10px ${nation.color})` }} />
+            <NationEmblem nation={nation} className="block size-full" />
           </motion.span>
         ))}
         <motion.span
           className="absolute top-1/2 left-1/2 block h-[34%] -translate-x-1/2 -translate-y-1/2"
           initial={{ opacity: 0, y: isCalm ? 0 : "-45vh" }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: BEATS.together + 0.1, ease: easeOutExpo }}
+          transition={{ duration: 0.8, delay: BEATS.together + 0.1, ease: pixelSteps(6) }}
         >
-          <AangArrow color={ARROW_BLUE} className="h-full w-auto" style={{ filter: `drop-shadow(0 0 14px ${ARROW_BLUE})` }} />
+          <AangArrow className="h-full w-auto" />
         </motion.span>
       </div>
-      <div className="flex max-w-md flex-col items-center gap-3 text-center text-balance">
-        <p className="font-serif text-[clamp(0.95rem,4vw,1.125rem)] text-[#f3e6c8] italic">
+      <div className="flex max-w-md flex-col items-center gap-3 text-center text-balance font-pixel">
+        <p className="text-[clamp(0.95rem,4vw,1.125rem)] text-[#f3e6c8]" style={{ textShadow: `2px 2px 0 ${OUTLINE}` }}>
           <TypedText text="Long ago, the four stacks lived together in harmony." startAt={BEATS.harmony} perLetter={0.022} />
         </p>
-        <p className="flex flex-wrap justify-center gap-x-3 font-display text-[clamp(0.875rem,3.6vw,1rem)] tracking-[0.18em] uppercase">
+        <p className="flex flex-wrap justify-center gap-x-3 text-[clamp(0.875rem,3.6vw,1rem)] tracking-[0.18em] uppercase">
           {["Frontend.", "Backend.", "Cloud.", "People."].map((role, index) => (
             <motion.span
               key={role}
-              style={{ color: NATIONS[index].color }}
+              style={{ color: NATIONS[index].color, textShadow: `2px 2px 0 ${OUTLINE}` }}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: BEATS.roles + index * 0.18, ease: easeOutExpo }}
+              transition={{ duration: 0.3, delay: BEATS.roles + index * 0.18, ease: pixelSteps(3) }}
             >
               {role}
             </motion.span>
           ))}
         </p>
         <motion.p
-          className="font-serif text-[clamp(0.95rem,4vw,1.125rem)] text-white"
-          style={{ textShadow: `0 0 14px ${SCROLL_GOLD}88` }}
+          className="text-[clamp(0.95rem,4vw,1.125rem)] text-white"
+          style={{ textShadow: pixelShadow(SCROLL_GOLD) }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: BEATS.master, ease: easeOutExpo }}
+          transition={{ duration: 0.3, delay: BEATS.master, ease: pixelSteps(3) }}
         >
           Only an Engineering Manager can master all four.
         </motion.p>
@@ -193,18 +214,11 @@ const FourNations = ({ onDone }) => {
   useMomentLength(BEATS.lastsMs, onDone);
 
   return (
-    <EffectLayer background={`${easedGlow(SCROLL_GOLD, { strength: 0.08, shape: "ellipse", reach: 80 })}, rgba(2,2,4,0.97)`}>
-      <svg className="absolute size-0" aria-hidden="true">
-        <linearGradient id="avatar-flame" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0" stopColor="#c81e0f" />
-          <stop offset="0.55" stopColor="#ff6a1a" />
-          <stop offset="1" stopColor="#ffd34d" />
-        </linearGradient>
-      </svg>
+    <EffectLayer background={`${bandedGlow(SCROLL_GOLD, { strength: 0.08, reach: 80, bands: 4 })}, rgba(2,2,4,0.97)`}>
       {NATIONS.map((nation, index) => (
         <ElementScene key={nation.id} nation={nation} index={index} isCalm={isCalm} />
       ))}
-      <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: BEATS.together - 0.1 }}>
+      <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, delay: BEATS.together - 0.1, ease: pixelSteps(3) }}>
         <Harmony isCalm={isCalm} />
       </motion.div>
     </EffectLayer>

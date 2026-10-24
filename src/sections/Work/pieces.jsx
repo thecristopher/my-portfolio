@@ -8,6 +8,7 @@ import { careerCommits, cleanTechName } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 import { scrollToSection } from "../../lib/smoothScroll";
 import { clearTech, pickTech } from "../../lib/stackFilter";
+import { COMPANY_LOGOS } from "../../lib/companyLogos";
 
 // long stacks split into two columns so the side panel never outgrows the story next to it.
 // every tool is a grep: pick one and the other jobs fade back
@@ -134,3 +135,26 @@ export const GrepBanner = ({ tech, matches, total }) => (
   </motion.div>
 );
 
+
+// where the mark sits: a chapter's masthead is tall and narrow, an earlier job is a short wide row
+const MARK_SPOTS = {
+  chapter: "-right-6 top-8 size-56 -rotate-12",
+  row: "top-1/2 right-6 h-20 w-[34%] max-w-72 -translate-y-1/2 -rotate-6",
+};
+
+// the company's mark pressed into the background like a watermark, tilted off square in its brand color, the way
+// the side quests press in their languages. it wakes up when the job is hovered
+export const CompanyMark = ({ company, layout = "chapter" }) => {
+  const logo = COMPANY_LOGOS[company];
+  if (!logo) return null;
+  // a flat shape tinted in the brand color reads like the tool logos do, a full color logo turns muddy this faint
+  const tint = { background: logo.color, maskImage: `url(${logo.src})`, maskSize: "contain", maskRepeat: "no-repeat", maskPosition: "center" };
+
+  return (
+    <span
+      className={`pointer-events-none absolute -z-10 ${MARK_SPOTS[layout]} opacity-[0.07] transition-[scale,rotate,opacity] duration-700 group-hover:scale-110 group-hover:-rotate-6 group-hover:opacity-[0.14]`}
+      style={tint}
+      aria-hidden="true"
+    />
+  );
+};

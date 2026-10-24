@@ -1,6 +1,6 @@
 import { RelicButton, EMBLEM_CLASS } from "../shared";
 import { useRelic } from "../useRelic";
-import { FlamelPaths } from "./Emblem";
+import { FlamelSprite } from "./Emblem";
 
 /** The Flamel cross from Ed's coat, pinned where the reading line ends. */
 export const Trigger = ({ className = "", zoom = 1 }) => {
@@ -8,9 +8,7 @@ export const Trigger = ({ className = "", zoom = 1 }) => {
 
   return (
     <RelicButton id="alchemy" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
-      <svg viewBox="0 0 100 120" className={EMBLEM_CLASS} aria-hidden="true">
-        <FlamelPaths />
-      </svg>
+      <FlamelSprite className={EMBLEM_CLASS} />
     </RelicButton>
   );
 };

@@ -13,7 +13,7 @@ const ComboPips = ({ hits }) => (
     {Array.from({ length: COMBO_HITS }, (_, index) => (
       <span
         key={index}
-        className="size-1.5 rounded-[1px] border transition-colors duration-150"
+        className="size-1.5 border shadow-[1px_1px_0_#140812]"
         style={{ borderColor: PINK, background: index < hits ? PINK : "transparent" }}
       />
     ))}
@@ -45,7 +45,7 @@ export const Trigger = ({ className = "", entersAfterMs, firstWaveAfterMs }) => 
     <span className="inline-flex flex-col items-center gap-3" data-relic="scott">
       <PixelAvatar className={className} entersAfterMs={entersAfterMs} firstWaveAfterMs={firstWaveAfterMs} onPoke={countHit} />
       <span
-        className={`pointer-events-none inline-flex items-center gap-1.5 font-mono text-[10px] whitespace-nowrap transition-opacity duration-300 ${hits > 0 ? "opacity-100" : "opacity-0"}`}
+        className={`pointer-events-none inline-flex items-center gap-1.5 font-pixel text-[10px] whitespace-nowrap transition-opacity duration-300 ${hits > 0 ? "opacity-100" : "opacity-0"}`}
         aria-hidden="true"
       >
         <ComboPips hits={hits} />

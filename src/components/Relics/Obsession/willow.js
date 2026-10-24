@@ -1,24 +1,50 @@
-export const WILLOW_GREEN = "#9ed36a";
-export const BARK = "#8b5a2b";
-export const BARK_DARK = "#5a3818";
-// the retro box art, straight out of a 1980s crystal shop shelf
-export const BOX_PINK = "#ff5f9e";
-export const BOX_ORANGE = "#ffb35c";
-export const BOX_VIOLET = "#7b5cff";
+// the box straight off the shelf in the movie: cream card, red print, a twig of cholla wood beside it
+export const BOX_RED = "#d9262b";
+export const BOX_RED_DARK = "#9e1a1f";
+export const BOX_CREAM = "#f4e2c8";
 
-// the twig in a 40 by 14 box, already in the two halves it breaks into. the snap happens at x 20
-export const SNAP_POINT = { x: 20, y: 7.5 };
+// the willow itself, a hollow cholla stick: brown wood full of pale holes
+export const TWIG_PALETTE = { K: "#22120a", B: "#7a4a2c", b: "#9c6640", d: "#4a2a18", w: "#f0e2ce" };
+const TWIG_ROWS = [
+  "...KKKKKKKKKKKKKKKKKKKKKKKKKK..",
+  "..KbBBwwBBBbBBwwwBBBbBBwBBBbBKK",
+  ".KBBdwwwdBBBdBwwdBBBBdwwwdBBBbK",
+  "KbBBBddBBBwBBBddBBwwBBBddBBwBBK",
+  "KBBwBBBBdwwwdBBBBdwwwBBBBdwwdBK",
+  ".KBwwdBBBddBBBwBBBBddBBwBBBdBK.",
+  "..KddBBBBBBBdwwdBBBBBBdwwdBKK..",
+  "...KKKKKKKKKKKKKKKKKKKKKKKKK...",
+];
+// where the stick breaks, so each half is just its side of the same rows
+const SNAP_COLUMN = 15;
 export const TWIG_HALVES = [
-  {
-    side: -1,
-    stem: "M2 9 Q8 7.5 13 8 T20 7.5",
-    fork: "M11 8 Q13 4.5 16 3.5",
-    leaf: "M16 3.5 q2.5 -1.5 4 0.5 q-2.5 1 -4 -0.5z",
-  },
-  {
-    side: 1,
-    stem: "M20 7.5 Q26 7 31 8.5 T38 7",
-    fork: "M27 7.6 Q29 10.5 31.5 11.5",
-    leaf: "M31.5 11.5 q1 2.5 3.5 2 q-1 -2.2 -3.5 -2z",
-  },
+  { side: -1, rows: TWIG_ROWS.map((row) => row.slice(0, SNAP_COLUMN)) },
+  { side: 1, rows: TWIG_ROWS.map((row) => row.slice(SNAP_COLUMN)) },
+];
+
+// the boy and the girl smiling on the box art, drawn in the same red line as the print
+export const FACE_PALETTE = { R: BOX_RED };
+export const BOY_ROWS = [
+  "..RRRRRR..",
+  ".RR.RR.RR.",
+  "R........R",
+  "R.RR..RR.R",
+  "R........R",
+  "R...RR...R",
+  "R.R....R.R",
+  ".R.RRRR.R.",
+  "..R....R..",
+  "...RRRR...",
+];
+export const GIRL_ROWS = [
+  "..RRRRRR..",
+  ".RRRRRRRR.",
+  "RRR....RRR",
+  "RR.R..R.RR",
+  "RR......RR",
+  "RR..RR..RR",
+  "RR.R..R.RR",
+  ".R..RR..R.",
+  "..R....R..",
+  "...RRRR...",
 ];
