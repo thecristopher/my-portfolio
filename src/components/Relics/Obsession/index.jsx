@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { RelicButton } from "../shared";
 import { useRelic } from "../useRelic";
-import { easeOutExpo } from "../../../lib/motion";
-import { SNAP_POINT, TWIG_HALVES } from "./willow";
+import { pixelSteps } from "../../../lib/motion";
+import { TWIG_HALVES } from "./willow";
 import { TwigHalf } from "./pieces";
 
 /**
@@ -14,19 +14,20 @@ export const Trigger = ({ className = "", zoom = 1 }) => {
 
   return (
     <RelicButton id="willow" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
-      <svg viewBox="0 0 40 16" className="w-20 overflow-visible" aria-hidden="true">
+      <span className="flex w-20 items-center" aria-hidden="true">
         {TWIG_HALVES.map((half) => (
-          <motion.g
+          <motion.span
             key={half.side}
+            className="block"
+            style={{ flexGrow: half.rows[0].length }}
             initial={false}
-            animate={isFound ? { rotate: half.side * 12, x: half.side * 1.5, y: 1 } : { rotate: 0, x: 0, y: 0 }}
-            transition={{ duration: 0.6, ease: easeOutExpo }}
-            style={{ transformOrigin: `${SNAP_POINT.x}px ${SNAP_POINT.y}px` }}
+            animate={isFound ? { x: half.side * 3, y: 2 } : { x: 0, y: 0 }}
+            transition={{ duration: 0.4, ease: pixelSteps(3) }}
           >
-            <TwigHalf half={half} />
-          </motion.g>
+            <TwigHalf half={half} className="block w-full" />
+          </motion.span>
         ))}
-      </svg>
+      </span>
     </RelicButton>
   );
 };

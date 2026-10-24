@@ -10,7 +10,7 @@ import { cleanTechName, countUsing, formatRange, slugify, splitFeatured, usesTec
 import { formatRoles } from "../../lib/resume/buildResume";
 import { usePickedTech } from "../../lib/stackFilter";
 import { scrollToSection } from "../../lib/smoothScroll";
-import { CareerLog, GrepBanner } from "./pieces";
+import { CareerLog, CompanyMark, GrepBanner } from "./pieces";
 import Chapter from "./Chapter";
 
 // the jobs before the featured ones, one line of what I did and the stack, with each one's own bullets
@@ -21,8 +21,9 @@ const EarlierRoles = ({ projects, pickedTech, caseStudies }) => (
         <li
           key={project.title}
           id={`work-${slugify(project.title)}`}
-          className={`grid gap-3 py-6 transition-[opacity,filter] duration-500 first:pt-1 last:pb-1 md:grid-cols-[14rem_1fr] md:gap-8 ${usesTech(project, pickedTech) ? "" : "opacity-25 grayscale"}`}
+          className={`group relative isolate grid gap-3 py-6 transition-[opacity,filter] duration-500 first:pt-1 last:pb-1 md:grid-cols-[14rem_1fr] md:gap-8 ${usesTech(project, pickedTech) ? "" : "opacity-25 grayscale"}`}
         >
+          <CompanyMark company={project.title} layout="row" />
           <div className="flex flex-col gap-1">
             <a href={project.url} target="_blank" rel="noreferrer" className="group flex w-fit items-center gap-1.5 text-lg font-semibold tracking-tight transition-colors hover:text-accent">
               {project.title}

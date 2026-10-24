@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  pixelBeams,
+  bandedGlow,
+  pixelsToPaths,
+  pixelRingRows,
   repoLanguages,
   hintLabels,
   stepSection,
@@ -754,5 +758,78 @@ describe("repoLanguages", () => {
   it("leaves Inde's README only repo without languages", () => {
     expect(repoLanguages({ language: null, languages: [] })).toEqual([]);
     expect(repoLanguages()).toEqual([]);
+  });
+});
+
+describe("pixelsToPaths", () => {
+  it("joins every pixel of one color into a single path, like Claire's two red notes on the same page", () => {
+    const pixels = [
+      { x: 0, y: 0, color: "#d62828" },
+      { x: 1, y: 0, color: "#d62828" },
+    ];
+    expect(pixelsToPaths(pixels)).toEqual([{ color: "#d62828", d: "M0 0h1v1h-1zM1 0h1v1h-1z" }]);
+  });
+
+  it("gives each color its own path in the order Malenia painted them", () => {
+    const pixels = [
+      { x: 2, y: 3, color: "#f5d77a" },
+      { x: 0, y: 1, color: "#3fa9f5" },
+      { x: 4, y: 5, color: "#f5d77a" },
+    ];
+    expect(pixelsToPaths(pixels).map((path) => path.color)).toEqual(["#f5d77a", "#3fa9f5"]);
+  });
+
+  it("draws nothing for an empty layer, ready for whatever Inde sketches next", () => {
+    expect(pixelsToPaths([])).toEqual([]);
+  });
+});
+
+describe("pixelRingRows", () => {
+  it("given a size, expect a square grid that size, like the frame around Claire and Inde's anniversary photo", () => {
+    const rows = pixelRingRows(9, 2);
+    expect(rows).toHaveLength(9);
+    expect(rows.every((row) => row.length === 9)).toBe(true);
+  });
+
+  it("given a ring, expect the middle left hollow and the edge drawn", () => {
+    const rows = pixelRingRows(9, 2);
+    expect(rows[4][4]).toBe(".");
+    expect(rows[4][0]).toBe("#");
+  });
+
+  it("given a fill, expect Malenia's ring painted in that character and mirrored on every side", () => {
+    const rows = pixelRingRows(8, 1, "g");
+    expect(rows.join("")).toMatch(/g/);
+    expect(rows).toEqual([...rows].reverse());
+    expect(rows.map((row) => [...row].reverse().join(""))).toEqual(rows);
+  });
+});
+
+describe("pixelBeams", () => {
+  it("given one beam, expect a hard edged wedge of flat color around its angle, like the light on Claire's gift", () => {
+    expect(pixelBeams([{ at: 90, width: 4, strength: 0.5 }], "gold")).toBe(
+      "conic-gradient(from 0deg, transparent 0deg, transparent 86deg, color-mix(in oklab, gold 50%, transparent) 86deg, color-mix(in oklab, gold 50%, transparent) 94deg, transparent 94deg, transparent 360deg)"
+    );
+  });
+
+  it("given Malenia's beams out of order, expect them laid out by angle", () => {
+    const gradient = pixelBeams([{ at: 200, width: 2, strength: 1 }, { at: 20, width: 2, strength: 1 }], "gold");
+    expect(gradient.indexOf("18deg")).toBeLessThan(gradient.indexOf("198deg"));
+  });
+
+  it("given no beams, expect none", () => {
+    expect(pixelBeams([], "gold")).toBe("none");
+  });
+});
+
+describe("bandedGlow", () => {
+  it("given two bands, expect two flat rings that end at the reach, like the glow around Inde's anniversary candle", () => {
+    expect(bandedGlow("gold", { strength: 1, reach: 80, bands: 2 })).toBe(
+      "radial-gradient(closest-side, color-mix(in oklab, gold 100%, transparent) 0%, color-mix(in oklab, gold 100%, transparent) 40%, color-mix(in oklab, gold 56.3%, transparent) 40%, color-mix(in oklab, gold 56.3%, transparent) 80%, transparent 80%)"
+    );
+  });
+
+  it("given a shape and a spot, expect the glow centered there, like a spotlight on Claire's dance floor", () => {
+    expect(bandedGlow("gold", { shape: "ellipse", at: "50% 42%" })).toMatch(/^radial-gradient\(ellipse at 50% 42%, /);
   });
 });

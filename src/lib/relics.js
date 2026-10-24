@@ -39,7 +39,7 @@ export const RELICS = {
     section: "work",
     touch: "save your progress",
     riddle: "One of my old employers shares a name with a certain corporation. Its logo is right there.",
-    quip: "Game saved. And yes, I really did work at a company called Umbrella.",
+    quip: "Game saved. Claire says hi.",
   },
   magician: {
     franchise: "Yu-Gi-Oh!",
@@ -116,7 +116,7 @@ export const RELICS = {
   willow: {
     franchise: "Obsession",
     name: "One Wish Willow",
-    color: "#9ed36a",
+    color: "#d9262b",
     section: null,
     touch: "make a wish",
     riddle: "Where the page signs off, a little twig waits. One wish, then snap it in half.",

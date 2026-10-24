@@ -3,13 +3,22 @@ import {
   BEATS,
   circlePath,
   crackleBolts,
+  crackleJoints,
   crackleTimes,
+  floorCircleLines,
+  floorGlyphPixels,
   glyphMarks,
+  haloPixels,
   hexagramPaths,
   lightningBolt,
+  linePixels,
+  pathPixels,
+  pixelPath,
   pointOnCircle,
   regularPolygon,
   seededRandom,
+  splitRuns,
+  toFloor,
   toPolyline,
 } from "./helpers";
 
@@ -150,5 +159,122 @@ describe("BEATS", () => {
     expect(BEATS.tagline * 1000).toBeLessThan(BEATS.lastsMs);
     expect(BEATS.lastsMs).toBeGreaterThanOrEqual(3000);
     expect(BEATS.lastsMs).toBeLessThanOrEqual(6000);
+  });
+});
+
+describe("crackleJoints", () => {
+  it("gives the same bolts crackleBolts prints, as joints", () => {
+    const joints = crackleJoints({ count: 4, floor, random: seededRandom(14) });
+    expect(joints.map(toPolyline)).toEqual(crackleBolts({ count: 4, floor, random: seededRandom(14) }));
+  });
+});
+
+describe("linePixels", () => {
+  it("draws Claire's straight road to Inde's place one pixel per step", () => {
+    expect(linePixels({ x: 0, y: 0 }, { x: 3, y: 0 })).toEqual([
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+      { x: 3, y: 0 },
+    ]);
+  });
+
+  it("steps along the longer side so a steep line never leaves a gap", () => {
+    const pixels = linePixels({ x: 0, y: 0 }, { x: 1, y: 4 });
+    expect(pixels).toHaveLength(5);
+    expect(pixels.at(-1)).toEqual({ x: 1, y: 4 });
+  });
+
+  it("rounds the ends onto the grid", () => {
+    expect(linePixels({ x: 0.4, y: 0.6 }, { x: 0.4, y: 0.6 })).toEqual([{ x: 0, y: 1 }]);
+  });
+});
+
+describe("pathPixels", () => {
+  it("follows Malenia's path through every joint without drawing a corner twice", () => {
+    const pixels = pathPixels([
+      { x: 0, y: 0 },
+      { x: 2, y: 0 },
+      { x: 2, y: 2 },
+    ]);
+    expect(pixels).toEqual([
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+      { x: 2, y: 1 },
+      { x: 2, y: 2 },
+    ]);
+  });
+});
+
+describe("haloPixels", () => {
+  it("wraps a single spark in a plus of light", () => {
+    expect(haloPixels([{ x: 5, y: 5 }])).toHaveLength(5);
+  });
+
+  it("counts a shared neighbor only once", () => {
+    expect(
+      haloPixels([
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+      ])
+    ).toHaveLength(8);
+  });
+});
+
+describe("splitRuns", () => {
+  it("cuts Inde's playlist into runs of nearly the same size", () => {
+    expect(splitRuns([1, 2, 3, 4, 5], 2)).toEqual([
+      [1, 2, 3],
+      [4, 5],
+    ]);
+  });
+
+  it("never hands back an empty run", () => {
+    expect(splitRuns([1], 4)).toEqual([[1]]);
+  });
+});
+
+describe("toFloor", () => {
+  it("puts the middle of the design on the middle of the floor", () => {
+    expect(toFloor({ x: 50, y: 50 }, floor)).toEqual({ x: floor.cx, y: floor.cy });
+  });
+
+  it("lands the top of the outer ring on the far edge of the ellipse", () => {
+    expect(toFloor({ x: 50, y: 3 }, floor)).toEqual({ x: floor.cx, y: floor.cy - floor.ry });
+  });
+});
+
+describe("floorCircleLines", () => {
+  it("draws the five lines of the circle Claire chalks for Malenia, in order", () => {
+    expect(floorCircleLines(floor)).toHaveLength(5);
+  });
+
+  it("keeps every pixel of the outer ring on the floor", () => {
+    const [outer] = floorCircleLines(floor);
+    expect(outer.every(({ y }) => y >= floor.cy - floor.ry - 1 && y <= floor.cy + floor.ry + 1)).toBe(true);
+  });
+});
+
+describe("floorGlyphPixels", () => {
+  it("drops one whole pixel per glyph", () => {
+    const glyphs = floorGlyphPixels(floor, 12);
+    expect(glyphs).toHaveLength(12);
+    expect(glyphs.every(({ x, y }) => Number.isInteger(x) && Number.isInteger(y))).toBe(true);
+  });
+});
+
+describe("pixelPath", () => {
+  it("draws the two pixels of Claire and Inde's initials as one path", () => {
+    expect(
+      pixelPath([
+        { x: 1, y: 2 },
+        { x: 3, y: 4 },
+      ])
+    ).toBe("M1 2h1v1h-1zM3 4h1v1h-1z");
+  });
+
+  it("draws nothing when there are no pixels", () => {
+    expect(pixelPath([])).toBe("");
   });
 });

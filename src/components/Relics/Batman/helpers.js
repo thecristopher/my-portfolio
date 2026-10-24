@@ -1,12 +1,10 @@
+import { overlaySprite } from "../../../actions";
+
 export const SIGNAL_YELLOW = "#ffd84a";
 // detective mode paints the world in this blue, and whatever the scan locks on to in orange
 export const DETECTIVE_BLUE = "#4fb6ff";
 export const ARKHAM_ORANGE = "#ff9a3c";
 export const GOTHAM_NIGHT = "#04060b";
-
-// the Arkham bat: wide wings that hook up into horns, short square ears and two scallops a side, sized for a 100 by 50 box
-export const BAT_PATH =
-  "M50.0 46.3 C53.1 39.7 58.9 34.3 65.1 33.2 C69.7 32.7 73.8 33.9 75.9 35.6 C75.9 29.8 82.1 26.3 88.7 26.1 C92.9 26.0 97.0 26.6 100.0 27.3 C99.5 22.3 95.4 16.5 91.2 13.0 C85.4 8.2 79.6 4.9 74.5 3.7 C76.7 5.9 77.6 7.0 77.4 9.1 C77.2 14.0 72.2 16.9 69.3 17.6 C64.7 19.0 59.8 19.2 56.0 19.2 L54.2 9.2 L52.1 14.2 L47.9 14.2 L45.8 9.2 L44.0 19.2 C40.2 19.2 35.3 19.0 30.7 17.6 C27.8 16.9 22.8 14.0 22.6 9.1 C22.4 7.0 23.3 5.9 25.5 3.7 C20.4 4.9 14.6 8.2 8.8 13.0 C4.6 16.5 0.5 22.3 0 27.3 C3.0 26.6 7.1 26.0 11.3 26.1 C17.9 26.3 24.1 29.8 24.1 35.6 C26.2 33.9 30.3 32.7 34.9 33.2 C41.1 34.3 46.9 39.7 50.0 46.3 Z";
 
 // the beats of the moment in seconds. the picture and the sound both read from here so they never drift apart
 export const BEATS = {
@@ -77,15 +75,81 @@ export const SKYLINE = [
   { x: 378, width: 22, height: 66 },
 ];
 
-/**
- * A tower as an svg path, sitting on the bottom of the 120 tall skyline box.
- * @param {{ x: number, width: number, height: number, spire?: boolean }} tower
- * @returns {string} the path
- */
-export const towerPath = ({ x, width, height, spire = false }) => {
-  const top = 120 - height;
-  const body = `M${x} 120 V${top} H${x + width} V120 Z`;
-  if (!spire) return body;
-  const middle = x + width / 2;
-  return `${body} M${x + width * 0.2} ${top} L${middle} ${top - height * 0.22} L${x + width * 0.8} ${top} Z`;
+
+// a few windows still lit in the 400 by 120 box, somebody in Gotham is always awake
+export const LIT_WINDOWS = [38, 62, 150, 158, 236, 262, 302, 360].map((x, index) => ({ x, y: 60 + (index % 3) * 14, width: 3, height: 4 }));
+
+const SKYLINE_WIDTH = 400;
+const SKYLINE_HEIGHT = 120;
+
+// whether a point of the 400 by 120 box is part of a tower, spire included. spires narrow in steps up to their tip
+const isInTower = ({ x, width, height, spire = false }, pointX, pointY) => {
+  const roof = SKYLINE_HEIGHT - height;
+  if (pointX < x || pointX >= x + width) return false;
+  if (pointY >= roof) return true;
+  if (!spire) return false;
+  const rise = (roof - pointY) / (height * 0.22);
+  return rise <= 1 && Math.abs(pointX - (x + width / 2)) <= width * 0.3 * (1 - rise);
 };
+
+const isInWindow = ({ x, y, width, height }, pointX, pointY) => pointX >= x && pointX < x + width && pointY >= y && pointY < y + height;
+
+/**
+ * The Gotham skyline as sprite rows, every pixel standing for a scale by scale square of the 400 by 120 box.
+ * @param {{ x: number, width: number, height: number, spire?: boolean }[]} towers the towers to draw
+ * @param {{ scale?: number, windows?: { x: number, y: number, width: number, height: number }[] }} options
+ * @returns {string[]} rows with "B" for a tower, "b" for the roofline catching the light, "w" for a lit window and "." for sky
+ */
+export const skylineRows = (towers, { scale = 2, windows = [] } = {}) => {
+  const isBuilding = (column, row) => row >= 0 && towers.some((tower) => isInTower(tower, (column + 0.5) * scale, (row + 0.5) * scale));
+  const pixelAt = (column, row) => {
+    if (!isBuilding(column, row)) return ".";
+    if (windows.some((window) => isInWindow(window, (column + 0.5) * scale, (row + 0.5) * scale))) return "w";
+    return isBuilding(column, row - 1) ? "B" : "b";
+  };
+  return Array.from({ length: SKYLINE_HEIGHT / scale }, (_, row) =>
+    Array.from({ length: SKYLINE_WIDTH / scale }, (_, column) => pixelAt(column, row)).join("")
+  );
+};
+
+// how far a pixel of a width by height oval sits from its middle: 0 at the center, 1 on the edge, more outside
+const ovalReach = (width, height, x, y) => ((x + 0.5 - width / 2) / (width / 2)) ** 2 + ((y + 0.5 - height / 2) / (height / 2)) ** 2;
+
+/**
+ * The spotlight oval in flat bands, the way a 16 bit lamp glows: hot white in the middle, yellow, a deep rim and a dark outline.
+ * @param {number} width oval width in pixels
+ * @param {number} height oval height in pixels
+ * @returns {string[]} rows with "y" hot center, "Y" yellow, "o" rim, "K" outline and "." outside
+ */
+export const ovalRows = (width, height) => {
+  const isInside = (x, y) => ovalReach(width, height, x, y) <= 1;
+  const isEdge = (x, y) => [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]].some(([nextX, nextY]) => !isInside(nextX, nextY));
+  const pixelAt = (x, y) => {
+    if (!isInside(x, y)) return ".";
+    if (isEdge(x, y)) return "K";
+    const reach = ovalReach(width, height, x, y);
+    if (reach > 0.75) return "o";
+    return reach > 0.25 ? "Y" : "y";
+  };
+  return Array.from({ length: height }, (_, y) => Array.from({ length: width }, (_, x) => pixelAt(x, y)).join(""));
+};
+
+/**
+ * Paints a smaller sprite right in the middle of a bigger one, like the bat on the signal.
+ * @param {string[]} base the sprite underneath
+ * @param {string[]} stamp the sprite on top, its "." pixels let the base show through
+ * @returns {string[]} the combined rows, the size of the base
+ */
+export const stampCentered = (base, stamp) => {
+  const stampWidth = Math.max(...stamp.map((row) => row.length));
+  const left = Math.floor((base[0].length - stampWidth) / 2);
+  const top = Math.floor((base.length - stamp.length) / 2);
+  return overlaySprite(base, { left, top, rows: stamp });
+};
+
+/**
+ * The css aspect ratio of a sprite, so it keeps square pixels at whatever height the screen gives it.
+ * @param {string[]} rows sprite rows
+ * @returns {string} like "34 / 12"
+ */
+export const spriteAspect = (rows) => `${Math.max(...rows.map((row) => row.length))} / ${rows.length}`;

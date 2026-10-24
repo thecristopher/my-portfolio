@@ -1,4 +1,8 @@
-export const ZELDA_GOLD = "#e8c35a";
+import { triangleRows, triforceRows } from "./helpers";
 
-// the three triangles, on a 16 unit grid
-export const TRIFORCE_PIECES = ["M8 1 L12 8 L4 8 Z", "M4 8 L8 15 L0 15 Z", "M12 8 L16 15 L8 15 Z"];
+export const ZELDA_GOLD = "#e8c35a";
+export const TRIFORCE_PALETTE = { K: "#6b4a12", h: "#fff2b0", G: ZELDA_GOLD, s: "#b8892a" };
+
+// one piece on a 16 pixel grid, and the three of them stacked into the whole thing
+export const PIECE_ROWS = triangleRows(16, 16);
+export const TRIFORCE_ROWS = triforceRows(PIECE_ROWS);

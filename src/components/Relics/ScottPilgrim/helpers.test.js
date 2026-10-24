@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PIXEL_FONT, burstPoints, coinSpray, rowsToPath, textToPixelPath } from "./helpers";
+import { PIXEL_FONT, burstPoints, burstRows, coinSpray, rowsToPath, textToPixelPath } from "./helpers";
 
 describe("burstPoints", () => {
   it("draws two points per spike", () => {
@@ -56,5 +56,42 @@ describe("textToPixelPath", () => {
 
   it("draws nothing for empty text", () => {
     expect(textToPixelPath("")).toEqual({ d: "", width: 0, height: 5 });
+  });
+});
+
+describe("burstRows", () => {
+  it("draws the burst that lands when Claire kisses Inde at the size asked", () => {
+    const rows = burstRows(36, 10);
+    expect(rows).toHaveLength(36);
+    expect(rows.every((row) => row.length === 36)).toBe(true);
+  });
+
+  it("outlines the star in ink and shades its lower half", () => {
+    const pixels = burstRows(36, 10).join("");
+    expect(pixels).toContain("K");
+    expect(pixels).toContain("S");
+    expect(pixels).toContain("s");
+  });
+
+  it("fills the middle and leaves the corners empty", () => {
+    const rows = burstRows(36, 10);
+    expect(rows[17][17]).toBe("S");
+    expect(rows[0][0]).toBe(".");
+  });
+
+  it("points the first spike straight up, like Malenia's blade", () => {
+    const rows = burstRows(36, 10);
+    expect(rows[0]).toContain("K");
+  });
+});
+
+describe("PIXEL_FONT", () => {
+  it("has every letter the comic hits need when Leon gets knocked out of Claire's way", () => {
+    const missing = [..."POW! BAM! K.O.! VS"].filter((char) => !PIXEL_FONT[char]);
+    expect(missing).toEqual([]);
+  });
+
+  it("draws every glyph five pixels tall", () => {
+    expect(Object.values(PIXEL_FONT).every((glyph) => glyph.length === 5)).toBe(true);
   });
 });

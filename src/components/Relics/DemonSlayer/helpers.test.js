@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brushDelays, crestTip, foamClaws, ichimatsu, waveBodyPath, waveCrests } from "./helpers";
+import { brushDelays, crestTip, foamClaws, googleFontHref, ichimatsu, waveBodyPath, waveCrests } from "./helpers";
 
 describe("ichimatsu", () => {
   it("dresses Inde's date night kimono in Tanjiro's green and black by default", () => {
@@ -79,5 +79,20 @@ describe("brushDelays", () => {
 
   it("gives a space its beat too", () => {
     expect(brushDelays(["壱 型"], { perGlyph: 0.1 })[0]).toEqual([0, 0.1, 0.2]);
+  });
+});
+
+describe("googleFontHref", () => {
+  it("asks for the font family with spaces turned into plus signs", () => {
+    expect(googleFontHref("Dot Gothic", "炭")).toMatch(/family=Dot\+Gothic&/);
+  });
+
+  it("ships each glyph of Inde's love note only once and skips the spaces", () => {
+    const href = googleFontHref("DotGothic16", "水の 水の");
+    expect(decodeURIComponent(href.split("text=")[1].split("&")[0])).toBe("水の");
+  });
+
+  it("asks the browser to show the fallback while Claire waits for the font", () => {
+    expect(googleFontHref("DotGothic16", "全")).toMatch(/&display=swap$/);
   });
 });

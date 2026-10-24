@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   D20_FACETS,
+  D20_PALETTE,
+  crackRows,
+  d20Rows,
+  facetRows,
+  numberRows,
+  outlineRows,
   CRITICAL_BONUS,
   FAILURE_LINE,
   SUCCESS_LINE,
@@ -118,5 +124,59 @@ describe("VERDICT_LOOKS", () => {
 describe("D20_FACETS", () => {
   it("draws the ten faces you can see from the front", () => {
     expect(D20_FACETS).toHaveLength(10);
+  });
+});
+
+describe("numberRows", () => {
+  it("prints Inde's lucky 7 in the 3 by 5 pixel font", () => {
+    expect(numberRows(7)).toEqual(["nnn", "..n", "..n", ".n.", ".n."]);
+  });
+
+  it("puts a one pixel gap between the digits of a 14", () => {
+    expect(numberRows(14)[0]).toBe(".n..n.n");
+  });
+});
+
+describe("facetRows", () => {
+  const facets = facetRows(24);
+
+  it("lights the front face in the middle of the die", () => {
+    expect(facets[12][12]).toBe("H");
+  });
+
+  it("leaves the corners outside the hexagon empty", () => {
+    expect(facets[0][0]).toBe(".");
+    expect(facets[23][23]).toBe(".");
+  });
+});
+
+describe("outlineRows", () => {
+  it("wraps Malenia's rose in an outline without touching the rose itself", () => {
+    expect(outlineRows(["...", ".R.", "..."])).toEqual([".K.", "KRK", ".K."]);
+  });
+});
+
+describe("d20Rows", () => {
+  it("draws the die on a square grid the size it was asked for", () => {
+    const rows = d20Rows(24, 20);
+    expect(rows).toHaveLength(24);
+    rows.forEach((row) => expect(row).toHaveLength(24));
+  });
+
+  it("prints the face number on the die", () => {
+    expect(d20Rows(24, 20).join("")).toContain("n");
+  });
+
+  it("only uses colors the die's palette knows", () => {
+    const used = new Set(d20Rows(40, 18).join("").replaceAll(".", ""));
+    used.forEach((char) => expect(D20_PALETTE).toHaveProperty(char));
+  });
+});
+
+describe("crackRows", () => {
+  it("splits the die from the top down to the bottom on a natural 1", () => {
+    const rows = crackRows(40);
+    expect(rows[1]).toContain("c");
+    expect(rows[38]).toContain("c");
   });
 });

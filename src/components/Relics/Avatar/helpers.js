@@ -76,8 +76,41 @@ const ROCK_TOP = [
  * @returns {string} polygon points
  */
 export const rockOutline = (index) => {
-  const top = ROCK_TOP.map(([x, y], corner) => `${x},${y + ((index * 13 + corner * 7) % 12)}`);
+  const top = rockTop(index).map(([x, y]) => `${x},${y}`);
   return [...top, "100,100", "0,100"].join(" ");
+};
+
+// the skyline of one rock in a 100 by 100 box, nudged by its index
+const rockTop = (index) => ROCK_TOP.map(([x, y], corner) => [x, y + ((index * 13 + corner * 7) % 12)]);
+
+// how high a rock's skyline sits at a point across it, walking the straight line between its two nearest corners
+const rockTopAt = (top, x) => {
+  const right = top.findIndex(([cornerX]) => cornerX >= x);
+  if (right <= 0) return top[Math.max(right, 0)][1];
+  const [fromX, fromY] = top[right - 1];
+  const [toX, toY] = top[right];
+  return fromY + ((toY - fromY) * (x - fromX)) / (toX - fromX);
+};
+
+/**
+ * One rock as sprite rows: the same jagged skyline as rockOutline, outlined and lit like the rest of the 16 bit art.
+ * @param {number} index which rock in the row, so each gets its own shape
+ * @param {{ width?: number, height?: number }} size the rock in pixels, not counting its outline
+ * @returns {string[]} sprite rows in the shadeSilhouette characters
+ */
+export const rockRows = (index, { width = 14, height = 16 } = {}) => {
+  const top = rockTop(index);
+  // one empty pixel on every side but the bottom, so the outline has room
+  const silhouette = Array.from({ length: height + 1 }, (_, y) =>
+    Array.from({ length: width + 2 }, (_, x) => {
+      const isInside = x > 0 && x <= width && y > 0;
+      const skyline = (rockTopAt(top, ((x - 0.5) / width) * 100) / 100) * height;
+      return isInside && y >= skyline ? "#" : ".";
+    }).join("")
+  );
+  // a scatter of dark specks so the stone has grain instead of one flat fill
+  const speckle = (char, x, y) => (char === "#" && (x * 7 + y * 5 + index * 3) % 13 === 0 ? "-" : char);
+  return shadeSilhouette(silhouette).map((row, y) => [...row].map((char, x) => speckle(char, x, y)).join(""));
 };
 
 /**
@@ -127,4 +160,83 @@ export const erhuNote = (semitones, start, length, { depth = 0.35, wobble = 0.11
     return [isUp ? semitones : semitones + depth, round(start + scoop + index * step), round(step + 0.03), { slideTo: isUp ? semitones + depth : semitones, attack: 0.015 }];
   });
   return [[semitones - 1, start, round(scoop + 0.02), { slideTo: semitones, attack: 0.03 }], ...held];
+};
+
+const isFilled = (rows, x, y) => {
+  const char = rows[y]?.[x];
+  return char !== undefined && char !== "." && char !== "K";
+};
+
+// which way an edge pixel faces: the sum of the directions to its empty neighbors, so a top left corner faces up and left
+const edgeFacing = (rows, x, y) => {
+  let facing = 0;
+  for (const dy of [-1, 0, 1]) {
+    for (const dx of [-1, 0, 1]) {
+      if (!isFilled(rows, x + dx, y + dy)) facing -= dx + dy;
+    }
+  }
+  return facing;
+};
+
+const touchesFill = (rows, x, y) => [isFilled(rows, x + 1, y), isFilled(rows, x - 1, y), isFilled(rows, x, y + 1), isFilled(rows, x, y - 1)].some(Boolean);
+
+const shadePixel = (rows, x, y) => {
+  if (!isFilled(rows, x, y)) return touchesFill(rows, x, y) ? "K" : ".";
+  const facing = edgeFacing(rows, x, y);
+  if (facing > 0) return "+";
+  return facing < 0 ? "-" : "#";
+};
+
+/**
+ * Paints a silhouette the 16 bit way: a dark outline around it and light from the top left, so every generated
+ * shape gets the same three shades as the hand drawn ones.
+ * @param {string[]} rows "#" where the shape is and "." where it isn't
+ * @returns {string[]} the same rows with "K" for the outline, "+" for lit edges, "-" for shaded edges and "#" for the rest
+ */
+export const shadeSilhouette = (rows) => rows.map((row, y) => [...row].map((_, x) => shadePixel(rows, x, y)).join(""));
+
+/**
+ * Flips sprite rows left to right, the cheap second frame that makes a flame flicker.
+ * @param {string[]} rows sprite rows
+ * @returns {string[]} the mirrored rows
+ */
+export const mirrorRows = (rows) => rows.map((row) => [...row].reverse().join(""));
+
+/**
+ * A strip of ocean as sprite rows: rolling crests with a dark outline on top, a lit crest line and deeper water underneath.
+ * @param {{ width: number, height: number, level: number, swell: number, wavelength: number }} shape in pixels, level is where the troughs sit
+ * @returns {string[]} rows with "K" outline, "+" crest, "#" water and "-" the deep
+ */
+export const waveRows = ({ width, height, level, swell, wavelength }) => {
+  const surface = Array.from({ length: width }, (_, x) => Math.round(level - swell * (0.5 + 0.5 * Math.cos((2 * Math.PI * x) / wavelength))));
+  const deep = Math.round(height * 0.7);
+  const pixelAt = (x, y) => {
+    if (y < surface[x] - 1) return ".";
+    if (y === surface[x] - 1) return "K";
+    if (y === surface[x]) return "+";
+    return y >= deep ? "-" : "#";
+  };
+  return Array.from({ length: height }, (_, y) => Array.from({ length: width }, (_, x) => pixelAt(x, y)).join(""));
+};
+
+// whether an angle sits inside an arc that may wrap past 360
+const arcCovers = (angle, from, sweep) => (((angle - from) % 360) + 360) % 360 <= sweep;
+
+/**
+ * Gusts of wind circling a center, as sprite rows. Turning them redraws the pixels instead of rotating the sprite,
+ * so a spinning gust stays on the square grid.
+ * @param {number} size width and height in pixels
+ * @param {Array<{ radius: number, from: number, sweep: number, fill: string }>} arcs radius in pixels, angles in degrees with 0 straight up
+ * @param {number} turn degrees every arc is turned clockwise
+ * @returns {string[]} sprite rows, "." where no gust is
+ */
+export const gustRows = (size, arcs, turn = 0) => {
+  const center = (size - 1) / 2;
+  const pixelAt = (x, y) => {
+    const distance = Math.hypot(x - center, y - center);
+    const angle = (Math.atan2(x - center, center - y) * 180) / Math.PI;
+    const arc = arcs.find(({ radius, from, sweep }) => Math.abs(distance - radius) < 0.75 && arcCovers(angle, from + turn, sweep));
+    return arc ? arc.fill : ".";
+  };
+  return Array.from({ length: size }, (_, y) => Array.from({ length: size }, (_, x) => pixelAt(x, y)).join(""));
 };

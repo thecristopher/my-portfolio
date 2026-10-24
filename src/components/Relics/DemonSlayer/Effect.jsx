@@ -1,8 +1,9 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { EffectLayer } from "../shared";
 import { useMomentLength } from "../moment";
+import { pixelSteps } from "../../../lib/motion";
 import WaterSurfaceSlash from "./Wave";
-import { SUMI_INK, SUN_RED, brushDelays, ichimatsu } from "./helpers";
+import { SUMI_INK, SUN_RED, brushDelays, googleFontHref, ichimatsu } from "./helpers";
 
 // the beats, in seconds, lined up with the shamisen and the drum in sound.js
 const WASHI_AT = 0.42;
@@ -27,19 +28,17 @@ const DELAYS = brushDelays(
 );
 const SEAL_AT = DELAYS.at(-1).at(-1) + 0.2;
 
-const MINCHO = '"Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "Noto Serif CJK JP", serif';
+// a pixel font with kanji, loaded with only the glyphs the calligraphy uses so it costs a few kilobytes.
+// Mincho stays behind it for the instant before it lands
+const DOT_GOTHIC = googleFontHref("DotGothic16", [...COLUMNS.map(({ text }) => text), "炭"].join(""));
+const KANJI_FONT = '"DotGothic16", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", serif';
 
-// warm washi: a paper base, faint fibers, a stray ink wash and the edges browned with age
-const WASHI = [
-  "radial-gradient(ellipse at center, transparent 55%, rgba(110,80,40,0.3) 100%)",
-  "radial-gradient(circle at 72% 28%, rgba(20,20,20,0.07), transparent 38%)",
-  "repeating-linear-gradient(97deg, rgba(140,110,70,0.06) 0 2px, transparent 2px 9px)",
-  "repeating-linear-gradient(8deg, rgba(140,110,70,0.04) 0 1px, transparent 1px 13px)",
-  "#efe6d0",
-].join(", ");
+// warm washi, 16 bit style: two paper tones dithered in a checker and the edges browned in flat bands of age
+const WASHI = "repeating-conic-gradient(#efe6d0 0 25%, #e9dfc6 0 50%) 0 0 / 4px 4px";
+const WASHI_EDGES = "inset 0 0 0 10px #d6c49c, inset 0 0 0 20px #e0d0ac, inset 0 0 0 30px #e8dbbd";
 
-// the outline anime subtitles wear so they read over paper and water alike
-const SUBTITLE_OUTLINE = "0 0 3px #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000";
+// the outline anime subtitles wear so they read over paper and water alike, hard edged like a 16 bit font outline
+const SUBTITLE_OUTLINE = "2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000, 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000";
 
 // Tanjiro's haori sweeps across the screen and pulls away, leaving the paper behind it
 const CheckerWipe = ({ isReduced }) => (
@@ -48,7 +47,7 @@ const CheckerWipe = ({ isReduced }) => (
     style={{ background: ichimatsu({ size: "clamp(3rem,12vw,6rem)" }) }}
     initial={isReduced ? { opacity: 0 } : { x: "-100%" }}
     animate={isReduced ? { opacity: [0, 1, 1, 0] } : { x: ["-100%", "0%", "0%", "100%"] }}
-    transition={{ duration: 1, times: [0, 0.4, 0.55, 1], ease: "easeInOut" }}
+    transition={{ duration: 1, times: [0, 0.4, 0.55, 1], ease: pixelSteps(4) }}
   />
 );
 
@@ -61,7 +60,7 @@ const Glyph = ({ glyph, delay }) =>
       className="block leading-[1.05]"
       initial={{ clipPath: "inset(0 0 100% 0)", opacity: 0.5 }}
       animate={{ clipPath: "inset(0 0 0% 0)", opacity: 1 }}
-      transition={{ duration: 0.22, delay, ease: "easeOut" }}
+      transition={{ duration: 0.22, delay, ease: pixelSteps(4) }}
     >
       {glyph}
     </motion.span>
@@ -70,8 +69,8 @@ const Glyph = ({ glyph, delay }) =>
 // the three columns and Tanjiro's seal stamped at the end
 const Calligraphy = () => (
   <div
-    className="absolute inset-x-4 top-[6.5rem] flex lg:top-[5vh] flex-row-reverse items-start justify-center gap-[clamp(0.75rem,5vw,2.75rem)] font-extrabold"
-    style={{ fontFamily: MINCHO, color: SUMI_INK, textShadow: "0 0 1px rgba(20,20,20,0.55)" }}
+    className="absolute inset-x-4 top-[6.5rem] flex lg:top-[5vh] flex-row-reverse items-start justify-center gap-[clamp(0.75rem,5vw,2.75rem)]"
+    style={{ fontFamily: KANJI_FONT, color: SUMI_INK }}
   >
     {COLUMNS.map(({ text, size }, column) => (
       <p key={text} className="flex flex-col items-center" style={{ fontSize: size }}>
@@ -81,11 +80,11 @@ const Calligraphy = () => (
       </p>
     ))}
     <motion.span
-      className="mt-[1vh] grid size-[clamp(1.75rem,7vw,2.5rem)] shrink-0 place-items-center self-end rounded-[3px] text-[clamp(1rem,4.5vw,1.6rem)] text-[#f7efe0]"
-      style={{ background: SUN_RED, fontFamily: MINCHO }}
+      className="mt-[1vh] grid size-[clamp(1.75rem,7vw,2.5rem)] shrink-0 place-items-center self-end text-[clamp(1rem,4.5vw,1.6rem)] text-[#f7efe0]"
+      style={{ background: SUN_RED, fontFamily: KANJI_FONT, boxShadow: `inset 0 0 0 3px #a3231d, 3px 3px 0 ${SUMI_INK}` }}
       initial={{ opacity: 0, scale: 1.6 }}
       animate={{ opacity: 0.92, scale: 1 }}
-      transition={{ duration: 0.25, delay: SEAL_AT, ease: "easeIn" }}
+      transition={{ duration: 0.25, delay: SEAL_AT, ease: pixelSteps(3) }}
     >
       炭
     </motion.span>
@@ -95,16 +94,17 @@ const Calligraphy = () => (
 // the same page twice, cut along the blade. the halves slip apart the instant the slash passes
 const CutPage = ({ isReduced }) =>
   [
-    { clip: `inset(0 0 ${100 - CUT_AT}% 0)`, slip: { x: -10, y: -4, rotate: -0.5 } },
-    { clip: `inset(${CUT_AT}% 0 0 0)`, slip: { x: 10, y: 4, rotate: 0.5 } },
+    // the halves only slide, a tilt would knock the pixel font off its grid
+    { clip: `inset(0 0 ${100 - CUT_AT}% 0)`, slip: { x: -12, y: -4 } },
+    { clip: `inset(${CUT_AT}% 0 0 0)`, slip: { x: 12, y: 4 } },
   ].map(({ clip, slip }) => (
     <motion.div
       key={clip}
       className="absolute inset-0"
       style={{ clipPath: clip }}
-      initial={{ x: 0, y: 0, rotate: 0 }}
+      initial={{ x: 0, y: 0 }}
       animate={isReduced ? undefined : slip}
-      transition={{ duration: 0.35, delay: SLASH_AT + 0.08, ease: "easeOut" }}
+      transition={{ duration: 0.3, delay: SLASH_AT + 0.08, ease: pixelSteps(3) }}
     >
       <Calligraphy />
     </motion.div>
@@ -114,20 +114,20 @@ const CutPage = ({ isReduced }) =>
 const Subtitle = () => (
   <div className="absolute inset-x-4 bottom-[6.5rem] flex flex-col items-center gap-3 text-center">
     <motion.p
-      className="max-w-2xl font-sans text-[clamp(1rem,4.4vw,1.6rem)] leading-snug font-semibold text-white"
+      className="max-w-2xl font-pixel text-[clamp(1rem,4.4vw,1.6rem)] leading-snug font-semibold text-white"
       style={{ textShadow: SUBTITLE_OUTLINE }}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: SUBTITLE_AT }}
+      transition={{ duration: 0.3, delay: SUBTITLE_AT, ease: pixelSteps(3) }}
     >
       Total Concentration. Water Breathing, First Form: Water Surface Slash.
     </motion.p>
     <motion.p
-      className="flex max-w-2xl flex-col gap-1 font-mono text-[clamp(0.75rem,3.2vw,0.95rem)] leading-snug text-balance"
+      className="flex max-w-2xl flex-col gap-1 font-pixel text-[clamp(0.75rem,3.2vw,0.95rem)] leading-snug text-balance"
       style={{ color: SUMI_INK }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 0.9 }}
-      transition={{ duration: 0.4, delay: CERTS_AT }}
+      transition={{ duration: 0.4, delay: CERTS_AT, ease: pixelSteps(4) }}
     >
       <span>First Form: AWS Certified Developer – Associate.</span>
       <span>Second Form: AWS Certified Cloud Practitioner.</span>
@@ -142,9 +142,10 @@ const WaterBreathing = ({ onDone }) => {
 
   return (
     <EffectLayer>
+      <link rel="stylesheet" href={DOT_GOTHIC} />
       <motion.div
         className="absolute inset-0"
-        style={{ background: WASHI }}
+        style={{ background: WASHI, boxShadow: WASHI_EDGES }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.01, delay: WASHI_AT }}

@@ -3,6 +3,7 @@ import {
   AVATAR_PALETTE,
   AVATAR_ROWS,
   BLINK_SWAPS,
+  COMBO_POSES,
   KICK_CHAMBER,
   KICK_EXTEND,
   LEG_ERASE,
@@ -83,5 +84,26 @@ describe("combo poses", () => {
   it("draw the kicking leg from where the idle leg gets wiped", () => {
     expect(KICK_CHAMBER.left).toBeGreaterThanOrEqual(LEG_ERASE.minX);
     expect(KICK_EXTEND.left).toBeGreaterThanOrEqual(LEG_ERASE.minX);
+  });
+});
+
+describe("combo pose shifts", () => {
+  const FRAMES = ["idle", "kickChamber", "kickExtend", "shoryuken"];
+
+  it("stand on frames the avatar actually draws, so Claire never sees an empty pose", () => {
+    for (const pose of Object.values(COMBO_POSES)) expect(FRAMES).toContain(pose.frame);
+  });
+
+  it("keep the head within two pixels of the chest, so the neck holds together when he leans for Inde", () => {
+    for (const { shift } of Object.values(COMBO_POSES)) expect(Math.abs(shift.head[0] - shift.chest[0])).toBeLessThanOrEqual(2);
+  });
+
+  it("never lift the head above the chest, so Malenia never catches a gap under his chin", () => {
+    for (const { shift } of Object.values(COMBO_POSES)) expect(shift.head[1]).toBeGreaterThanOrEqual(shift.chest[1]);
+  });
+
+  it("move in whole pixels only, so every square stays square on the dance floor", () => {
+    const steps = Object.values(COMBO_POSES).flatMap(({ shift }) => Object.values(shift).flat());
+    expect(steps.every(Number.isInteger)).toBe(true);
   });
 });
