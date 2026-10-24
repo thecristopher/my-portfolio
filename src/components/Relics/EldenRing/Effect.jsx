@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 import { EffectLayer, Shockwave } from "../shared";
 import { useMomentLength } from "../moment";
-import { bandedGlow } from "../../../actions";
+import { easedGlow } from "../../../actions";
 import { pixelSteps } from "../../../lib/motion";
 import PixelArt from "../../PixelArt";
 import { BIG_SIGIL_ROWS, GRACE_GOLD, SIGIL_STROKES } from "./grace";
-import { bandedFade, graceEmbers } from "./helpers";
+import { edgeFade, graceEmbers } from "./helpers";
 
 // a hard dark outline right around the letters, so the gold reads over the light without a blurry shadow
 const PIXEL_SHADOW = "2px 2px 0 #1a1204, -1px -1px 0 #1a1204, 1px -1px 0 #1a1204, -1px 1px 0 #1a1204";
@@ -16,7 +16,7 @@ const GRACE_EMBERS = graceEmbers(18);
 const STROKE_LAYERS = SIGIL_STROKES.map((stroke) => ({ stroke, palette: { [stroke]: GRACE_GOLD } }));
 
 // the light of the grace in a few flat bands over the dark, the way a 16 bit palette can afford it
-const GRACE_LIGHT = `${bandedGlow(GRACE_GOLD, { strength: 0.2, reach: 80, bands: 5 })}, rgba(5,5,12,0.78)`;
+const GRACE_LIGHT = `${easedGlow(GRACE_GOLD, { strength: 0.2, reach: 80 })}, rgba(5,5,12,0.78)`;
 
 const Rule = () => (
   <motion.span
@@ -24,7 +24,7 @@ const Rule = () => (
     animate={{ scaleX: 1 }}
     transition={{ duration: 1.4, ease: pixelSteps(7) }}
     className="mx-auto block h-1 max-w-xl"
-    style={{ background: bandedFade(GRACE_GOLD, { strength: 0.75 }) }}
+    style={{ background: edgeFade(GRACE_GOLD, { strength: 0.75 }) }}
   />
 );
 
@@ -66,7 +66,7 @@ const GraceDiscovered = ({ onDone }) => {
       <Embers />
       <Sigil />
       <Shockwave color={GRACE_GOLD} delay={0.4} />
-      <div className="relative w-full px-4 py-8 text-center" style={{ background: bandedFade("rgb(0 0 0)", { solid: 50, strength: 0.9 }) }}>
+      <div className="relative w-full px-4 py-8 text-center" style={{ background: edgeFade("rgb(0 0 0)", { solid: 50, strength: 0.9 }) }}>
         <Rule />
         <motion.p
           initial={{ letterSpacing: "0.45em", opacity: 0 }}

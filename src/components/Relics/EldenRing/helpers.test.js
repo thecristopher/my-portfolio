@@ -1,21 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { bandedFade, graceEmbers } from "./helpers";
+import { edgeFade, graceEmbers } from "./helpers";
 import { BIG_SIGIL_ROWS, SIGIL_PALETTE, SIGIL_ROWS, SIGIL_STROKES } from "./grace";
 
-describe("bandedFade", () => {
-  const fade = bandedFade("gold", { bands: 2, solid: 40 });
+describe("edgeFade", () => {
+  const fade = edgeFade("gold", { solid: 40 });
 
   it("holds the full color across the middle for Malenia's name on the love letter", () => {
-    expect(fade).toContain("color-mix(in oklab, gold 100%, transparent) 30% 70%");
+    expect(fade).toContain("color-mix(in oklab, gold 100%, transparent) 30%, color-mix(in oklab, gold 100%, transparent) 70%");
   });
 
-  it("steps down to the faintest band at both edges", () => {
-    expect(fade).toContain("color-mix(in oklab, gold 33.3%, transparent) 0% 15%");
-    expect(fade).toContain("color-mix(in oklab, gold 33.3%, transparent) 85% 100%");
+  it("fades smoothly to nothing at both edges", () => {
+    expect(fade).toMatch(/^linear-gradient\(to right, transparent 0%, /);
+    expect(fade).toMatch(/transparent 100%\)$/);
   });
 
-  it("dims every band when the strength is turned down", () => {
-    expect(bandedFade("black", { bands: 1, solid: 50, strength: 0.5 })).toContain("black 50%, transparent) 25% 75%");
+  it("dims the middle when the strength is turned down, like candlelight on Claire's anniversary dinner", () => {
+    expect(edgeFade("black", { solid: 50, strength: 0.5 })).toContain("black 50%, transparent) 25%");
   });
 });
 

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   pixelBeams,
-  bandedGlow,
   pixelsToPaths,
   pixelRingRows,
   repoLanguages,
@@ -819,17 +818,5 @@ describe("pixelBeams", () => {
 
   it("given no beams, expect none", () => {
     expect(pixelBeams([], "gold")).toBe("none");
-  });
-});
-
-describe("bandedGlow", () => {
-  it("given two bands, expect two flat rings that end at the reach, like the glow around Inde's anniversary candle", () => {
-    expect(bandedGlow("gold", { strength: 1, reach: 80, bands: 2 })).toBe(
-      "radial-gradient(closest-side, color-mix(in oklab, gold 100%, transparent) 0%, color-mix(in oklab, gold 100%, transparent) 40%, color-mix(in oklab, gold 56.3%, transparent) 40%, color-mix(in oklab, gold 56.3%, transparent) 80%, transparent 80%)"
-    );
-  });
-
-  it("given a shape and a spot, expect the glow centered there, like a spotlight on Claire's dance floor", () => {
-    expect(bandedGlow("gold", { shape: "ellipse", at: "50% 42%" })).toMatch(/^radial-gradient\(ellipse at 50% 42%, /);
   });
 });

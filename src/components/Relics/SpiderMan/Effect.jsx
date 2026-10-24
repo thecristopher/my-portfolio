@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { EffectLayer, Shockwave, TypedText } from "../shared";
 import { useMomentLength } from "../moment";
-import { bandedGlow } from "../../../actions";
+import { easedGlow } from "../../../actions";
 import { pixelSteps } from "../../../lib/motion";
 import classicSpidey from "../../../assets/images/spider-man.gif";
 import {
@@ -50,7 +50,7 @@ const STARBURST = starburstPoints({ spikes: 12, outer: 48, inner: 34 });
 
 // red and blue rays fanning out from behind Spidey, the cover of every issue he ever led
 const SUNBURST = `repeating-conic-gradient(from 0deg at 50% 42%, ${SPIDER_RED} 0deg 10deg, ${SPIDER_BLUE} 10deg 20deg)`;
-const SPOTLIGHT = bandedGlow(COMIC_YELLOW, { strength: 0.55, shape: "ellipse", at: "50% 42%", reach: 45, bands: 4 });
+const SPOTLIGHT = easedGlow(COMIC_YELLOW, { strength: 0.55, shape: "ellipse", at: "50% 42%", reach: 45 });
 // comic halftone dots laid over the rays, the print every Spider-Man panel is made of
 const HALFTONE = "radial-gradient(rgba(0,0,0,0.28) 1.2px, transparent 1.8px) 0 0 / 9px 9px";
 
@@ -59,7 +59,7 @@ const SpiderSense = ({ isReduced }) => (
   <>
     <motion.span
       className="absolute inset-0"
-      style={{ background: `${bandedGlow("#ffffff", { strength: 0.8, reach: 30, bands: 3 })}, ${bandedGlow(SPIDER_RED, { strength: 0.5, reach: 70, bands: 4 })}` }}
+      style={{ background: `${easedGlow("#ffffff", { strength: 0.8, reach: 30 })}, ${easedGlow(SPIDER_RED, { strength: 0.5, reach: 70 })}` }}
       initial={{ opacity: 0 }}
       animate={{ opacity: [0, 1, 0.15, 0.9, 0.1, 0.8, 0] }}
       transition={{ duration: THWIP_AT, ease: pixelSteps(12) }}

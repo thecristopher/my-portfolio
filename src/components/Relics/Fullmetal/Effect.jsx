@@ -3,7 +3,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { EffectLayer, Shockwave, Sparks, TypedText } from "../shared";
 import { useMomentLength, veil } from "../moment";
 import PixelArt from "../../PixelArt";
-import { bandedGlow } from "../../../actions";
+import { easedGlow } from "../../../actions";
 import { pixelSteps } from "../../../lib/motion";
 import { FloorPixelCircle } from "./Circle";
 import { ALCHEMY_BLUE, EXCHANGE_ARROWS, FLAMEL_RED, GLOVE_PALETTE, GLOVE_ROWS } from "./flamel";
@@ -100,7 +100,7 @@ const FlamelCross = ({ isCalm }) => (
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: isCalm ? 0.3 : 0.16, delay: BEATS.stamp - (isCalm ? 0 : 0.16), ease: pixelSteps(4) }}
   >
-    <div className="absolute -inset-[40%]" style={{ background: bandedGlow(FLAMEL_RED, { strength: 0.5, bands: 4 }) }} />
+    <div className="absolute -inset-[40%]" style={{ background: easedGlow(FLAMEL_RED, { strength: 0.5 }) }} />
     <FlamelSprite className="relative block size-full" style={{ filter: "drop-shadow(3px 3px 0 #2a0006)" }} />
   </motion.div>
 );

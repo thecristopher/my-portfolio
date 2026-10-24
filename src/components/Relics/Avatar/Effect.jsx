@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { EffectLayer, Shockwave, TypedText } from "../shared";
 import { useMomentLength } from "../moment";
-import { bandedGlow } from "../../../actions";
+import { easedGlow } from "../../../actions";
 import { pixelSteps } from "../../../lib/motion";
 import PixelArt from "../../PixelArt";
 import { AangArrow, NationEmblem } from "./Emblems";
@@ -139,7 +139,7 @@ const ElementScene = ({ nation, index, isCalm }) => {
           animate={{ scale: 1 }}
           transition={{ duration: 0.4, delay: elementBeat(index), ease: pixelSteps(4) }}
         >
-          <span className="absolute -inset-1/2" style={{ background: bandedGlow(nation.color, { strength: 0.35, bands: 4 }) }} />
+          <span className="absolute -inset-1/2" style={{ background: easedGlow(nation.color, { strength: 0.35 }) }} />
           <NationEmblem nation={nation} className="relative block size-[min(40vw,10rem)]" />
         </motion.span>
         <p className="font-pixel text-4xl tracking-[0.12em] text-white sm:text-5xl" style={{ textShadow: pixelShadow(nation.color) }}>
@@ -214,7 +214,7 @@ const FourNations = ({ onDone }) => {
   useMomentLength(BEATS.lastsMs, onDone);
 
   return (
-    <EffectLayer background={`${bandedGlow(SCROLL_GOLD, { strength: 0.08, reach: 80, bands: 4 })}, rgba(2,2,4,0.97)`}>
+    <EffectLayer background={`${easedGlow(SCROLL_GOLD, { strength: 0.08, reach: 80 })}, rgba(2,2,4,0.97)`}>
       {NATIONS.map((nation, index) => (
         <ElementScene key={nation.id} nation={nation} index={index} isCalm={isCalm} />
       ))}

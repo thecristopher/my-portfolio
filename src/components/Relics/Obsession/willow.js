@@ -1,22 +1,26 @@
-// the box straight off the shelf in the movie: cream card, red print, a twig of cholla wood beside it
+// the box straight off the shelf in the movie: cream card, red print, and the willow branch beside it
 export const BOX_RED = "#d9262b";
 export const BOX_RED_DARK = "#9e1a1f";
 export const BOX_CREAM = "#f4e2c8";
 
-// the willow itself, a hollow cholla stick: brown wood full of pale holes
-export const TWIG_PALETTE = { K: "#22120a", B: "#7a4a2c", b: "#9c6640", d: "#4a2a18", w: "#f0e2ce" };
+// the willow itself, a thin crooked branch with a knot or two and a twig sprouting fresh leaves at each end
+export const TWIG_PALETTE = { K: "#2e1a0e", B: "#96683e", b: "#b08050", h: "#d2aa76", d: "#684224", G: "#7ec45a", g: "#468a3a" };
 const TWIG_ROWS = [
-  "...KKKKKKKKKKKKKKKKKKKKKKKKKK..",
-  "..KbBBwwBBBbBBwwwBBBbBBwBBBbBKK",
-  ".KBBdwwwdBBBdBwwdBBBBdwwwdBBBbK",
-  "KbBBBddBBBwBBBddBBwwBBBddBBwBBK",
-  "KBBwBBBBdwwwdBBBBdwwwBBBBdwwdBK",
-  ".KBwwdBBBddBBBwBBBBddBBwBBBdBK.",
-  "..KddBBBBBBBdwwdBBBBBBdwwdBKK..",
-  "...KKKKKKKKKKKKKKKKKKKKKKKKK...",
+  "..........gg..................................gg......",
+  ".........gGGg................................gGGg.....",
+  "..........gKK...............................KKg.......",
+  "...........KbK.............................KbK........",
+  "............KbK...........................KbK.........",
+  ".............KbK.......KKKKKKKKKKKKKKKKKKKbKKKKKK.....",
+  "..............KbKKKKKKKhhhhhhhhhhhhhhhhhhbBhhhhhhKKK..",
+  "..KKKKKKKKKKKKKbBhhhhhhBBBBBdBBBBBBBBBBBBBBBBBBBBBBhK.",
+  ".KhhhhhhhhhhhhhhBBBBBBBddddddddddddddddddddddddddddBBK",
+  "KBBBBBdBBBBBBBBBBBBBBBKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK.",
+  "KdddddddddddddddddddddK...............................",
+  ".KKKKKKKKKKKKKKKKKKKKK................................",
 ];
-// where the stick breaks, so each half is just its side of the same rows
-const SNAP_COLUMN = 15;
+// where the branch breaks, so each half is just its side of the same rows
+const SNAP_COLUMN = 27;
 export const TWIG_HALVES = [
   { side: -1, rows: TWIG_ROWS.map((row) => row.slice(0, SNAP_COLUMN)) },
   { side: 1, rows: TWIG_ROWS.map((row) => row.slice(SNAP_COLUMN)) },
