@@ -4,14 +4,15 @@ import SectionIntro, { Gold } from "../../components/SectionIntro";
 import EditorWindow from "../../components/EditorWindow";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { Trigger as UmbrellaLogo } from "../../components/Relics/ResidentEvil";
+import { Trigger as AirbenderArrow } from "../../components/Relics/Avatar";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useGetCaseStudiesQuery } from "../../api/caseStudiesApi";
 import { cleanTechName, countUsing, formatRange, slugify, splitFeatured, usesTech } from "../../actions";
 import { formatRoles } from "../../lib/resume/buildResume";
 import { usePickedTech } from "../../lib/stackFilter";
-import { scrollToSection } from "../../lib/smoothScroll";
 import { CareerLog, CompanyMark, GrepBanner } from "./pieces";
 import Chapter from "./Chapter";
+import CaseStudies from "./CaseStudies";
 
 // the jobs before the featured ones, one line of what I did and the stack, with each one's own bullets
 const EarlierRoles = ({ projects, pickedTech, caseStudies }) => (
@@ -49,18 +50,9 @@ const EarlierRoles = ({ projects, pickedTech, caseStudies }) => (
                 <UmbrellaLogo zoom={0.42} />
               </span>
             )}
-            {caseStudies
-              .filter((study) => study.company === project.title)
-              .map((study) => (
-                <button
-                  key={study.slug}
-                  type="button"
-                  onClick={() => scrollToSection(`project-${study.slug}`)}
-                  className="w-fit font-mono text-[11px] text-accent transition-colors hover:text-fg"
-                >
-                  → {study.title}
-                </button>
-              ))}
+            <div className="mt-2">
+              <CaseStudies studies={caseStudies.filter((study) => study.company === project.title)} />
+            </div>
           </div>
         </li>
       ))}
@@ -68,7 +60,7 @@ const EarlierRoles = ({ projects, pickedTech, caseStudies }) => (
   </EditorWindow>
 );
 
-/** experience.json: the career as a git log, one chapter per company, then the earlier jobs and the save room. */
+/** experience.json: the career as a git log, one chapter per company with its case studies, then the earlier jobs. */
 const Work = ({ number }) => {
   const { data: projects = [], isLoading, isError } = useGetProjectsQuery();
   const { data: caseStudies = [] } = useGetCaseStudiesQuery();
@@ -86,11 +78,11 @@ const Work = ({ number }) => {
               Intern to Engineering Manager. <Gold>Every commit of it.</Gold>
             </>
           }
-          lead="Five companies in nine years, some down the street from home and some an ocean away. Each one taught me something I still use on Monday mornings."
+          lead="Five companies in nine years, some down the street from home and some an ocean away. Each chapter has the wins and the case studies behind them."
         />
 
         {isLoading && <SkeletonLines lines={5} />}
-        {isError && <LoadError what="the work history" />}
+        {isError && projects.length === 0 && <LoadError what="the work history" />}
 
         {projects.length > 0 && <CareerLog projects={projects} />}
 
@@ -101,7 +93,15 @@ const Work = ({ number }) => {
 
         <div className="flex flex-col gap-24">
           {featured.map((project, index) => (
-            <Chapter key={project.title} project={project} index={index} pickedTech={pickedTech} studies={caseStudies.filter((study) => study.company === project.title)} />
+            <Chapter
+              key={project.title}
+              project={project}
+              index={index}
+              pickedTech={pickedTech}
+              studies={caseStudies.filter((study) => study.company === project.title)}
+              // four kinds of work across the case studies, and the Avatar's arrow at the first of them
+              relic={index === 0 ? <AirbenderArrow zoom={0.42} /> : null}
+            />
           ))}
         </div>
 

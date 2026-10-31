@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { formatRange, hostnameFromUrl, slugify, usesTech } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
-import { scrollToSection } from "../../lib/smoothScroll";
 import { formatRoles } from "../../lib/resume/buildResume";
 import { CompanyMark, StackList } from "./pieces";
+import CaseStudies from "./CaseStudies";
 
 // a job that never shipped with the picked tool fades back, so the ones that did stand out
 const FILTERED_OUT = "opacity-25 grayscale";
@@ -40,12 +40,12 @@ const Masthead = ({ project, index, pickedTech }) => {
   );
 };
 
-// each win lights up as it reaches the middle of the screen, then stays lit
+// each win rises in once as it scrolls into view, then stays put so it reads like any other line
 const Highlight = ({ text, index }) => (
   <motion.li
-    initial={{ opacity: 0.18, x: 0 }}
-    whileInView={{ opacity: 1, x: 0 }}
-    viewport={{ margin: "-45% 0px -45% 0px" }}
+    initial={{ opacity: 0, y: 12 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.6 }}
     transition={{ duration: 0.6, ease: easeOutExpo }}
     className="flex gap-5 py-6 text-[clamp(1.35rem,2.6vw,2rem)] leading-snug font-medium tracking-tight text-pretty"
   >
@@ -54,35 +54,12 @@ const Highlight = ({ text, index }) => (
   </motion.li>
 );
 
-// the work told in full lives in projects, so a chapter only points there instead of saying it twice
-const CaseStudyLinks = ({ studies }) => (
-  <div className="flex flex-col gap-4">
-    <p className="font-mono text-xs text-faint">
-      <span className="text-accent">$</span> ls ../projects
-    </p>
-    <ul className="flex flex-col divide-y divide-line border-y border-line">
-      {studies.map((study) => (
-        <li key={study.slug}>
-          <button
-            type="button"
-            onClick={() => scrollToSection(`project-${study.slug}`)}
-            className="group flex w-full items-center gap-4 py-5 text-left text-[clamp(1.25rem,2.4vw,1.75rem)] font-medium tracking-tight transition-colors hover:text-accent"
-          >
-            <span className="flex-1">{study.title}</span>
-            <span className="font-mono text-[11px] text-faint">{study.kind}</span>
-            <ArrowRight size={18} className="text-faint transition-transform group-hover:translate-x-1 group-hover:text-accent" aria-hidden="true" />
-          </button>
-        </li>
-      ))}
-    </ul>
-  </div>
-);
-
 /**
  * One company as one chapter: the masthead pinned on the left, and on the right the pitch, the wins that have no
- * case study of their own lighting up one by one, and the way into the ones that do.
+ * case study of their own, then the case studies told in full.
+ * @param {{ project: object, index: number, pickedTech: string | null, studies: object[], relic?: React.ReactNode }} props
  */
-const Chapter = ({ project, index, pickedTech, studies }) => (
+const Chapter = ({ project, index, pickedTech, studies, relic }) => (
   <article
     id={`work-${slugify(project.title)}`}
     className={`group grid gap-10 border-t border-line pt-14 transition-[opacity,filter] duration-500 lg:grid-cols-12 lg:gap-16 ${usesTech(project, pickedTech) ? "" : FILTERED_OUT}`}
@@ -99,7 +76,7 @@ const Chapter = ({ project, index, pickedTech, studies }) => (
           ))}
         </ol>
       )}
-      {studies.length > 0 && <CaseStudyLinks studies={studies} />}
+      <CaseStudies studies={studies} relic={relic} />
     </div>
   </article>
 );

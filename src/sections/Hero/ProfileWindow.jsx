@@ -1,6 +1,8 @@
 import EditorWindow from "../../components/EditorWindow";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useGetContactQuery } from "../../api/contactApi";
+import { Trigger as NichirinBlade } from "../../components/Relics/DemonSlayer";
+import { Trigger as SpiderEmblem } from "../../components/Relics/SpiderMan";
 
 // Eldentree's highlight groups: keywords in bold gold, properties in rosewater, strings in grace green,
 // numbers in steel blue, types in arcane purple and comments in italic mist
@@ -25,8 +27,9 @@ const List = ({ items }) => (
   </>
 );
 
-const Field = ({ name, children, comment }) => (
-  <div className="pl-4 sm:pl-6">
+const Field = ({ name, children, comment, relic }) => (
+  <div className="flex items-center pl-4 sm:pl-6">
+    <span>
     <Prop>{name}</Prop>
     <Punct>: </Punct>
     {children}
@@ -37,6 +40,9 @@ const Field = ({ name, children, comment }) => (
         <Comment>{comment}</Comment>
       </>
     )}
+    </span>
+    {/* zero height, so a relic never makes its line taller than the others */}
+    {relic && <span className="ml-2 inline-flex h-0 items-center">{relic}</span>}
   </div>
 );
 
@@ -54,16 +60,27 @@ const fieldsFor = ({ about, current, contact }) =>
     about.work_modes?.length > 0 && { name: "workModes", value: <List items={about.work_modes} /> },
     { name: "stack", value: <List items={about.main_stack} /> },
     about.expertise?.length > 0 && { name: "leads", value: <List items={about.expertise.slice(0, 3)} /> },
-    about.certifications?.length > 0 && { name: "certified", value: <List items={about.certifications.map((cert) => cert.name.replace("AWS Certified ", "AWS "))} /> },
-    about.education?.[0] && { name: "studied", value: <Str>{about.education[0].degree}</Str>, comment: about.education[0].school },
+    about.certifications?.length > 0 && {
+      name: "certified",
+      value: <List items={about.certifications.map((cert) => cert.name.replace("AWS Certified ", "AWS "))} />,
+      // the exams took total concentration, so Tanjiro's blade rests beside them
+      relic: <NichirinBlade zoom={0.42} />,
+    },
+    about.education?.[0] && {
+      name: "studied",
+      value: <Str>{about.education[0].degree}</Str>,
+      comment: about.education[0].school,
+      // Peter Parker was a student first, so his spider clings to where I studied
+      relic: <SpiderEmblem zoom={0.42} />,
+    },
     about.languages?.length > 0 && { name: "speaks", value: <List items={about.languages.map((language) => (language.level ? `${language.name} (${language.level})` : language.name))} /> },
     contact && { name: "email", value: <Str>{contact.email}</Str> },
     { name: "editor", value: <Str>{about.editor}</Str>, comment: "eldentree, obviously" },
   ].filter(Boolean);
 
 /**
- * The hero's reveal and the page's greeter: profile.ts, the whole profile at a glance written as code in
- * Eldentree's colors. The sections below tell each part in full.
+ * The page's greeter: profile.ts, the whole profile at a glance written as code in Eldentree's colors, education and
+ * certifications included. The sections below tell the rest in full.
  */
 const ProfileWindow = ({ about }) => {
   const { data: projects = [] } = useGetProjectsQuery();
@@ -80,7 +97,7 @@ const ProfileWindow = ({ about }) => {
           <Type>Engineer</Type> <Punct>= {"{"}</Punct>
         </div>
         {fields.map((field) => (
-          <Field key={field.name} name={field.name} comment={field.comment}>
+          <Field key={field.name} name={field.name} comment={field.comment} relic={field.relic}>
             {field.value}
           </Field>
         ))}

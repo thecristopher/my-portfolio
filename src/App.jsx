@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AnimatePresence, MotionConfig, motion, useScroll, useSpring } from "framer-motion";
+import { AnimatePresence, MotionConfig } from "framer-motion";
 import Bufferline from "./components/Bufferline";
 import FileTree from "./components/FileTree";
 import Statusline from "./components/Statusline";
@@ -12,36 +12,24 @@ import Banner from "./components/Banner";
 import Rest from "./components/Rest";
 import Hub from "./components/Hub";
 import Pointer from "./components/Pointer";
-import Aurora from "./components/Aurora";
 import Footer from "./components/Footer";
 import Resume from "./components/Resume";
 import RelicStage from "./components/Relics/Stage";
 import Hero from "./sections/Hero";
 import About from "./sections/About";
 import Work from "./sections/Work";
-import Projects from "./sections/Projects";
 import Skills from "./sections/Skills";
 import GitHub from "./sections/GitHub";
-import Education from "./sections/Education";
 import Contact from "./sections/Contact";
 import { startSmoothScroll } from "./lib/smoothScroll";
 import { earnRunes } from "./lib/runes";
 import { useVimKeys } from "./hooks/useVimKeys";
 import { useActiveSection } from "./hooks/useActiveSection";
-import { useGetNavBarQuery } from "./api/navBarApi";
+import { usePageLinks } from "./api/navBarApi";
 import { sectionIdFromUrl } from "./actions";
 import { buildLeaderBindings } from "./lib/leader";
 
-const SECTIONS = { home: Hero, about: About, work: Work, projects: Projects, skills: Skills, github: GitHub, education: Education, contact: Contact };
-
-// one shared empty list, so the section ids only change when the nav actually arrives
-const NO_LINKS = [];
-
-const ScrollProgress = () => {
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30 });
-  return <motion.div style={{ scaleX }} className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-accent" />;
-};
+const SECTIONS = { home: Hero, about: About, work: Work, skills: Skills, github: GitHub, contact: Contact };
 
 // which dialogs are open, and the mode the statusline shows for them
 const useDialogs = () => {
@@ -70,7 +58,7 @@ const useDialogs = () => {
 
 /** The page as an nvim session: bufferline on top, lualine at the bottom, one buffer per section in between. */
 const App = () => {
-  const { data: links = NO_LINKS } = useGetNavBarQuery();
+  const links = usePageLinks();
   const sectionIds = useMemo(() => links.map((link) => sectionIdFromUrl(link.url)).filter((id) => SECTIONS[id]), [links]);
   const activeSectionId = useActiveSection(sectionIds);
   const { open, handlers, isAnyOpen, mode } = useDialogs();
@@ -109,8 +97,6 @@ const App = () => {
       <a href="#about" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-fg focus:px-4 focus:py-2 focus:text-ink">
         Skip to content
       </a>
-      <Aurora sectionId={activeSectionId} />
-      <ScrollProgress />
       <Bufferline sectionIds={sectionIds} activeId={activeSectionId} onOpenRegions={handlers.openRegions} />
       <FileTree />
       {/* on wide screens an open file tree takes the left edge. the sections still run edge to edge underneath it,

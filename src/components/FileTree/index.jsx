@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import { ChevronRight, FileClock, FileCode, FileCog, FileJson, FileTerminal, FileText, Folder, FolderOpen, FolderTree, GitBranch, X } from "lucide-react";
-import { useGetNavBarQuery } from "../../api/navBarApi";
+import { usePageLinks } from "../../api/navBarApi";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useGetReposQuery } from "../../api/githubApi";
-import { useGetAboutQuery } from "../../api/aboutApi";
-import { useGetCaseStudiesQuery } from "../../api/caseStudiesApi";
 import { useActiveSection } from "../../hooks/useActiveSection";
 import { buildFileTree, sectionIdFromUrl } from "../../actions";
 import { scrollToSection } from "../../lib/smoothScroll";
@@ -146,17 +144,15 @@ const walkTree = (event, { toggleDirectory }) => {
 // the tree itself. every folder starts open, so the whole site reads at a glance, and the cursorline tracks the
 // file you're reading the way follow_current_file does
 const TreeList = ({ group, onNavigate, scrollsOnOpen = true, ...props }) => {
-  const { data: links = [] } = useGetNavBarQuery();
+  const links = usePageLinks();
   const { data: projects = [] } = useGetProjectsQuery();
   const { data: repos = [] } = useGetReposQuery();
-  const { data: about } = useGetAboutQuery();
-  const { data: caseStudies = [] } = useGetCaseStudiesQuery();
   // what the visitor opened or closed by hand wins over following the scroll
   const [toggled, setToggled] = useState({});
 
   const tree = buildFileTree(
     links.map((link) => sectionIdFromUrl(link.url)),
-    { projects, caseStudies, repos, hasCertifications: (about?.certifications ?? []).length > 0 }
+    { projects, repos }
   );
   const activeSectionId = useActiveSection(tree.map((node) => node.sectionId));
   const activeNode = tree.find((node) => node.sectionId === activeSectionId);
@@ -207,7 +203,7 @@ const TreeList = ({ group, onNavigate, scrollsOnOpen = true, ...props }) => {
 // the tree folded down to a rail while it's closed, drawn like the statusline but standing on its edge. one icon per
 // section, lit for the one you're reading, so it reads as the tree and says there's more behind it
 const TreeRail = () => {
-  const { data: links = [] } = useGetNavBarQuery();
+  const links = usePageLinks();
   const tree = buildFileTree(links.map((link) => sectionIdFromUrl(link.url)));
   const activeSectionId = useActiveSection(tree.map((node) => node.sectionId));
 

@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import portrait from "../../assets/images/portrait.jpg";
 import Reveal from "../../components/Reveal";
+import { Trigger as FlamelCross } from "../../components/Relics/Fullmetal";
 import { splitParagraphs } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 
@@ -44,7 +45,7 @@ const Portrait = () => {
   );
 };
 
-/** The story in my own words, the first paragraph set large like a lead, next to the portrait. */
+/** The story in my own words, the first paragraph set large like a lead, next to the portrait, with Ed's emblem at the end. */
 const Bio = ({ description }) => {
   const [lead, ...rest] = splitParagraphs(description);
   return (
@@ -65,6 +66,10 @@ const Bio = ({ description }) => {
             <p className="text-lg leading-relaxed text-muted text-pretty">{paragraph}</p>
           </Reveal>
         ))}
+        {/* Ed's emblem signs off the story: hard problems in, readable code out */}
+        <span className="flex justify-end">
+          <FlamelCross zoom={0.42} />
+        </span>
       </div>
     </div>
   );

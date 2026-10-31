@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Briefcase, FolderGit2, Send, User } from "lucide-react";
+import { Briefcase, Gauge, Send, User } from "lucide-react";
 import { SHOWS_SPLASH, SPLASH_HOLD_S, markBooted } from "../../lib/intro";
 import { scrollToSection } from "../../lib/smoothScroll";
 import { easeOutExpo } from "../../lib/motion";
 import { currentRegionName, resolveRegion } from "../../lib/regions";
 import { PLAYER_MESSAGES } from "../Telescope/commands";
 import { RELIC_IDS } from "../../lib/relics";
+import { PAGE_SECTIONS } from "../../actions";
 
 const ENTRIES = [
   { key: "a", icon: User, label: "About me", run: () => scrollToSection("about") },
   { key: "w", icon: Briefcase, label: "Experience", run: () => scrollToSection("work") },
-  { key: "p", icon: FolderGit2, label: "Projects", run: () => scrollToSection("projects") },
+  { key: "s", icon: Gauge, label: "Skills", run: () => scrollToSection("skills") },
   { key: "c", icon: Send, label: "Say hello", run: () => scrollToSection("contact") },
 ];
 
@@ -77,7 +78,7 @@ const Entries = () => (
 );
 
 /**
- * The first thing a visit sees: Eldentree's hub. The name shimmers in the region's gold, embers rise, a player
+ * The first thing a first visit sees: Eldentree's hub. The name shimmers in the region's gold, embers rise, a player
  * message writes itself, then the camera pushes through into the page. Any key or click skips it, and a hub key
  * runs its entry. The region's name only rolls across the screen when the visitor travels to one on purpose.
  */
@@ -134,7 +135,7 @@ const Hub = () => {
             transition={{ duration: 0.5, delay: 0.9 }}
             className="font-mono text-[11px] text-faint"
           >
-            <span className="text-string">⚡</span> eldentree loaded {RELIC_IDS.length} relics · 8 buffers in 23ms
+            <span className="text-string">⚡</span> eldentree loaded {RELIC_IDS.length} relics · {PAGE_SECTIONS.length} buffers in 23ms
           </motion.p>
         </motion.div>
       )}

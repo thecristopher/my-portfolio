@@ -4,7 +4,6 @@ import "../api/navBarApi";
 import "../api/aboutApi";
 import "../api/projectsApi";
 import "../api/caseStudiesApi";
-import "../api/skillsApi";
 import "../api/contactApi";
 import "../api/githubApi";
 import snapshot from "../data/snapshot.json";
