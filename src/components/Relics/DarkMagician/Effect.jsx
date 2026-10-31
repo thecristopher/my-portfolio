@@ -86,11 +86,11 @@ const MagicianFlyby = ({ onDone }) => {
   const isReduced = useReducedMotion();
   useMomentLength(SETTLED_MS, onDone);
 
-  // the page glides up to the cards as the spell lands, so the flip plays right where you're looking
+  // the page glides up to the stack report as the spell lands, so the buff plays right where you're looking
   useEffect(() => {
     const castTimer = setTimeout(() => {
       castMagic();
-      scrollToSection("skill-cards");
+      scrollToSection("checkhealth");
     }, CAST_AT_MS);
     return () => clearTimeout(castTimer);
   }, []);

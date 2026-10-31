@@ -6,6 +6,7 @@ import EditorWindow from "../../components/EditorWindow";
 import TypeLine from "../../components/TypeLine";
 import FileIcon from "../../components/FileIcon";
 import { Trigger as GraceSigil } from "../../components/Relics/EldenRing";
+import { Trigger as D20 } from "../../components/Relics/BaldursGate";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetContactQuery } from "../../api/contactApi";
 import { socialIconMap } from "../../lib/socialIconMap";
@@ -90,7 +91,11 @@ const ContactTerminal = ({ contact }) => {
     <EditorWindow path={["cristopher", "contact.sh"]}>
       <div className="flex flex-col gap-4 font-mono text-sm">
         <div className="flex items-center justify-between gap-4">
-          <p className="text-faint"># what're ya buyin', stranger?</p>
+          <p className="flex items-center gap-2 text-faint">
+            # what're ya buyin', stranger?
+            {/* sending the email is a persuasion check like any other */}
+            <D20 zoom={0.42} />
+          </p>
           {!hasExited && !isInstant && (
             <button
               type="button"
@@ -222,7 +227,7 @@ const Contact = ({ number }) => {
         </div>
 
         {isLoading && <SkeletonLines lines={2} />}
-        {isError && <LoadError what="contact details" />}
+        {isError && !contact && <LoadError what="contact details" />}
         {contact && <ContactTerminal contact={contact} />}
       </div>
     </section>

@@ -11,7 +11,7 @@ const DOUBLE_TAP_MS = 450;
 // vim's default leader. <leader>e toggles the file tree, the way most nvim-tree setups map it
 const LEADER = "\\";
 
-export const HELP_TEXT = "space leader · f follow a link · 1-8 or ]] [[ sections · j/k scroll · d/u half page · gg/G ends · / search · \\e tree · : telescope";
+export const HELP_TEXT = "space leader · f follow a link · 1-6 or ]] [[ sections · j/k scroll · d/u half page · gg/G ends · / search · \\e tree · : telescope";
 
 const isTypingIn = (target) => target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA"].includes(target.tagName));
 

@@ -13,20 +13,12 @@
       "url": "/#work"
     },
     {
-      "title": "Projects",
-      "url": "/#projects"
-    },
-    {
       "title": "Skills",
       "url": "/#skills"
     },
     {
       "title": "Side quests",
       "url": "/#github"
-    },
-    {
-      "title": "Education",
-      "url": "/#education"
     },
     {
       "title": "Contact",
@@ -371,56 +363,6 @@
       "note": null,
       "team_size": null,
       "featured": false
-    }
-  ],
-  "getSkills": [
-    {
-      "title": "Leading Teams",
-      "icon": "TbUserCode",
-      "description": "My calendar is mostly 1:1s, and I like it that way. I'd rather unblock five engineers before lunch than write the clever thing myself.",
-      "attack": 2500,
-      "defense": 2100,
-      "effect": "Once per sprint: every engineer on your side of the field is unblocked."
-    },
-    {
-      "title": "AI & LLMs",
-      "icon": "TbSparkles",
-      "description": "Models get things wrong, so I treat them like any other dependency: guardrails, tests and a fallback. A boring right answer beats a brilliant wrong one.",
-      "attack": 2800,
-      "defense": 1700,
-      "effect": "When a model hallucinates, negate it and return a grounded answer instead."
-    },
-    {
-      "title": "Cloud & Infra",
-      "icon": "FaAws",
-      "description": "Functions when traffic spikes, containers when it doesn't, and nothing clicked together by hand in a console. If it isn't in code, it doesn't exist.",
-      "attack": 2300,
-      "defense": 2800,
-      "effect": "Cannot be destroyed by a Friday deploy."
-    },
-    {
-      "title": "Frontend & UX",
-      "icon": "TbLayoutDashboard",
-      "description": "Component libraries a whole product can share, and the small stuff people only notice when it's missing: loading states, dark mode, copy that sounds like a person.",
-      "attack": 2400,
-      "defense": 2000,
-      "effect": "Flip every loading spinner on the field into a skeleton."
-    },
-    {
-      "title": "Data & Search",
-      "icon": "TbDatabase",
-      "description": "I start from how the data will be read and work backwards. Documents when the access patterns are known, tables when the relationships matter, an index when people need answers fast.",
-      "attack": 2200,
-      "defense": 2500,
-      "effect": "Search your deck for any record and add it to your hand. Indexed, of course."
-    },
-    {
-      "title": "Quality & Security",
-      "icon": "TbTestPipe",
-      "description": "Unit tests for the logic, end to end tests for the paths people actually click, and a CI that's allowed to say no. Secrets and alerts go in before launch, not after the first 3 a.m. page.",
-      "attack": 1900,
-      "defense": 3000,
-      "effect": "Negate any attack that skipped CI."
     }
   ],
   "getContact": {

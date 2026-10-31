@@ -1,10 +1,10 @@
-// the boot screen plays once per visit, before the hero. everything in the hero waits for it through INTRO_S,
+// the boot screen plays on the very first visit only, before the hero. a returning visitor goes straight to the page. everything in the hero waits for it through INTRO_S,
 // so the page still opens in the same order, just after the editor has "started"
 const SEEN_KEY = "booted";
 
 const hasBooted = () => {
   try {
-    return sessionStorage.getItem(SEEN_KEY) === "true";
+    return localStorage.getItem(SEEN_KEY) === "true";
   } catch {
     // no storage, no way to remember it played: skip it rather than replay it on every load
     return true;
@@ -21,8 +21,8 @@ export const INTRO_S = SHOWS_SPLASH ? SPLASH_HOLD_S + 0.35 : 0;
 
 export const markBooted = () => {
   try {
-    sessionStorage.setItem(SEEN_KEY, "true");
+    localStorage.setItem(SEEN_KEY, "true");
   } catch {
-    // nothing to remember it with, it simply plays again next visit
+    // nothing to remember it with, it simply plays again next time
   }
 };

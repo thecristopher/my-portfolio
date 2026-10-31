@@ -6,7 +6,6 @@ import {
   repoLanguages,
   hintLabels,
   stepSection,
-  auroraLayout,
   mixColors,
   parseCssColor,
   softRing,
@@ -21,8 +20,6 @@ import {
   formatRange,
   countUsing,
   localClock,
-  dayBlocks,
-  hoursAhead,
   nowStatus,
   shortHash,
   usesTech,
@@ -35,10 +32,11 @@ import {
   splitParagraphs,
   splitStatValue,
   splitWords,
-  wordRevealRange,
   filterCommands,
   findCommandByAlias,
   bufferNameFor,
+  PAGE_SECTIONS,
+  pageLinks,
   scrollPosition,
   fileTypeFor,
   isMaxLevel,
@@ -104,16 +102,6 @@ describe("hostnameFromUrl", () => {
 describe("splitWords", () => {
   it("given words spread across spaces and newlines, expect just the words", () => {
     expect(splitWords("  Claire   saved\nthe song ")).toEqual(["Claire", "saved", "the", "song"]);
-  });
-});
-
-describe("wordRevealRange", () => {
-  it("given the first of four words, expect the first quarter", () => {
-    expect(wordRevealRange(0, 4)).toEqual([0, 0.25]);
-  });
-
-  it("given the last of four words, expect the final quarter", () => {
-    expect(wordRevealRange(3, 4)).toEqual([0.75, 1]);
   });
 });
 
@@ -191,13 +179,39 @@ describe("bufferNameFor", () => {
     expect(bufferNameFor("github")).toBe("side-quests.yml");
   });
 
-  it("given education, expect a toml file the statusline recognizes", () => {
-    expect(bufferNameFor("education")).toBe("education.toml");
-    expect(fileTypeFor("education.toml")).toBe("toml");
+  it("given the contact section, expect a shell script the statusline recognizes", () => {
+    expect(bufferNameFor("contact")).toBe("contact.sh");
+    expect(fileTypeFor("contact.sh")).toBe("sh");
   });
 
   it("given a section Melina just added, expect a markdown file", () => {
     expect(bufferNameFor("leyndell")).toBe("leyndell.md");
+  });
+});
+
+describe("pageLinks", () => {
+  const links = [
+    { title: "Home", url: "/#home" },
+    { title: "Projects", url: "/#projects" },
+    { title: "Experience", url: "/#work" },
+    { title: "Education", url: "/#education" },
+    { title: "Contact", url: "/#contact" },
+  ];
+
+  it("given the nav Claire's API still serves, expect only the sections the page renders, in order", () => {
+    expect(pageLinks(links).map((link) => link.title)).toEqual(["Home", "Experience", "Contact"]);
+  });
+
+  it("given the same answer twice, expect the very same list so nothing rerenders", () => {
+    expect(pageLinks(links)).toBe(pageLinks(links));
+  });
+
+  it("given nothing from the API yet, expect an empty nav", () => {
+    expect(pageLinks()).toEqual([]);
+  });
+
+  it("keeps the six sections Malenia reads through, home first and contact last", () => {
+    expect(PAGE_SECTIONS).toEqual(["home", "about", "work", "skills", "github", "contact"]);
   });
 });
 
@@ -495,10 +509,9 @@ describe("nowStatus", () => {
 });
 
 describe("buildFileTree", () => {
-  const sections = ["home", "about", "work", "projects", "github", "contact"];
+  const sections = ["home", "about", "work", "skills", "github", "contact"];
   const tree = buildFileTree(sections, {
     projects: [{ title: "TerraSave" }, { title: "Mesón de Torrent", featured: false }],
-    caseStudies: [{ slug: "love-notes" }],
     repos: [{ name: "shared-playlist" }],
   });
 
@@ -506,8 +519,12 @@ describe("buildFileTree", () => {
     expect(tree[0]).toMatchObject({ name: "index.tsx", isDirectory: false });
   });
 
-  it("given the about section, expect the philosophy, the story and the day log inside", () => {
-    expect(tree.find((node) => node.sectionId === "about").children.map((child) => child.name)).toEqual(["philosophy.md", "about.md", "day.log"]);
+  it("given the about section, expect the story as a single file", () => {
+    expect(tree.find((node) => node.sectionId === "about")).toMatchObject({ name: "about.md", isDirectory: false });
+  });
+
+  it("given the skills section, expect the report as a single file", () => {
+    expect(tree.find((node) => node.sectionId === "skills")).toMatchObject({ name: "skills.lua", isDirectory: false });
   });
 
   it("given featured and earlier jobs, expect the career log, each featured job and the earlier log under experience", () => {
@@ -519,10 +536,6 @@ describe("buildFileTree", () => {
         { name: "earlier.log", targetId: "work-earlier" },
       ],
     });
-  });
-
-  it("given Inde's love notes case study, expect a file of its own", () => {
-    expect(tree.find((node) => node.sectionId === "projects").children).toEqual([{ name: "love-notes.ts", targetId: "project-love-notes" }]);
   });
 
   it("given the shared playlist repo, expect it inside the side quests folder", () => {
@@ -657,29 +670,6 @@ describe("mixColors", () => {
   });
 });
 
-describe("auroraLayout", () => {
-  it("given a wide screen, expect each light to reach 40% of the longer side", () => {
-    expect(auroraLayout({ width: 1000, height: 500 }).reach).toBe(400);
-  });
-
-  it("given a wide screen, expect the first light left of the second", () => {
-    const { first, second } = auroraLayout({ width: 1000, height: 500 });
-    expect(first.x).toBeLessThan(second.x);
-  });
-
-  it("given a tall phone, expect the first light above the second", () => {
-    const { first, second } = auroraLayout({ width: 390, height: 844 });
-    expect(first.y).toBeLessThan(second.y);
-  });
-
-  it("given a scroll from top to bottom, expect the lights to drift in opposite directions", () => {
-    const top = auroraLayout({ width: 1000, height: 500, progress: 0 });
-    const bottom = auroraLayout({ width: 1000, height: 500, progress: 1 });
-    expect(bottom.first.x).toBeGreaterThan(top.first.x);
-    expect(bottom.second.x).toBeLessThan(top.second.x);
-  });
-});
-
 describe("hintLabels", () => {
   it("given enough letters, expect single letter labels", () => {
     expect(hintLabels(3, "abc")).toEqual(["a", "b", "c"]);
@@ -716,32 +706,6 @@ describe("stepSection", () => {
 
   it("given a section it doesn't know, expect home", () => {
     expect(stepSection(ids, "the-haligtree", 1)).toBe("home");
-  });
-});
-
-describe("dayBlocks", () => {
-  it("given Claire's day, expect it to start and end at midnight", () => {
-    const blocks = dayBlocks();
-    expect(blocks[0].from).toBe(0);
-    expect(blocks.at(-1).until).toBe(24);
-  });
-
-  it("given two blocks in a row, expect no gap between them", () => {
-    const blocks = dayBlocks();
-    blocks.slice(1).forEach((block, index) => expect(block.from).toBe(blocks[index].until));
-  });
-});
-
-describe("hoursAhead", () => {
-  it("given Inde visiting from the same timezone, expect zero hours apart", () => {
-    const date = new Date();
-    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    expect(hoursAhead(date, zone)).toBe(0);
-  });
-
-  it("given Malenia calling from Kiritimati, expect the gap within half a day", () => {
-    const value = hoursAhead(new Date(), "Pacific/Kiritimati");
-    expect(Math.abs(value)).toBeLessThanOrEqual(12);
   });
 });
 

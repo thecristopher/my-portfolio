@@ -22,12 +22,6 @@ export const hostnameFromUrl = (url = "") => {
 
 export const splitWords = (text = "") => text.split(/\s+/).filter(Boolean);
 
-// each word gets its own slice of the scroll progress so they light up in order
-export const wordRevealRange = (index, total) => {
-  const start = index / total;
-  return [start, start + 1 / total];
-};
-
 export const splitStatValue = (value) => {
   const match = String(value).match(/^(\d+)(.*)$/);
   return match ? { number: Number(match[1]), suffix: match[2] } : { number: null, suffix: String(value) };
@@ -66,11 +60,27 @@ const BUFFER_NAMES = {
   home: "index.tsx",
   about: "about.md",
   work: "experience.json",
-  projects: "projects.ts",
   skills: "skills.lua",
   github: "side-quests.yml",
-  education: "education.toml",
   contact: "contact.sh",
+};
+
+/** The sections the page renders, in the order they read. */
+export const PAGE_SECTIONS = Object.keys(BUFFER_NAMES);
+
+// the same api answer always maps to the same list, so components reading it only rerender when the nav changes
+const pageLinksCache = new WeakMap();
+
+/**
+ * Keeps only the nav links whose section the page renders, so a link the API still serves never points at nothing.
+ * @param {{ title: string, url: string }[]} links the nav as the API serves it
+ * @returns {{ title: string, url: string }[]} the links with a section on the page, in the API's order
+ */
+export const pageLinks = (links = []) => {
+  if (pageLinksCache.has(links)) return pageLinksCache.get(links);
+  const kept = links.filter((link) => PAGE_SECTIONS.includes(sectionIdFromUrl(link.url)));
+  pageLinksCache.set(links, kept);
+  return kept;
 };
 
 export const bufferNameFor = (sectionId = "") => BUFFER_NAMES[sectionId] ?? `${sectionId}.md`;
@@ -266,29 +276,6 @@ const WEEKEND_STATUS = [
 ];
 
 // a guess at what I'm up to right now, for the statusline
-/**
- * The weekday as blocks of time, each from where the last one ended, for the day timeline in about.
- * @returns {{ from: number, until: number, label: string }[]} hours on a 24 hour clock
- */
-export const dayBlocks = () => WEEKDAY_STATUS.map(([until, label], index) => ({ from: index === 0 ? 0 : WEEKDAY_STATUS[index - 1][0], until, label }));
-
-/**
- * How many hours ahead of me someone is, from both clocks' current offsets.
- * @param {Date} date the moment to compare at
- * @param {string} homeZone my IANA timezone
- * @returns {number} hours the visitor is ahead (negative when behind)
- */
-export const hoursAhead = (date, homeZone) => {
-  const home = localClock(date, homeZone);
-  const [homeHours, homeMinutes] = home.time.split(":").map(Number);
-  const visitorMinutes = date.getHours() * 60 + date.getMinutes();
-  let difference = visitorMinutes - (homeHours * 60 + homeMinutes);
-  // across midnight the raw difference wraps, so keep it within half a day either way
-  if (difference > 720) difference -= 1440;
-  if (difference < -720) difference += 1440;
-  return Math.round(difference / 30) / 2;
-};
-
 export const nowStatus = ({ hour, isWeekend }) =>
   (isWeekend ? WEEKEND_STATUS : WEEKDAY_STATUS).find(([until]) => hour < until)[1];
 
@@ -296,7 +283,6 @@ const file = (name, targetId) => ({ name, targetId });
 
 // what each section holds when the file tree opens it as a directory. a section left out stays a single file
 const SECTION_FILES = {
-  about: () => [file("philosophy.md", "philosophy"), file("about.md", "bio"), file("day.log", "day")],
   work: ({ projects }) => {
     const { featured, earlier } = splitFeatured(projects);
     return [
@@ -305,19 +291,16 @@ const SECTION_FILES = {
       ...(earlier.length > 0 ? [file("earlier.log", "work-earlier")] : []),
     ];
   },
-  projects: ({ caseStudies }) => caseStudies.map((study) => file(`${study.slug}.ts`, `project-${study.slug}`)),
-  skills: () => [file("cards.lua", "skill-cards"), file("checkhealth", "checkhealth")],
   github: ({ repos }) => repos.map((repo) => file(`${repo.name}.git`, `repo-${slugify(repo.name)}`)),
-  education: ({ hasCertifications }) => [file("degree.toml", "degree"), ...(hasCertifications ? [file("aws-certs.toml", "certifications")] : [])],
 };
 
 const DIRECTORY_NAMES = { github: "side-quests", work: "experience" };
 
 // the sidebar like neo-tree draws it: each section with something inside as a directory, the rest as plain
 // files in nav order
-export const buildFileTree = (sectionIds = [], { projects = [], caseStudies = [], repos = [], hasCertifications = false } = {}) =>
+export const buildFileTree = (sectionIds = [], { projects = [], repos = [] } = {}) =>
   sectionIds.map((sectionId) => {
-    const children = SECTION_FILES[sectionId]?.({ projects, caseStudies, repos, hasCertifications }) ?? [];
+    const children = SECTION_FILES[sectionId]?.({ projects, repos }) ?? [];
     if (children.length === 0) return { sectionId, name: bufferNameFor(sectionId), isDirectory: false, children };
     return { sectionId, name: `${DIRECTORY_NAMES[sectionId] ?? sectionId}/`, isDirectory: true, children };
   });
@@ -442,20 +425,6 @@ export const parseCssColor = (value = "") => {
 };
 
 export const mixColors = (from, to, amount) => from.map((channel, index) => channel + (to[index] - channel) * amount);
-
-// where the two pools of light behind the page sit, in css pixels from the top left. one starts up and to the left,
-// the other down and to the right, and they drift past each other as the page scrolls. reach is how far each spreads
-export const auroraLayout = ({ width, height, progress = 0 }) => {
-  const span = Math.max(width, height) * 0.8;
-  const reach = span / 2;
-  const driftA = (-0.1 + 0.45 * progress) * span;
-  const driftB = (0.2 - 0.45 * progress) * span;
-  return {
-    reach,
-    first: { x: -0.25 * width + reach + driftA, y: -0.25 * height + reach },
-    second: { x: width * 1.25 - reach + driftB, y: height * (4 / 3) - reach },
-  };
-};
 
 // vimium's hint letters: home row first, the keys easiest to reach without looking
 export const HINT_ALPHABET = "sadfjklewcmpgh";

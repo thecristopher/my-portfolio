@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { PAGE_SECTIONS } from "../actions";
 import { RELICS, RELIC_IDS, isComplete, migrateFound, relicCount, relicsIn } from "./relics";
 
 describe("migrateFound", () => {
@@ -32,12 +33,18 @@ describe("isComplete", () => {
 });
 
 describe("relicsIn", () => {
-  it("leaves only the grace in contact, where Malenia waits for her date", () => {
-    expect(relicsIn("contact")).toEqual(["grace"]);
+  it("keeps the grace and the d20 in contact, where Malenia rolls to ask Inde out", () => {
+    expect(relicsIn("contact")).toEqual(["grace", "d20"]);
   });
 
-  it("spreads the relics over at least eight places to explore", () => {
-    expect(new Set(RELIC_IDS.map((id) => RELICS[id].section)).size).toBeGreaterThanOrEqual(8);
+  it("hides at least one relic in every section Claire can scroll through", () => {
+    PAGE_SECTIONS.forEach((sectionId) => expect(relicsIn(sectionId).length).toBeGreaterThan(0));
+  });
+
+  it("never hides a relic in a section the page no longer renders", () => {
+    RELIC_IDS.forEach((id) => {
+      if (RELICS[id].section) expect(PAGE_SECTIONS).toContain(RELICS[id].section);
+    });
   });
 });
 

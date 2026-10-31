@@ -1,5 +1,4 @@
-import { useRef } from "react";
-import { motion, useMotionTemplate, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowDownRight } from "lucide-react";
 import KineticName from "../../components/KineticName";
 import Magnetic from "../../components/Magnetic";
@@ -9,9 +8,6 @@ import { easedGlow } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 import { INTRO_S } from "../../lib/intro";
 import ProfileWindow from "./ProfileWindow";
-
-// how far a value is between two points, held at 0 before and 1 after
-const clampProgress = (value, from, to) => Math.min(1, Math.max(0, (value - from) / (to - from)));
 
 // the soft shadow the sprite stands on
 const FLOOR_SHADOW = easedGlow("var(--color-fg)", { strength: 0.1, shape: "ellipse" });
@@ -90,49 +86,27 @@ const Intro = ({ about }) => {
 };
 
 /**
- * The opening scene, the way Apple opens a product page: the name huge and centered, then as you scroll it
- * sinks back and an editor window rises out of the page with the facts a recruiter scans for first.
+ * The opening: the name huge beside the pixel me, and profile.ts right under it with the facts a recruiter scans for
+ * first, so the whole profile is one short scroll away.
  */
 const Hero = () => {
-  const sceneRef = useRef(null);
   const { data: about } = useGetAboutQuery();
-  const prefersReducedMotion = useReducedMotion();
-  const isScene = !prefersReducedMotion;
-
-  const { scrollYProgress } = useScroll({ target: sceneRef, offset: ["start start", "end end"] });
-  const introScale = useTransform(scrollYProgress, [0, 0.45], [1, 0.86]);
-  // the function form on purpose: framer hands plain opacity ranges to the browser's scroll timeline, which maps
-  // this pinned scene's offsets wrong and leaves both layers half visible
-  const introOpacity = useTransform(scrollYProgress, (progress) => 1 - clampProgress(progress, 0.05, 0.4));
-  const introBlur = useTransform(scrollYProgress, [0.05, 0.4], [0, 12]);
-  const introFilter = useMotionTemplate`blur(${introBlur}px)`;
-  const windowY = useTransform(scrollYProgress, [0.15, 0.7], ["65vh", "0vh"]);
-  const windowScale = useTransform(scrollYProgress, [0.15, 0.75], [0.82, 1]);
-  const windowOpacity = useTransform(scrollYProgress, (progress) => clampProgress(progress, 0.15, 0.4));
 
   return (
-    <section id="home" ref={sceneRef} className={`relative ${isScene ? "h-[260svh]" : ""}`}>
-      <div className={isScene ? "sticky top-0 h-svh overflow-hidden" : "py-28"}>
-        <motion.div
-          style={isScene ? { scale: introScale, opacity: introOpacity, filter: introFilter } : undefined}
-          className="mx-auto grid h-full w-full max-w-6xl content-center items-center gap-6 px-4 pt-16 pb-10 sm:px-6 lg:grid-cols-12 lg:gap-10"
-        >
-          <div className="lg:col-span-8">
-            <Intro about={about} />
-          </div>
-          {/* on phones he stands under the buttons, where the scene still has room before the window rises */}
-          <div className="lg:col-span-4">
-            <Stage />
-          </div>
-        </motion.div>
-
-        <motion.div
-          style={isScene ? { y: windowY, scale: windowScale, opacity: windowOpacity } : undefined}
-          className={`${isScene ? "absolute inset-x-0 top-1/2 -translate-y-1/2" : "mt-12"} mx-auto w-full max-w-4xl px-4 sm:px-6`}
-        >
-          <ProfileWindow about={about} />
-        </motion.div>
+    <section id="home" className="relative pb-8 sm:pb-12">
+      <div className="mx-auto grid min-h-[min(100svh,56rem)] w-full max-w-6xl content-center items-center gap-6 px-4 pt-20 pb-10 sm:px-6 lg:grid-cols-12 lg:gap-10">
+        <div className="lg:col-span-8">
+          <Intro about={about} />
+        </div>
+        {/* on phones he stands under the buttons */}
+        <div className="lg:col-span-4">
+          <Stage />
+        </div>
       </div>
+
+      <motion.div {...riseIn(1.3)} className="mx-auto w-full max-w-4xl px-4 sm:px-6">
+        <ProfileWindow about={about} />
+      </motion.div>
     </section>
   );
 };

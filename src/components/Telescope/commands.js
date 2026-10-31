@@ -62,7 +62,7 @@ const bufferCommands = (links) =>
 const projectCommands = (caseStudies) =>
   caseStudies.map((study) => ({
     id: `project-${study.slug}`,
-    group: "Projects",
+    group: "Case studies",
     label: study.title,
     alias: study.slug,
     keywords: `${study.company} ${study.kind} ${study.technologies.join(" ")}`,

@@ -25,7 +25,7 @@ export const buildLeaderBindings = (handlers) => [
   { key: "f", label: "telescope: find anything", run: () => handlers.openTelescope() },
   { key: "e", label: "neo-tree", run: () => toggleFileTree({ focus: true }) },
   { key: "w", label: "jump to experience", run: () => scrollToSection("work") },
-  { key: "p", label: "jump to projects", run: () => scrollToSection("projects") },
+  { key: "s", label: "jump to skills", run: () => scrollToSection("skills") },
   { key: "c", label: "jump to contact", run: () => scrollToSection("contact") },
   { key: "u", label: "choose a region", run: handlers.openRegions },
   { key: "q", label: "quest log (relics)", run: handlers.openQuests },

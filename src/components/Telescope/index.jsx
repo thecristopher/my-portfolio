@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, CornerDownLeft, Search } from "lucide-react";
-import { useGetNavBarQuery } from "../../api/navBarApi";
+import { usePageLinks } from "../../api/navBarApi";
 import { useGetContactQuery } from "../../api/contactApi";
 import { useGetCaseStudiesQuery } from "../../api/caseStudiesApi";
 import { filterCommands, findCommandByAlias } from "../../actions";
@@ -100,7 +100,7 @@ const moveSelection = (event, setActiveIndex, count) => {
 };
 
 const Picker = ({ onClose, initialQuery, onOpenQuestLog, onOpenSearch, onOpenWhichKey }) => {
-  const { data: links = NO_ITEMS } = useGetNavBarQuery();
+  const links = usePageLinks();
   const { data: contact } = useGetContactQuery();
   const { data: caseStudies = NO_ITEMS } = useGetCaseStudiesQuery();
   const { region, isPinned } = useRegion();
@@ -159,7 +159,7 @@ const Picker = ({ onClose, initialQuery, onOpenQuestLog, onOpenSearch, onOpenWhi
               setActiveIndex(0);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Search sections, projects, regions or commands"
+            placeholder="Search sections, case studies, regions or commands"
             aria-label="Command"
             spellCheck={false}
             className="min-w-0 flex-1 bg-transparent text-xl tracking-tight text-fg placeholder:text-faint focus:outline-none"

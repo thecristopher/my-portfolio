@@ -7,19 +7,17 @@ Live at [cristophercervantes.com](https://cristophercervantes.com). The content 
 ## For recruiters
 
 - One **Résumé** button, in the bar at the top of every screen. It writes a real PDF in the browser (one column, standard section names, selectable text and working links, so applicant tracking systems read it cleanly), built from the same API as the page, so it's never out of date. `space r` and `:resume` call the same function, and `⌘P` prints the same resume.
-- The hero's `profile.ts` is the greeter: the whole profile at a glance (role, current company, years, location and timezone, stack, what I lead with, certifications, degree, languages and email). After it, each section tells one part in full and only once: Experience the roles, Projects each piece of work, Skills the tools, Education the certifications. The PDF follows the same rule: each case study is a bullet under its company.
+- The hero's `profile.ts` is the greeter: the whole profile at a glance (role, current company, years, location and timezone, stack, what I lead with, certifications, degree, languages and email). After it, each section tells one part in full and only once: About the story, Experience the roles with each case study under its company, Skills the tools. Education and certifications live in `profile.ts` and the PDF. The PDF follows the same rule: each case study is a bullet under its company.
 
 ## What's in it
 
-The first visit opens on Eldentree's hub: my name shimmering in the region's gold, embers rising and a player message writing itself in, then the area's name rolls across the screen like entering it in the game. Any key skips it.
+The very first visit opens on Eldentree's hub: my name shimmering in the region's gold, embers rising and a player message writing itself in. Any key skips it, and returning visitors go straight to the page.
 
-- **Hero** with my name in Geist's variable weights and the pixel me (Scott Pilgrim style) in the tall grass. Scroll and the name sinks back while `profile.ts` rises out of the page.
-- **About**: the philosophy, held still while it lights up word by word, the story with my portrait, and a weekday in Rosarito as one bar across 24 hours with where I am right now and how my clock lines up with yours.
-- **Experience**: a `git log --graph` of every title I've held, then one chapter per company, the masthead pinned while its wins light up as they pass, with a way into its case studies. Click any tool in a stack, or in the skills report, and the jobs that never used it fade back.
-- **Projects**: case studies on a rail that slides sideways while you scroll down.
-- **Skills**: how I lead as a deck of cards, what I lead with as a `:Lazy` plugin list, and every tool as a `:checkhealth` report grouped by category.
+- **Hero** with my name in Geist's variable weights and the pixel me (Scott Pilgrim style) in the tall grass, with `profile.ts` right under it.
+- **About**: the story in my own words next to my portrait.
+- **Experience**: a `git log --graph` of every title I've held, then one chapter per company, the masthead pinned beside its wins and its case studies. Each case study leads with the result and keeps the challenge and approach one click away. Click any tool in a stack, or in the skills report, and the jobs that never used it fade back.
+- **Skills**: every tool as a `:checkhealth` report grouped by category.
 - **Side quests**: Eldentree, the nvim config this page is drawn from, pinned as the main quest, then my public repos live from GitHub, browsed like a Telescope picker.
-- **Education**: the degree and the AWS badges, each saying what its exam covers.
 - **Contact**: the closing line filling with gold, every way to reach me and a terminal that logs in and out.
 
 The page paints with real content straight away: every build saves what the API serves into `src/data/snapshot.json`, the page starts from that, and then asks the API for anything newer.
@@ -35,7 +33,7 @@ The colorschemes are Eldentree's six regions with their exact palettes: Leyndell
 | `space` | The leader. which-key shows what it unlocks: résumé, yank my email, telescope, neo-tree, regions, quest log and more |
 | `:` or `⌘K` | Telescope: every section, project, command and region, with a preview. Keyboard only, there's no button for it |
 | `f` | Follow a hint: every link and button on screen gets a short label, type it to click |
-| `1` to `8` | Jump to a section by its buffer number |
+| `1` to `6` | Jump to a section by its buffer number |
 | `]]` / `[[` | Next / previous section |
 | `j` / `k`, `d` / `u` | Scroll a line, or half a page |
 | `gg` / `G` | Jump to top / bottom |
