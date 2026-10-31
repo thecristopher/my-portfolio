@@ -7,6 +7,7 @@ import TypeLine from "../../components/TypeLine";
 import FileIcon from "../../components/FileIcon";
 import { Trigger as GraceSigil } from "../../components/Relics/EldenRing";
 import { Trigger as D20 } from "../../components/Relics/BaldursGate";
+import { Trigger as OneWishWillow } from "../../components/Relics/Obsession";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetContactQuery } from "../../api/contactApi";
 import { socialIconMap } from "../../lib/socialIconMap";
@@ -202,6 +203,8 @@ const CallsToAction = ({ contact }) => (
           LinkedIn ›
         </a>
       ))}
+    {/* writing me is the wish, the twig is right there for it */}
+    <OneWishWillow zoom={0.2} />
   </div>
 );
 

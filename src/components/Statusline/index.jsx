@@ -11,7 +11,6 @@ import { setMuted, useMuted } from "../../lib/sound";
 import { searchCount, useSearchState } from "../../lib/search";
 import { useRegion } from "../../hooks/useRegion";
 import FileIcon from "../FileIcon";
-import { Trigger as BatSignal } from "../Relics/Batman";
 
 const MODE_STYLES = {
   NORMAL: "bg-accent text-ink",
@@ -160,10 +159,6 @@ const Statusline = ({ mode, activeId, onOpenQuestLog, onOpenRegions }) => {
       </span>
       <span className="hidden items-center gap-1.5 px-3 text-faint xl:flex" title="My local time in Rosarito, Mexico">
         <span className="text-muted tabular-nums">{time}</span> {status}
-      </span>
-      {/* on call means someone has to answer the signal, so it stays lit on every screen, phones included */}
-      <span className="flex items-center">
-        <BatSignal zoom={0.32} />
       </span>
       <button
         type="button"

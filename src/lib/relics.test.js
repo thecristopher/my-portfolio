@@ -33,18 +33,16 @@ describe("isComplete", () => {
 });
 
 describe("relicsIn", () => {
-  it("keeps the grace and the d20 in contact, where Malenia rolls to ask Inde out", () => {
-    expect(relicsIn("contact")).toEqual(["grace", "d20"]);
+  it("keeps the grace, the d20 and the willow in contact, where Malenia rolls to ask Inde out", () => {
+    expect(relicsIn("contact")).toEqual(["grace", "d20", "willow"]);
   });
 
   it("hides at least one relic in every section Claire can scroll through", () => {
     PAGE_SECTIONS.forEach((sectionId) => expect(relicsIn(sectionId).length).toBeGreaterThan(0));
   });
 
-  it("never hides a relic in a section the page no longer renders", () => {
-    RELIC_IDS.forEach((id) => {
-      if (RELICS[id].section) expect(PAGE_SECTIONS).toContain(RELICS[id].section);
-    });
+  it("hides every relic inside a section Claire can jump to, never in the editor chrome", () => {
+    RELIC_IDS.forEach((id) => expect(PAGE_SECTIONS).toContain(RELICS[id].section));
   });
 });
 

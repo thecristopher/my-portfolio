@@ -30,7 +30,7 @@ The colorschemes are Eldentree's six regions with their exact palettes: Leyndell
 
 | Key | What it does |
 | --- | --- |
-| `space` | The leader. which-key shows what it unlocks: résumé, yank my email, telescope, neo-tree, regions, quest log and more |
+| `space` | The leader. which-key shows what it unlocks: résumé, yank my email, telescope, regions, quest log and more |
 | `:` or `⌘K` | Telescope: every section, project, command and region, with a preview. Keyboard only, there's no button for it |
 | `f` | Follow a hint: every link and button on screen gets a short label, type it to click |
 | `1` to `6` | Jump to a section by its buffer number |
@@ -38,13 +38,12 @@ The colorschemes are Eldentree's six regions with their exact palettes: Leyndell
 | `j` / `k`, `d` / `u` | Scroll a line, or half a page |
 | `gg` / `G` | Jump to top / bottom |
 | `/` | Search the page. `n` / `N` step through the matches, `esc` or `:noh` clears them |
-| `\e` | Toggle neo-tree. In it, `j` / `k` move, `l` opens, `h` closes, `q` hides it |
 
-The bufferline across the top has a tab per section on wide screens. The lualine at the bottom shows the mode, the buffer, the relic score, the rune tally (exploring pays runes, once per thing), my local time in Rosarito with a guess at what I'm doing, the region and where in the page you are. Leave the page alone long enough and it rests at a Site of Grace, the way Eldentree does. Some commands are hidden, if you know what to type.
+The bar across the top has a tab per section on wide screens, and a menu with the same list on small ones. The lualine at the bottom shows the mode, the buffer, the relic score, the rune tally (exploring pays runes, once per thing), my local time in Rosarito with a guess at what I'm doing, the region and where in the page you are. Leave the page alone long enough and it rests at a Site of Grace, the way Eldentree does. Some commands are hidden, if you know what to type.
 
 ### Relics
 
-Twelve franchises I grew up with left a relic somewhere on the page, from the sections to the editor chrome itself: tiny, nearly see through, with no label, no glow and no cursor change, so only a careful eye finds them. Each one plays its own full screen moment with a jingle synthesized on the fly (no audio files shipped), told through my own career in that franchise's voice. A 16 bit counter in the top right ticks up on every find, and the moment holds on its last frame until you press Continue, so there's time to read it. After the first find, the score shows up in the statusline and opens the quest log (`:quests`), which keeps what you found and gives a riddle for the rest. Finds from before the redesign carry over. One of them asks the API to roll for you. I'm not saying where any of them are.
+Thirteen franchises I grew up with left a relic somewhere in the sections: tiny, nearly see through, with no label, no glow and no cursor change, so only a careful eye finds them. Each one plays its own full screen moment with a jingle synthesized on the fly (no audio files shipped), told through my own career in that franchise's voice. A 16 bit counter in the top right ticks up on every find, and the moment holds on its last frame until you press Continue, so there's time to read it. After the first find, the score shows up in the statusline and opens the quest log (`:quests`), which keeps what you found and gives a riddle for the rest. Finds from before the redesign carry over. One of them asks the API to roll for you. I'm not saying where any of them are.
 
 ## Stack
 
@@ -81,7 +80,7 @@ The app runs at `http://localhost:5173`, which is the origin the backend allows 
 ```
 src/
   sections/     one folder per page section, split into smaller pieces where it grows
-  components/   the editor chrome (Bufferline, Statusline, Telescope, WhichKey, FileTree, Hub, Banner, Rest) and shared UI
+  components/   the editor chrome (Bufferline, Statusline, Telescope, WhichKey, Hub, Banner, Rest) and shared UI
   components/Relics/
                 one folder per relic: index.jsx (the object on the page), Effect.jsx (its moment), sound.js (its jingle)
   lib/          regions, relics, runes, banners, sound, the resume (lib/resume) and other self contained pieces

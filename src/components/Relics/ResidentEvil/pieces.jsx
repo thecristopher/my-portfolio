@@ -29,17 +29,6 @@ export const Twinkles = ({ startAt }) =>
     </motion.span>
   ));
 
-/** A hard white glint that sweeps across a picture now and then, like light catching a photo in a frame. */
-export const Glint = ({ startAt }) => (
-  <motion.span
-    className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12"
-    style={{ background: "linear-gradient(to right, transparent 0 35%, rgb(255 255 255 / 0.35) 35% 65%, transparent 65%)" }}
-    initial={{ x: "0%" }}
-    animate={{ x: ["0%", "450%"] }}
-    transition={{ duration: 0.9, delay: startAt, repeat: Infinity, repeatDelay: 3.2, ease: pixelSteps(9) }}
-  />
-);
-
 /** The fine dark lines of an old CRT over the whole screen, and the flicker it gives when it powers on. */
 export const Scanlines = ({ startAt }) => (
   <motion.span

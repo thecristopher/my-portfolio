@@ -14,7 +14,6 @@ import {
   softBeams,
   brandColorFor,
   letterWeight,
-  buildFileTree,
   careerCommits,
   formatMonth,
   formatRange,
@@ -505,52 +504,6 @@ describe("nowStatus", () => {
 
   it("given the last hour of the day, expect a status anyway", () => {
     expect(nowStatus({ hour: 23, isWeekend: false })).toBeTruthy();
-  });
-});
-
-describe("buildFileTree", () => {
-  const sections = ["home", "about", "work", "skills", "github", "contact"];
-  const tree = buildFileTree(sections, {
-    projects: [{ title: "TerraSave" }, { title: "Mesón de Torrent", featured: false }],
-    repos: [{ name: "shared-playlist" }],
-  });
-
-  it("given the home section, expect the hero as a single file", () => {
-    expect(tree[0]).toMatchObject({ name: "index.tsx", isDirectory: false });
-  });
-
-  it("given the about section, expect the story as a single file", () => {
-    expect(tree.find((node) => node.sectionId === "about")).toMatchObject({ name: "about.md", isDirectory: false });
-  });
-
-  it("given the skills section, expect the report as a single file", () => {
-    expect(tree.find((node) => node.sectionId === "skills")).toMatchObject({ name: "skills.lua", isDirectory: false });
-  });
-
-  it("given featured and earlier jobs, expect the career log, each featured job and the earlier log under experience", () => {
-    expect(tree.find((node) => node.sectionId === "work")).toMatchObject({
-      name: "experience/",
-      children: [
-        { name: "career.log", targetId: "career-log" },
-        { name: "01-terrasave.json", targetId: "work-terrasave" },
-        { name: "earlier.log", targetId: "work-earlier" },
-      ],
-    });
-  });
-
-  it("given the shared playlist repo, expect it inside the side quests folder", () => {
-    expect(tree.find((node) => node.sectionId === "github")).toMatchObject({
-      name: "side-quests/",
-      children: [{ name: "shared-playlist.git", targetId: "repo-shared-playlist" }],
-    });
-  });
-
-  it("given the contact section, expect a single file", () => {
-    expect(tree.at(-1)).toMatchObject({ name: "contact.sh", isDirectory: false, children: [] });
-  });
-
-  it("given a section whose data has not arrived yet, expect a single file for now", () => {
-    expect(buildFileTree(["github"])[0]).toMatchObject({ name: "side-quests.yml", isDirectory: false });
   });
 });
 

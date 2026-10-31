@@ -216,20 +216,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* on wide screens an open file tree takes the left 16rem like a split. sections keep their backgrounds full bleed
-   and only pad what's inside, so no glow stops short in a hard line beside the tree */
-.clears-tree > main > section,
-.clears-tree > footer {
-  transition: padding-left 0.45s var(--ease-out-expo);
-}
-
-@media (min-width: 80rem) {
-  :root[data-tree="open"] .clears-tree > main > section,
-  :root[data-tree="open"] .clears-tree > footer {
-    padding-left: 16rem;
-  }
-}
-
 /* Apple's frosted material: the page blurs and saturates through it, so bars feel like glass over the content */
 .glass {
   background: color-mix(in oklab, var(--color-mantle) 72%, transparent);
