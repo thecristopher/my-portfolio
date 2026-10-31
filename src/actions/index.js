@@ -279,32 +279,6 @@ const WEEKEND_STATUS = [
 export const nowStatus = ({ hour, isWeekend }) =>
   (isWeekend ? WEEKEND_STATUS : WEEKDAY_STATUS).find(([until]) => hour < until)[1];
 
-const file = (name, targetId) => ({ name, targetId });
-
-// what each section holds when the file tree opens it as a directory. a section left out stays a single file
-const SECTION_FILES = {
-  work: ({ projects }) => {
-    const { featured, earlier } = splitFeatured(projects);
-    return [
-      file("career.log", "career-log"),
-      ...featured.map((project, index) => file(`${formatIndex(index)}-${slugify(project.title)}.json`, `work-${slugify(project.title)}`)),
-      ...(earlier.length > 0 ? [file("earlier.log", "work-earlier")] : []),
-    ];
-  },
-  github: ({ repos }) => repos.map((repo) => file(`${repo.name}.git`, `repo-${slugify(repo.name)}`)),
-};
-
-const DIRECTORY_NAMES = { github: "side-quests", work: "experience" };
-
-// the sidebar like neo-tree draws it: each section with something inside as a directory, the rest as plain
-// files in nav order
-export const buildFileTree = (sectionIds = [], { projects = [], repos = [] } = {}) =>
-  sectionIds.map((sectionId) => {
-    const children = SECTION_FILES[sectionId]?.({ projects, repos }) ?? [];
-    if (children.length === 0) return { sectionId, name: bufferNameFor(sectionId), isDirectory: false, children };
-    return { sectionId, name: `${DIRECTORY_NAMES[sectionId] ?? sectionId}/`, isDirectory: true, children };
-  });
-
 // how heavy a letter of the hero name gets with the cursor this many pixels away: full weight right on top of it,
 // easing back to the resting weight by the edge of the reach
 export const letterWeight = (distance, { rest = 500, peak = 820, reach = 240 } = {}) => {

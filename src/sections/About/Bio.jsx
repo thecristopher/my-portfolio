@@ -3,6 +3,7 @@ import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion
 import portrait from "../../assets/images/portrait.jpg";
 import Reveal from "../../components/Reveal";
 import { Trigger as FlamelCross } from "../../components/Relics/Fullmetal";
+import { Trigger as BatSignal } from "../../components/Relics/Batman";
 import { splitParagraphs } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 
@@ -36,7 +37,9 @@ const Portrait = () => {
           className="aspect-[4/5] w-full object-cover object-center"
         />
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
-        <figcaption className="absolute right-5 bottom-5 flex gap-2 font-mono text-[11px] text-muted">
+        <figcaption className="absolute right-5 bottom-5 flex items-center gap-2 font-mono text-[11px] text-muted">
+          {/* every photo is evidence, and Gotham stamps its own */}
+          <BatSignal zoom={0.32} />
           <span className="text-accent">fig.01</span>
           <span>portrait.jpg</span>
         </figcaption>

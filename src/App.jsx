@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, MotionConfig } from "framer-motion";
 import Bufferline from "./components/Bufferline";
-import FileTree from "./components/FileTree";
 import Statusline from "./components/Statusline";
 import Telescope from "./components/Telescope";
 import WhichKey from "./components/WhichKey";
@@ -59,7 +58,11 @@ const useDialogs = () => {
 /** The page as an nvim session: bufferline on top, lualine at the bottom, one buffer per section in between. */
 const App = () => {
   const links = usePageLinks();
-  const sectionIds = useMemo(() => links.map((link) => sectionIdFromUrl(link.url)).filter((id) => SECTIONS[id]), [links]);
+  const sections = useMemo(
+    () => links.map((link) => ({ id: sectionIdFromUrl(link.url), title: link.title })).filter((section) => SECTIONS[section.id]),
+    [links]
+  );
+  const sectionIds = useMemo(() => sections.map((section) => section.id), [sections]);
   const activeSectionId = useActiveSection(sectionIds);
   const { open, handlers, isAnyOpen, mode } = useDialogs();
   const leaderBindings = useMemo(() => buildLeaderBindings(handlers), [handlers]);
@@ -97,19 +100,14 @@ const App = () => {
       <a href="#about" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-fg focus:px-4 focus:py-2 focus:text-ink">
         Skip to content
       </a>
-      <Bufferline sectionIds={sectionIds} activeId={activeSectionId} onOpenRegions={handlers.openRegions} />
-      <FileTree />
-      {/* on wide screens an open file tree takes the left edge. the sections still run edge to edge underneath it,
-          only their content moves over to make room (see .clears-tree) */}
-      <div className="clears-tree">
-        <main>
-          {sectionIds.map((id, index) => {
-            const Section = SECTIONS[id];
-            return <Section key={id} number={index + 1} />;
-          })}
-        </main>
-        <Footer />
-      </div>
+      <Bufferline sections={sections} activeId={activeSectionId} onOpenRegions={handlers.openRegions} />
+      <main>
+        {sectionIds.map((id, index) => {
+          const Section = SECTIONS[id];
+          return <Section key={id} number={index + 1} />;
+        })}
+      </main>
+      <Footer />
       <Statusline mode={mode} activeId={activeSectionId} onOpenQuestLog={handlers.openQuests} onOpenRegions={handlers.openRegions} />
       <Telescope
         isOpen={open.telescope}

@@ -1,7 +1,7 @@
 import { createStore } from "./store";
 
-// the relics: one small object per franchise, spread across the whole page and its chrome, each hiding
-// where its line on the page fits it. section null means it lives in the editor chrome, not in a section.
+// the relics: one small object per franchise, spread across the sections, each hiding where its line on the page
+// fits it, so the quest log can always jump to the right section.
 // touching one plays its moment, and the quest log keeps what you found and gives a riddle for the rest. the ids
 // are the old secret ids, so anyone who found one before keeps the credit
 export const RELICS = {
@@ -99,9 +99,9 @@ export const RELICS = {
     franchise: "Batman: Arkham",
     name: "The bat symbol",
     color: "#ffd84a",
-    section: null,
+    section: "about",
     touch: "light the signal",
-    riddle: "Down in the statusline, Gotham keeps its symbol right before the sound switch.",
+    riddle: "Every photo is evidence. Gotham stamped its symbol on my portrait's caption.",
     quip: "Every bug leaves evidence. I'm the one who goes looking at 3 a.m.",
   },
   d20: {
@@ -117,9 +117,9 @@ export const RELICS = {
     franchise: "Obsession",
     name: "One Wish Willow",
     color: "#d9262b",
-    section: null,
+    section: "contact",
     touch: "make a wish",
-    riddle: "Where the page signs off, a little twig waits. One wish, then snap it in half.",
+    riddle: "Right beside the button that asks you to write, a little twig waits. One wish, then snap it in half.",
     quip: "Wish granted. No fine print, just an inbox that always answers.",
   },
 };

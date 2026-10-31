@@ -1,6 +1,5 @@
 import { exportResume } from "./resume/exportResume";
 import { scrollByAmount, scrollToSection } from "./smoothScroll";
-import { toggleFileTree } from "./fileTree";
 import { getMuted, setMuted } from "./sound";
 import { echo } from "./echo";
 import { startRest } from "./rest";
@@ -23,7 +22,6 @@ export const buildLeaderBindings = (handlers) => [
   { key: "r", label: "download résumé (pdf)", run: exportResume },
   { key: "y", label: "yank my email", run: yankEmail },
   { key: "f", label: "telescope: find anything", run: () => handlers.openTelescope() },
-  { key: "e", label: "neo-tree", run: () => toggleFileTree({ focus: true }) },
   { key: "w", label: "jump to experience", run: () => scrollToSection("work") },
   { key: "s", label: "jump to skills", run: () => scrollToSection("skills") },
   { key: "c", label: "jump to contact", run: () => scrollToSection("contact") },

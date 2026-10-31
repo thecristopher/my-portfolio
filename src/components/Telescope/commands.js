@@ -1,11 +1,10 @@
-import { ArrowRight, AtSign, Copy, Download, FileText, FolderTree, HelpCircle, Keyboard, MapPin, Pin, PinOff, Printer, Search, SearchX, Sparkles, Volume2 } from "lucide-react";
+import { ArrowRight, AtSign, Copy, Download, FileText, HelpCircle, Keyboard, MapPin, Pin, PinOff, Printer, Search, SearchX, Sparkles, Volume2 } from "lucide-react";
 import { bufferNameFor, sectionIdFromUrl } from "../../actions";
 import { REGIONS } from "../../lib/regions";
 import { scrollToSection } from "../../lib/smoothScroll";
 import { echo } from "../../lib/echo";
 import { getMuted, setMuted } from "../../lib/sound";
 import { clearSearch } from "../../lib/search";
-import { toggleFileTree } from "../../lib/fileTree";
 import { exportResume } from "../../lib/resume/exportResume";
 import { showBanner } from "../../lib/banner";
 import { startRest } from "../../lib/rest";
@@ -150,8 +149,6 @@ export const buildCommands = ({ links, caseStudies, contact, region, isRegionPin
   const finding = [
     { id: "search", group: "Find", label: "Search the page", alias: "search", keywords: "find grep /", icon: Search, run: onOpenSearch },
     { id: "noh", group: "Find", label: "Clear search highlights", alias: "noh", keywords: "nohlsearch clear", icon: SearchX, run: clearSearch },
-    { id: "tree", group: "Find", label: "Toggle the file tree", alias: "tree", keywords: "neotree sidebar explorer menu", icon: FolderTree, run: () => setTimeout(() => toggleFileTree({ focus: true }), 0) },
-    { id: "neotree", group: "Find", label: "Neotree toggle", alias: "neotree", icon: FolderTree, hidden: true, run: () => setTimeout(() => toggleFileTree({ focus: true }), 0) },
   ];
 
   const extras = [

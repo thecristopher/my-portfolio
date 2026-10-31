@@ -27,12 +27,9 @@ const OpenQuest = ({ id, onGo }) => (
     <span className="flex min-w-0 flex-col gap-1">
       <span className="text-faint">???</span>
       <span className="leading-relaxed text-pretty text-muted">{RELICS[id].riddle}</span>
-      {/* a relic in the editor chrome has no buffer to jump to, its riddle has to do */}
-      {RELICS[id].section && (
-        <button type="button" onClick={() => onGo(RELICS[id].section)} className="flex w-fit items-center gap-1.5 text-accent transition-colors hover:text-fg">
-          <MapPin size={11} aria-hidden="true" /> :e {bufferNameFor(RELICS[id].section)}
-        </button>
-      )}
+      <button type="button" onClick={() => onGo(RELICS[id].section)} className="flex w-fit items-center gap-1.5 text-accent transition-colors hover:text-fg">
+        <MapPin size={11} aria-hidden="true" /> :e {bufferNameFor(RELICS[id].section)}
+      </button>
     </span>
   </>
 );
