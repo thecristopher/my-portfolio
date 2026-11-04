@@ -9,7 +9,7 @@
       content="Cristopher Cervantes is an Engineering Manager and Tech Lead from Rosarito, Baja California, with 9+ years building software for PSL Group, Grupo Tress, Hisense and more. Résumé one click away."
     />
     <meta name="author" content="Cristopher Cervantes" />
-    <meta name="theme-color" content="#0d0b09" />
+    <meta name="theme-color" content="#fbfbfd" />
     <link rel="canonical" href="https://cristophercervantes.com/" />
     <meta property="og:title" content="Cristopher Cervantes · Engineering Manager & Tech Lead" />
     <meta
@@ -21,17 +21,17 @@
     <meta property="og:image" content="https://cristophercervantes.com/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Cristopher Cervantes, Engineering Manager and Tech Lead, beside a pixel art version of Cristopher" />
+    <meta property="og:image:alt" content="Cristopher Cervantes, Engineering Manager and Tech Lead" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://cristophercervantes.com/og.png" />
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d0b09'/%3E%3Cpath d='M16 22l12 10-12 10' fill='none' stroke='%23c9a84c' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='32' y='40' width='16' height='5' rx='2.5' fill='%23e0cda8'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff9a3d'/%3E%3Cstop offset='.55' stop-color='%23ff4d6d'/%3E%3Cstop offset='1' stop-color='%239b5cff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='43' font-family='Helvetica,Arial,sans-serif' font-size='30' font-weight='700' text-anchor='middle' fill='white'%3ECC%3C/text%3E%3C/svg%3E"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Pixelify+Sans:wght@400;600&family=Geist:wght@100..900&family=Geist+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&family=Geist:wght@100..900&family=Geist+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <!-- what search engines and recruiting tools read about the person behind the page -->
@@ -51,23 +51,15 @@
       }
     </script>
     <script>
-      // pick the region before paint so there's no flash of the default one. same rules as Eldentree in nvim:
-      // a pinned region always wins, the first visit wakes up in leyndell, and every visit after that rolls a
-      // region you didn't see last time. keep in step with startingRegion in src/lib/regions.js
+      // pick the theme before paint so there's no flash of the wrong one: the toggle's choice wins, otherwise the
+      // system decides. keep in step with resolveTheme in src/lib/theme.js
       try {
-        var regions = ["leyndell", "haligtree", "raya-lucaria", "caelid", "mohgwyn", "ordina"];
-        var pinned = localStorage.getItem("region-pinned");
-        var last = localStorage.getItem("region-last");
-        var region = "leyndell";
-        if (regions.indexOf(pinned) !== -1) region = pinned;
-        else if (regions.indexOf(last) !== -1) {
-          var others = regions.filter(function (name) { return name !== last; });
-          region = others[Math.floor(Math.random() * others.length)];
-        }
-        localStorage.setItem("region-last", region);
-        document.documentElement.dataset.theme = region;
+        var saved = localStorage.getItem("theme");
+        var theme = saved === "light" || saved === "dark" ? saved : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        document.documentElement.dataset.theme = theme;
+        document.querySelector('meta[name="theme-color"]').setAttribute("content", theme === "dark" ? "#000000" : "#fbfbfd");
       } catch (error) {
-        document.documentElement.dataset.theme = "leyndell";
+        document.documentElement.dataset.theme = "light";
       }
     </script>
   </head>

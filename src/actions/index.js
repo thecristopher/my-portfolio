@@ -10,8 +10,6 @@ export const cleanTechName = (name = "") =>
 
 export const sectionIdFromUrl = (url = "") => url.split("#")[1] ?? "";
 
-export const formatIndex = (index) => String(index + 1).padStart(2, "0");
-
 export const hostnameFromUrl = (url = "") => {
   try {
     return new URL(url).hostname.replace(/^www\./, "");
@@ -35,38 +33,8 @@ export const slugify = (text = "") =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-// people type ":about" or "about" in the cmdline, both should mean the same thing
-const normalizeQuery = (query = "") => query.trim().toLowerCase().replace(/^:/, "");
-
-export const findCommandByAlias = (commands, query) => {
-  const needle = normalizeQuery(query);
-  return commands.find((command) => command.alias === needle);
-};
-
-// secret commands stay hidden until someone types their exact alias
-export const filterCommands = (commands, query = "") => {
-  const needle = normalizeQuery(query);
-  const secret = findCommandByAlias(commands, needle);
-  if (secret?.hidden) return [secret];
-
-  const visible = commands.filter((command) => !command.hidden);
-  if (!needle) return visible;
-  return visible.filter((command) =>
-    `${command.label} ${command.group} ${command.alias ?? ""} ${command.keywords ?? ""}`.toLowerCase().includes(needle)
-  );
-};
-
-const BUFFER_NAMES = {
-  home: "index.tsx",
-  about: "about.md",
-  work: "experience.json",
-  skills: "skills.lua",
-  github: "side-quests.yml",
-  contact: "contact.sh",
-};
-
 /** The sections the page renders, in the order they read. */
-export const PAGE_SECTIONS = Object.keys(BUFFER_NAMES);
+export const PAGE_SECTIONS = ["home", "about", "work", "skills", "github", "contact"];
 
 // the same api answer always maps to the same list, so components reading it only rerender when the nav changes
 const pageLinksCache = new WeakMap();
@@ -82,23 +50,6 @@ export const pageLinks = (links = []) => {
   pageLinksCache.set(links, kept);
   return kept;
 };
-
-export const bufferNameFor = (sectionId = "") => BUFFER_NAMES[sectionId] ?? `${sectionId}.md`;
-
-// the same Top / Bot / percent readout nvim shows in its ruler
-export const scrollPosition = (scrollY, maxScroll) => {
-  if (maxScroll <= 0) return "All";
-  if (scrollY <= 0) return "Top";
-  if (scrollY >= maxScroll) return "Bot";
-  return `${Math.round((scrollY / maxScroll) * 100)}%`;
-};
-
-const FILE_TYPES = { tsx: "typescriptreact", ts: "typescript", md: "markdown", json: "json", lua: "lua", sh: "sh", yml: "yaml", toml: "toml" };
-
-// what nvim would print as the filetype in the statusline
-export const fileTypeFor = (bufferName = "") => FILE_TYPES[bufferName.split(".").pop()] ?? "text";
-
-export const isMaxLevel = (level, maxLevel) => level >= maxLevel;
 
 // keeps the API's relevance order and flags which tools belong to the main stack
 export const markMainStack = (skillLevels = [], mainStack = []) =>
@@ -184,13 +135,6 @@ export const splitFeatured = (projects = []) => ({
   earlier: projects.filter((project) => project.featured === false),
 });
 
-// where the theme reveal circle starts, and how big it has to grow to cover the farthest corner from there
-export const revealCircle = ({ x, y }, { width, height }) => ({
-  x,
-  y,
-  radius: Math.hypot(Math.max(x, width - x), Math.max(y, height - y)),
-});
-
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /**
@@ -259,33 +203,6 @@ export const localClock = (date, timeZone) => {
   return { hour: Number(parts.hour), time: `${parts.hour}:${parts.minute}`, isWeekend: ["Sat", "Sun"].includes(parts.weekday) };
 };
 
-export const WEEKDAY_STATUS = [
-  [7, "asleep. the pipeline isn't"],
-  [9, "coffee, then standup"],
-  [13, "in 1:1s and code reviews"],
-  [14, "lunch break"],
-  [18, "shipping with the team"],
-  [21, "working out, then family time"],
-  [24, "reading manga or losing to a boss"],
-];
-
-const WEEKEND_STATUS = [
-  [8, "asleep, it's the weekend"],
-  [20, "off the clock with the family"],
-  [24, "probably in a boss fight"],
-];
-
-// a guess at what I'm up to right now, for the statusline
-export const nowStatus = ({ hour, isWeekend }) =>
-  (isWeekend ? WEEKEND_STATUS : WEEKDAY_STATUS).find(([until]) => hour < until)[1];
-
-// how heavy a letter of the hero name gets with the cursor this many pixels away: full weight right on top of it,
-// easing back to the resting weight by the edge of the reach
-export const letterWeight = (distance, { rest = 500, peak = 820, reach = 240 } = {}) => {
-  const closeness = Math.max(0, 1 - distance / reach);
-  return rest + (peak - rest) * closeness * closeness * (3 - 2 * closeness);
-};
-
 // each tool in the color its own logo uses. the ones whose logo is plain black follow the text color instead
 const TECH_COLORS = {
   React: "#61dafb",
@@ -335,19 +252,6 @@ export const repoLanguages = ({ language, languages } = {}) => {
   return language ? [language] : [];
 };
 
-// a conic gradient of soft light beams. each beam fades in and out around its own angle instead of starting on a
-// hard edge, and they sit at uneven angles with uneven widths and strengths, so it reads as light, not a sunburst
-export const softBeams = (beams = [], color = "white") => {
-  const stops = [...beams]
-    .sort((a, b) => a.at - b.at)
-    .flatMap(({ at, width, strength }) => [
-      `transparent ${at - width}deg`,
-      `color-mix(in oklab, ${color} ${Math.round(strength * 100)}%, transparent) ${at}deg`,
-      `transparent ${at + width}deg`,
-    ]);
-  return stops.length === 0 ? "none" : `conic-gradient(from 0deg, transparent 0deg, ${stops.join(", ")}, transparent 360deg)`;
-};
-
 // the 16 bit take on god rays: every beam a hard edged wedge of flat color, the way an item get screen draws them
 export const pixelBeams = (beams = [], color = "white") => {
   const stops = [...beams]
@@ -373,55 +277,3 @@ export const easedGlow = (color, { strength = 1, reach = 100, shape = "closest-s
   return `radial-gradient(${shape} at ${at}, ${stops.join(", ")})`;
 };
 
-// a ring of light with the same eased falloff on both sides, for a shockwave that reads as a pulse of light
-// instead of a drawn circle. at and spread are percentages of the radius
-export const softRing = (color, { strength = 0.7, at = 76, spread = 24, steps = 8 } = {}) => {
-  const stops = Array.from({ length: steps * 2 + 1 }, (_, index) => {
-    const offset = index / steps - 1;
-    const amount = Math.round(strength * glowFalloff(Math.abs(offset)) * 1000) / 10;
-    const position = Math.min(100, Math.max(0, at + offset * spread));
-    return `color-mix(in oklab, ${color} ${amount}%, transparent) ${Math.round(position * 10) / 10}%`;
-  });
-  return `radial-gradient(closest-side, ${stops.join(", ")})`;
-};
-
-// a colorscheme color as the 0 to 1 channels a shader wants. reads the hex and rgb() forms the stylesheet uses
-export const parseCssColor = (value = "") => {
-  const text = value.trim();
-  const hex = text.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
-  if (hex) {
-    const digits = hex[1].length === 3 ? [...hex[1]].map((digit) => digit + digit).join("") : hex[1];
-    return [0, 2, 4].map((at) => parseInt(digits.slice(at, at + 2), 16) / 255);
-  }
-  const rgb = text.match(/^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
-  if (rgb) return rgb.slice(1, 4).map((channel) => Number(channel) / 255);
-  return null;
-};
-
-export const mixColors = (from, to, amount) => from.map((channel, index) => channel + (to[index] - channel) * amount);
-
-// vimium's hint letters: home row first, the keys easiest to reach without looking
-export const HINT_ALPHABET = "sadfjklewcmpgh";
-
-// a label for every hint, all the same length so none is the start of another and typing one never stops early
-export const hintLabels = (count, alphabet = HINT_ALPHABET) => {
-  if (count <= 0) return [];
-  let length = 1;
-  while (alphabet.length ** length < count) length += 1;
-  return Array.from({ length: count }, (_, index) => {
-    let label = "";
-    let rest = index;
-    for (let at = 0; at < length; at += 1) {
-      label = alphabet[rest % alphabet.length] + label;
-      rest = Math.floor(rest / alphabet.length);
-    }
-    return label;
-  });
-};
-
-// the section after or before the one you're reading, held at the ends like vim's ]] and [[ do at the last section
-export const stepSection = (ids = [], currentId, direction) => {
-  const at = ids.indexOf(currentId);
-  if (at === -1) return ids[0] ?? null;
-  return ids[Math.min(ids.length - 1, Math.max(0, at + direction))];
-};

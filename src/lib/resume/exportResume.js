@@ -4,7 +4,6 @@ import { projectsApi } from "../../api/projectsApi";
 import { caseStudiesApi } from "../../api/caseStudiesApi";
 import { contactApi } from "../../api/contactApi";
 import { echo } from "../echo";
-import { earnRunes } from "../runes";
 import { buildResume, resumeFileName } from "./buildResume";
 
 // what the page already has cached, the same data on screen right now
@@ -44,7 +43,7 @@ let isExporting = false;
 export const exportResume = async () => {
   if (isExporting) return false;
   isExporting = true;
-  echo(":w resume.pdf  writing...");
+  echo("Writing the résumé…");
   try {
     const [{ pdf }, { default: ResumeDocument }, { createElement }] = await Promise.all([
       import("@react-pdf/renderer"),
@@ -55,11 +54,10 @@ export const exportResume = async () => {
     const blob = await pdf(createElement(ResumeDocument, { resume })).toBlob();
     const fileName = resumeFileName(resume.name);
     download(blob, fileName);
-    echo(`"${fileName}" written, ${Math.max(1, Math.round(blob.size / 1024))}K`, "success");
-    earnRunes("resume", "resume");
+    echo(`${fileName} downloaded`, "success");
     return true;
   } catch {
-    echo("E212: Can't write the pdf here, opening the print dialog instead", "error");
+    echo("Couldn't write the PDF here, opening the print dialog instead", "error");
     setTimeout(() => window.print(), 300);
     return false;
   } finally {

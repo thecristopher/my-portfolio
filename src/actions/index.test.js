@@ -4,41 +4,25 @@ import {
   pixelsToPaths,
   pixelRingRows,
   repoLanguages,
-  hintLabels,
-  stepSection,
-  mixColors,
-  parseCssColor,
-  softRing,
   easedGlow,
   glowFalloff,
-  softBeams,
   brandColorFor,
-  letterWeight,
   careerCommits,
   formatMonth,
   formatRange,
   countUsing,
   localClock,
-  nowStatus,
   shortHash,
   usesTech,
   cleanTechName,
-  revealCircle,
-  formatIndex,
   hostnameFromUrl,
   sectionIdFromUrl,
   slugify,
   splitParagraphs,
   splitStatValue,
   splitWords,
-  filterCommands,
-  findCommandByAlias,
-  bufferNameFor,
   PAGE_SECTIONS,
   pageLinks,
-  scrollPosition,
-  fileTypeFor,
-  isMaxLevel,
   spriteToPixels,
   isInRegion,
   overlaySprite,
@@ -82,12 +66,6 @@ describe("sectionIdFromUrl", () => {
   });
 });
 
-describe("formatIndex", () => {
-  it("given the zero based index 0, expect 01", () => {
-    expect(formatIndex(0)).toBe("01");
-  });
-});
-
 describe("hostnameFromUrl", () => {
   it("given Claire's TerraSave link, expect the bare hostname without protocol or www", () => {
     expect(hostnameFromUrl("https://www.terrasave.org/")).toBe("terrasave.org");
@@ -124,70 +102,6 @@ describe("slugify", () => {
   });
 });
 
-describe("filterCommands", () => {
-  const commands = [
-    { label: "Go to Work", group: "Navigate", alias: "work" },
-    { label: "Copy email", group: "Contact", alias: "yank", keywords: "mail address" },
-    { label: "Open Instagram", group: "Elsewhere", alias: "instagram" },
-    { label: "Play our song", group: "Secrets", alias: "oursong", hidden: true },
-  ];
-
-  it("given a blank query, expect every visible command", () => {
-    expect(filterCommands(commands, "  ")).toHaveLength(3);
-  });
-
-  it("given an uppercase keyword, expect the command it describes", () => {
-    expect(filterCommands(commands, "MAIL").map((c) => c.label)).toEqual(["Copy email"]);
-  });
-
-  it("given a group name, expect the commands in that group", () => {
-    expect(filterCommands(commands, "elsewhere").map((c) => c.label)).toEqual(["Open Instagram"]);
-  });
-
-  it("given a leading colon like the vim cmdline, expect it to be ignored", () => {
-    expect(filterCommands(commands, ":work").map((c) => c.label)).toEqual(["Go to Work"]);
-  });
-
-  it("given only part of the secret alias, expect Inde's surprise to stay hidden", () => {
-    expect(filterCommands(commands, "ours")).toEqual([]);
-  });
-
-  it("given the exact secret alias, expect Claire and Malenia's song to show up", () => {
-    expect(filterCommands(commands, ":oursong").map((c) => c.label)).toEqual(["Play our song"]);
-  });
-});
-
-describe("findCommandByAlias", () => {
-  const commands = [{ label: "Write", alias: "w" }];
-
-  it("given an alias typed with a colon, expect its command", () => {
-    expect(findCommandByAlias(commands, ":w").label).toBe("Write");
-  });
-
-  it("given an alias nobody registered, expect undefined", () => {
-    expect(findCommandByAlias(commands, ":wq")).toBeUndefined();
-  });
-});
-
-describe("bufferNameFor", () => {
-  it("given a known section, expect its file name", () => {
-    expect(bufferNameFor("skills")).toBe("skills.lua");
-  });
-
-  it("given the github section, expect a yaml file", () => {
-    expect(bufferNameFor("github")).toBe("side-quests.yml");
-  });
-
-  it("given the contact section, expect a shell script the statusline recognizes", () => {
-    expect(bufferNameFor("contact")).toBe("contact.sh");
-    expect(fileTypeFor("contact.sh")).toBe("sh");
-  });
-
-  it("given a section Melina just added, expect a markdown file", () => {
-    expect(bufferNameFor("leyndell")).toBe("leyndell.md");
-  });
-});
-
 describe("pageLinks", () => {
   const links = [
     { title: "Home", url: "/#home" },
@@ -214,34 +128,6 @@ describe("pageLinks", () => {
   });
 });
 
-describe("scrollPosition", () => {
-  it("given the very start of the page, expect Top", () => {
-    expect(scrollPosition(0, 4000)).toBe("Top");
-  });
-
-  it("given the very end of the page, expect Bot", () => {
-    expect(scrollPosition(4000, 4000)).toBe("Bot");
-  });
-
-  it("given a quarter of the way down, expect 25%", () => {
-    expect(scrollPosition(1000, 4000)).toBe("25%");
-  });
-
-  it("given a page that fits without scrolling, expect All", () => {
-    expect(scrollPosition(0, 0)).toBe("All");
-  });
-});
-
-describe("fileTypeFor", () => {
-  it("given a tsx buffer, expect the name nvim gives it", () => {
-    expect(fileTypeFor("index.tsx")).toBe("typescriptreact");
-  });
-
-  it("given an extension it has never seen, expect text", () => {
-    expect(fileTypeFor("promise.ring")).toBe("text");
-  });
-});
-
 describe("markMainStack", () => {
   const levels = [
     { name: "TypeScript", level: 4 },
@@ -259,16 +145,6 @@ describe("markMainStack", () => {
 
   it("given no levels at all, expect an empty list", () => {
     expect(markMainStack(undefined)).toEqual([]);
-  });
-});
-
-describe("isMaxLevel", () => {
-  it("given a tool rated 5 out of 5, expect it flagged", () => {
-    expect(isMaxLevel(5, 5)).toBe(true);
-  });
-
-  it("given a tool rated 4 out of 5, expect it left alone", () => {
-    expect(isMaxLevel(4, 5)).toBe(false);
   });
 });
 
@@ -371,13 +247,6 @@ describe("idleMoveDelay", () => {
 
   it("given a roll of 1, expect the longest wait", () => {
     expect(idleMoveDelay(1)).toBe(11000);
-  });
-});
-
-describe("revealCircle", () => {
-  it("given a start in either corner, expect a radius that reaches the opposite one", () => {
-    expect(revealCircle({ x: 0, y: 0 }, { width: 300, height: 400 }).radius).toBe(500);
-    expect(revealCircle({ x: 300, y: 400 }, { width: 300, height: 400 }).radius).toBe(500);
   });
 });
 
@@ -489,40 +358,6 @@ describe("localClock", () => {
   });
 });
 
-describe("nowStatus", () => {
-  it("given 3 AM on a weekday, expect asleep", () => {
-    expect(nowStatus({ hour: 3, isWeekend: false })).toMatch(/asleep/);
-  });
-
-  it("given 10 AM on a weekday, expect code reviews", () => {
-    expect(nowStatus({ hour: 10, isWeekend: false })).toMatch(/code reviews/);
-  });
-
-  it("given a weekend afternoon, expect family time", () => {
-    expect(nowStatus({ hour: 15, isWeekend: true })).toMatch(/family/);
-  });
-
-  it("given the last hour of the day, expect a status anyway", () => {
-    expect(nowStatus({ hour: 23, isWeekend: false })).toBeTruthy();
-  });
-});
-
-describe("letterWeight", () => {
-  it("given the cursor right on a letter, expect full weight", () => {
-    expect(letterWeight(0)).toBe(820);
-  });
-
-  it("given the cursor out of reach, expect the resting weight", () => {
-    expect(letterWeight(240)).toBe(500);
-    expect(letterWeight(900)).toBe(500);
-  });
-
-  it("given the cursor halfway, expect a weight in between", () => {
-    expect(letterWeight(120)).toBeGreaterThan(500);
-    expect(letterWeight(120)).toBeLessThan(820);
-  });
-});
-
 describe("brandColorFor", () => {
   it("given React, expect its own cyan", () => {
     expect(brandColorFor("React")).toBe("#61dafb");
@@ -538,23 +373,6 @@ describe("brandColorFor", () => {
 
   it("given Torrent's saddle polish, expect no brand color", () => {
     expect(brandColorFor("Torrent Saddle Polish")).toBeNull();
-  });
-});
-
-describe("softBeams", () => {
-  it("given one beam, expect it to fade in and out around its angle", () => {
-    expect(softBeams([{ at: 90, width: 4, strength: 0.5 }], "gold")).toBe(
-      "conic-gradient(from 0deg, transparent 0deg, transparent 86deg, color-mix(in oklab, gold 50%, transparent) 90deg, transparent 94deg, transparent 360deg)"
-    );
-  });
-
-  it("given beams out of order, expect them laid out by angle", () => {
-    const gradient = softBeams([{ at: 200, width: 2, strength: 1 }, { at: 20, width: 2, strength: 1 }], "gold");
-    expect(gradient.indexOf("20deg")).toBeLessThan(gradient.indexOf("200deg"));
-  });
-
-  it("given no beams, expect none", () => {
-    expect(softBeams([], "gold")).toBe("none");
   });
 });
 
@@ -582,83 +400,6 @@ describe("easedGlow", () => {
 
   it("given a shape and a position, expect the gradient to use them", () => {
     expect(easedGlow("red", { shape: "ellipse", at: "50% 40%" })).toMatch(/^radial-gradient\(ellipse at 50% 40%/);
-  });
-});
-
-describe("softRing", () => {
-  it("given a ring at 70%, expect it to peak there and fade on both sides", () => {
-    const ring = softRing("gold", { strength: 0.5, at: 70, spread: 20, steps: 2 });
-    expect(ring).toBe(
-      "radial-gradient(closest-side, color-mix(in oklab, gold 0%, transparent) 50%, color-mix(in oklab, gold 28.1%, transparent) 60%, color-mix(in oklab, gold 50%, transparent) 70%, color-mix(in oklab, gold 28.1%, transparent) 80%, color-mix(in oklab, gold 0%, transparent) 90%)"
-    );
-  });
-
-  it("given a ring near the edge, expect it to stay inside its circle", () => {
-    expect(softRing("gold", { at: 95, spread: 20 })).not.toMatch(/10[1-9]%|11\d%/);
-  });
-});
-
-describe("parseCssColor", () => {
-  it("given a six digit hex, expect its rgb channels", () => {
-    expect(parseCssColor("#ff0000")).toEqual([1, 0, 0]);
-  });
-
-  it("given a three digit hex, expect its rgb channels", () => {
-    expect(parseCssColor("#0f0")).toEqual([0, 1, 0]);
-  });
-
-  it("given rgb with spaces or commas, expect the same channels", () => {
-    expect(parseCssColor("rgb(0 0 255)")).toEqual([0, 0, 1]);
-    expect(parseCssColor("rgba(0, 0, 255, 0.5)")).toEqual([0, 0, 1]);
-  });
-
-  it("given a css variable, expect null", () => {
-    expect(parseCssColor("var(--color-haligtree)")).toBeNull();
-  });
-});
-
-describe("mixColors", () => {
-  it("given two colors and 0.5, expect the color halfway between", () => {
-    expect(mixColors([0, 0, 0], [1, 0.5, 0], 0.5)).toEqual([0.5, 0.25, 0]);
-  });
-});
-
-describe("hintLabels", () => {
-  it("given enough letters, expect single letter labels", () => {
-    expect(hintLabels(3, "abc")).toEqual(["a", "b", "c"]);
-  });
-
-  it("given more targets than short labels, expect every label to grow together", () => {
-    expect(hintLabels(5, "ab")).toEqual(["aaa", "aab", "aba", "abb", "baa"]);
-  });
-
-  it("given many targets, expect no label to be the start of another", () => {
-    const labels = hintLabels(40);
-    labels.forEach((label) => expect(labels.filter((other) => other !== label && other.startsWith(label))).toEqual([]));
-  });
-
-  it("given zero targets, expect no labels", () => {
-    expect(hintLabels(0)).toEqual([]);
-  });
-});
-
-describe("stepSection", () => {
-  const ids = ["home", "about", "work"];
-
-  it("given a step forward from about, expect work", () => {
-    expect(stepSection(ids, "about", 1)).toBe("work");
-  });
-
-  it("given a step back from about, expect home", () => {
-    expect(stepSection(ids, "about", -1)).toBe("home");
-  });
-
-  it("given a step forward from the last section, expect to stay there", () => {
-    expect(stepSection(ids, "work", 1)).toBe("work");
-  });
-
-  it("given a section it doesn't know, expect home", () => {
-    expect(stepSection(ids, "the-haligtree", 1)).toBe("home");
   });
 });
 
