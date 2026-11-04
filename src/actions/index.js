@@ -75,24 +75,6 @@ export const pixelsToPaths = (pixels = []) => {
   return [...byColor].map(([color, d]) => ({ color, d }));
 };
 
-/**
- * A ring of pixels on a square grid, the 16 bit way to draw a shockwave or a halo.
- * @param {number} size width and height of the grid
- * @param {number} thickness how many pixels deep the ring is
- * @param {string} fill the sprite character every ring pixel gets
- * @returns {string[]} sprite rows, "." where the ring isn't
- */
-export const pixelRingRows = (size, thickness = 1, fill = "#") => {
-  const center = (size - 1) / 2;
-  const outer = size / 2;
-  return Array.from({ length: size }, (_, y) =>
-    Array.from({ length: size }, (_, x) => {
-      const distance = Math.hypot(x - center, y - center);
-      return distance <= outer && distance > outer - thickness ? fill : ".";
-    }).join("")
-  );
-};
-
 export const isInRegion = ({ x, y }, { minX = -Infinity, maxX = Infinity, minY = -Infinity, maxY = Infinity }) =>
   x >= minX && x <= maxX && y >= minY && y <= maxY;
 
@@ -251,29 +233,3 @@ export const repoLanguages = ({ language, languages } = {}) => {
   if (languages?.length) return languages;
   return language ? [language] : [];
 };
-
-// the 16 bit take on god rays: every beam a hard edged wedge of flat color, the way an item get screen draws them
-export const pixelBeams = (beams = [], color = "white") => {
-  const stops = [...beams]
-    .sort((a, b) => a.at - b.at)
-    .flatMap(({ at, width, strength }) => {
-      const tint = `color-mix(in oklab, ${color} ${Math.round(strength * 100)}%, transparent)`;
-      return [`transparent ${at - width}deg`, `${tint} ${at - width}deg`, `${tint} ${at + width}deg`, `transparent ${at + width}deg`];
-    });
-  return stops.length === 0 ? "none" : `conic-gradient(from 0deg, transparent 0deg, ${stops.join(", ")}, transparent 360deg)`;
-};
-
-// how strong a glow is at a point between its center (0) and its edge (1). flat at both ends, so there's no hot
-// spot in the middle and no ring where it runs out, the falloff a straight two stop gradient can't give
-export const glowFalloff = (t) => (1 - t * t) ** 2;
-
-// a radial glow built from that falloff, many stops deep so the eye can't find where it ends
-export const easedGlow = (color, { strength = 1, reach = 100, shape = "closest-side", at = "center", steps = 24 } = {}) => {
-  const stops = Array.from({ length: steps + 1 }, (_, index) => {
-    const t = index / steps;
-    const amount = Math.round(strength * glowFalloff(t) * 1000) / 10;
-    return `color-mix(in oklab, ${color} ${amount}%, transparent) ${Math.round(t * reach * 10) / 10}%`;
-  });
-  return `radial-gradient(${shape} at ${at}, ${stops.join(", ")})`;
-};
-

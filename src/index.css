@@ -138,11 +138,6 @@ body {
   }
 }
 
-/* rows of tool logos that slide forever, the second row the other way */
-.marquee {
-  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
-}
-
 /* a ring of light on a card's border that follows the cursor around the edge */
 .spotlight {
   position: relative;
@@ -215,22 +210,35 @@ body {
   }
 }
 
-@keyframes marquee {
-  to {
-    transform: translateX(-50%);
+/* the hero's aurora: three blurred suns drifting slowly behind the name */
+@keyframes aurora {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(6vw, 4vh) scale(1.15);
+  }
+  66% {
+    transform: translate(-5vw, 2vh) scale(0.9);
   }
 }
 
-.marquee-track {
-  animation: marquee var(--marquee-duration, 40s) linear infinite;
+.aurora {
+  animation: aurora 18s ease-in-out infinite;
 }
 
-.marquee-track[data-direction="reverse"] {
-  animation-direction: reverse;
+/* the lamp in the hero photo: warm light where the cursor is, a little shade everywhere else */
+.lamp-light {
+  background:
+    radial-gradient(circle 26vmin at var(--lamp-x, 56%) var(--lamp-y, 40%), rgb(255 205 140 / 0.32), transparent 70%),
+    radial-gradient(circle 60vmin at var(--lamp-x, 56%) var(--lamp-y, 40%), transparent 30%, rgb(0 0 0 / 0.28));
+  mix-blend-mode: soft-light;
+  transition: background-position 0.3s;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track {
+  .aurora {
     animation: none;
   }
 }

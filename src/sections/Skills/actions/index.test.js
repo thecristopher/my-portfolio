@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupByCategory, levelDots, splitMarqueeRows } from ".";
+import { groupByCategory, levelDots, orbitLayout } from ".";
 
 describe("groupByCategory", () => {
   const tools = [
@@ -31,11 +31,29 @@ describe("levelDots", () => {
   });
 });
 
-describe("splitMarqueeRows", () => {
-  it("alternates Leon's tools between the two rows", () => {
-    expect(splitMarqueeRows(["React", "Node.js", "AWS", "Lua"])).toEqual([
-      ["React", "AWS"],
-      ["Node.js", "Lua"],
-    ]);
+describe("orbitLayout", () => {
+  const tools = [
+    { name: "TypeScript", level: 5 },
+    { name: "React", level: 5 },
+    { name: "Docker", level: 4 },
+    { name: "Azure", level: 3 },
+    { name: "Lua", level: 2 },
+  ];
+  const rings = orbitLayout(tools);
+
+  it("keeps Claire's deepest tools on the inner ring", () => {
+    expect(rings[0].tools.map((tool) => tool.name)).toEqual(["TypeScript", "React"]);
+  });
+
+  it("sends everything below level four to the outer ring", () => {
+    expect(rings[2].tools.map((tool) => tool.name)).toEqual(["Azure", "Lua"]);
+  });
+
+  it("spreads each ring evenly around the circle", () => {
+    expect(rings[0].tools.map((tool) => tool.angle)).toEqual([0, 180]);
+  });
+
+  it("leaves out a ring Inde has no tools for", () => {
+    expect(orbitLayout([{ name: "Lua", level: 5 }]).map((ring) => ring.ring)).toEqual([0]);
   });
 });

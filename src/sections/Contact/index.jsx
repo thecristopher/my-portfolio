@@ -38,26 +38,76 @@ const CopyEmailButton = ({ email }) => {
   );
 };
 
-// the promise fills with the sunset as you scroll toward it, left to right, the way the light goes down over the water
-const SunsetHeadline = () => {
-  const ref = useRef(null);
-  const prefersReducedMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.9", "end 0.4"] });
-  const unlit = useScrollRange(scrollYProgress, [0, 1], [100, 0]);
+// the promise fills with the sunset left to right as the sun goes down behind it
+const SunsetHeadline = ({ progress, isStill }) => {
+  const unlit = useScrollRange(progress, [0.15, 0.75], [100, 0]);
   // the clip reaches past the tight line box so the descenders of the lit words never get cut off
   const clipPath = useMotionTemplate`inset(-0.2em ${unlit}% -0.3em 0)`;
-  const scale = useScrollRange(scrollYProgress, [0, 1], [0.92, 1]);
 
   return (
-    <motion.h2 ref={ref} style={prefersReducedMotion ? undefined : { scale }} className="text-[clamp(3rem,10vw,8.5rem)] leading-[0.92] font-semibold tracking-[-0.055em]">
+    <h2 className="text-[clamp(3rem,10vw,8.5rem)] leading-[0.92] font-semibold tracking-[-0.055em]">
       <span className="block">Let's build</span>
       <span className="relative block">
         <span className="block text-line-strong">something worth keeping.</span>
-        <motion.span aria-hidden="true" className="text-sunset absolute inset-0 block" style={{ clipPath: prefersReducedMotion ? "none" : clipPath }}>
+        <motion.span aria-hidden="true" className="text-sunset absolute inset-0 block" style={{ clipPath: isStill ? "none" : clipPath }}>
           something worth keeping.
         </motion.span>
       </span>
-    </motion.h2>
+    </h2>
+  );
+};
+
+const HORIZON = "64%";
+
+// the sun going down into the sea off Rosarito: it sinks past the horizon as you scroll, its reflection shrinking with it
+const Sunset = ({ progress, isStill }) => {
+  const sunY = useScrollRange(progress, [0, 0.9], ["-30%", "62%"]);
+  const sky = useScrollRange(progress, [0, 0.9], [0.15, 0.6]);
+  const reflection = useScrollRange(progress, [0, 0.85], [1, 0.1]);
+  const still = { y: "30%" };
+  return (
+    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+      <motion.div className="bg-sunset absolute inset-x-0 top-0 blur-3xl" style={{ height: HORIZON, opacity: isStill ? 0.35 : sky, maskImage: "linear-gradient(to bottom, transparent, black)" }} />
+      <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height: HORIZON }}>
+        <motion.span
+          className="absolute bottom-0 left-[70%] aspect-square w-[min(56vmin,30rem)] -translate-x-1/2 rounded-full"
+          style={{ ...(isStill ? still : { y: sunY }), background: "radial-gradient(circle at 50% 40%, #fff4d1 0%, var(--color-sunset-1) 45%, var(--color-sunset-2) 100%)", boxShadow: "0 0 120px 30px color-mix(in oklab, var(--color-sunset-1) 45%, transparent)" }}
+        />
+      </div>
+      <div className="absolute inset-x-0 bottom-0 bg-[color-mix(in_oklab,var(--color-sunset-3)_10%,var(--color-ink))]" style={{ top: HORIZON }}>
+        <motion.span
+          className="absolute top-0 left-[70%] h-[70%] w-[min(50vmin,26rem)] -translate-x-1/2 blur-[2px]"
+          style={{
+            opacity: isStill ? 0.5 : reflection,
+            background: "linear-gradient(to bottom, var(--color-sunset-1), transparent)",
+            maskImage: "repeating-linear-gradient(to bottom, black 0 6px, transparent 6px 14px)",
+          }}
+        />
+      </div>
+      <span className="absolute inset-x-0 h-px bg-[color-mix(in_oklab,var(--color-sunset-1)_60%,transparent)]" style={{ top: HORIZON }} />
+    </div>
+  );
+};
+
+// the closing scene, pinned while the sun sets and the line fills with its light
+const SunsetScene = () => {
+  const ref = useRef(null);
+  const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const scene = (
+    <div className="relative flex h-svh flex-col justify-start overflow-hidden pt-[14svh]">
+      <Sunset progress={scrollYProgress} isStill={prefersReducedMotion} />
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 sm:px-6">
+        <p className="text-sm font-semibold text-accent">Contact</p>
+        <SunsetHeadline progress={scrollYProgress} isStill={prefersReducedMotion} />
+      </div>
+    </div>
+  );
+  if (prefersReducedMotion) return scene;
+  return (
+    <div ref={ref} className="relative h-[220svh]">
+      <div className="sticky top-0">{scene}</div>
+    </div>
   );
 };
 
@@ -134,15 +184,12 @@ const Contact = () => {
   const { data: contact, isLoading, isError } = useGetContactQuery();
 
   return (
-    <section id="contact" className="relative overflow-hidden pt-28 pb-24 sm:pt-40 sm:pb-32">
-      <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
-        <div className="flex flex-col gap-8">
-          <p className="text-sm font-semibold text-accent">Contact</p>
-          <SunsetHeadline />
-          <motion.p {...rise(0.1)} className="max-w-2xl text-xl leading-relaxed text-muted text-pretty">
-            Hiring, building something, or just want to argue about Neovim configs? Write me. I read every message, and I answer all of them.
-          </motion.p>
-        </div>
+    <section id="contact" className="relative pb-24 sm:pb-32">
+      <SunsetScene />
+      <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 pt-20 sm:px-6">
+        <motion.p {...rise(0.1)} className="max-w-2xl text-2xl leading-snug font-medium text-pretty sm:text-3xl">
+          Hiring, building something, or just want to argue about Neovim configs? Write me. <span className="text-muted">I read every message, and I answer all of them.</span>
+        </motion.p>
 
         {isLoading && <SkeletonLines lines={2} />}
         {isError && !contact && <LoadError what="the contact details" />}

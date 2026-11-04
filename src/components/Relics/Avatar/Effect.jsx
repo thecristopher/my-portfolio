@@ -1,228 +1,82 @@
-import { motion, useReducedMotion } from "framer-motion";
-import { EffectLayer, Shockwave, TypedText } from "../shared";
+import { motion } from "framer-motion";
+import { Bloom, DrawnPath, MomentCopy, MomentLayer } from "../shared";
 import { useMomentLength } from "../moment";
-import { easedGlow } from "../../../actions";
-import { pixelSteps } from "../../../lib/motion";
-import PixelArt from "../../PixelArt";
-import { AangArrow, NationEmblem } from "./Emblems";
-import { NATIONS } from "./nations";
-import { FLAME_PALETTE, FLAME_ROWS } from "./sprites";
-import { BEATS, diamondSpots, elementBeat, flameRow, gustRows, mirrorRows, rockRows, waveRows } from "./helpers";
+import { AirbenderArrow } from "../emblems";
+import { AIR_ORANGE } from "../artwork";
+import { pointOnCircle } from "../../../lib/geometry";
+import { easeOutExpo } from "../../../lib/motion";
+import { BEATS, elementBeat } from "./helpers";
 
-const SCROLL_GOLD = "#f3d9a4";
-const OUTLINE = "#0b1622";
-// each element holds the screen for its beat plus a little overlap, so one line hands off to the next
-const SCENE_S = BEATS.elementGap + 0.25;
-const WAVE_ROWS = waveRows({ width: 160, height: 20, level: 7, swell: 4, wavelength: 20 });
-const ROCKS = Array.from({ length: 7 }, (_, index) => ({ index, rows: rockRows(index), left: (index / 7) * 100 - 1 }));
-const FLAMES = flameRow(9);
-const FLAME_FLICKER = mirrorRows(FLAME_ROWS);
-const GUST_ARCS = [
-  { radius: 14, from: 0, sweep: 200, fill: "w" },
-  { radius: 18, from: 120, sweep: 160, fill: "#" },
-  { radius: 22, from: 240, sweep: 220, fill: "w" },
-  { radius: 10, from: 60, sweep: 140, fill: "#" },
+// the four nations in the order the narration names them, each as one clean stroke in its own color
+const ELEMENTS = [
+  { word: "Water", color: "#3b9cff", d: "M8 34c6-8 10-8 16 0s10 8 16 0 10-8 16 0" },
+  { word: "Earth", color: "#3fb35f", d: "M10 48L24 22L32 34L40 18L54 48Z" },
+  { word: "Fire", color: "#e8432b", d: "M32 54c-12 0-16-10-10-20 2 6 6 6 6 2 0-8 4-14 10-18-2 8 8 12 8 22 0 8-6 14-14 14Z" },
+  { word: "Air", color: "#f5a524", d: "M32 32m-2 0a2 2 0 1 1 4 0a6 6 0 1 1-12 0a10 10 0 1 1 20 0a14 14 0 1 1-28 0" },
 ];
-// the gusts spin by being redrawn a few degrees on, frame after frame, so their pixels never leave the grid
-const GUST_FRAMES = [0, 32, 64, 96, 128, 160].map((turn) => gustRows(48, GUST_ARCS, turn));
-// the hard shadow every pixel title wears, a 16 bit drop shadow instead of a blurred glow
-const pixelShadow = (color) => `2px 2px 0 ${color}, 4px 4px 0 ${OUTLINE}`;
+const ORBIT = 21;
 
-// how long a backdrop plays: in fast, held, out with its scene
-const sceneTiming = (index) => ({ duration: SCENE_S, delay: elementBeat(index), times: [0, 0.15, 0.8, 1], ease: pixelSteps(3) });
+// each element arrives on its drum, at its corner of the circle, with its name under it
+const Element = ({ element, index }) => {
+  const spot = pointOnCircle(index * 90, ORBIT);
+  const at = elementBeat(index);
+  return (
+    <motion.div
+      className="absolute top-[32%] left-1/2 flex w-28 -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1"
+      initial={{ x: `${spot.x}vmin`, y: `${spot.y}vmin`, opacity: 0, scale: 0.6 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.8, delay: at, ease: easeOutExpo }}
+    >
+      <svg viewBox="0 0 64 64" className="size-[min(13vmin,5rem)] overflow-visible" style={{ filter: `drop-shadow(0 0 10px ${element.color})` }}>
+        <DrawnPath d={element.d} color={element.color} at={at} duration={0.7} width={3} />
+      </svg>
+      <span className="text-sm font-semibold" style={{ color: element.color }}>
+        {element.word}
+      </span>
+    </motion.div>
+  );
+};
 
-const WaveRoll = ({ nation, isCalm }) => (
-  <div className="absolute inset-x-0 bottom-0 h-[40vh] overflow-hidden">
-    {[0.45, 1].map((strength, layer) => (
-      <motion.div
-        key={strength}
-        className="absolute left-0 w-[max(200%,160vh)]"
-        style={{ bottom: `${-layer * 4}vh`, opacity: strength }}
-        initial={{ x: "0%", y: isCalm ? "0%" : "70%" }}
-        animate={{ x: isCalm ? "0%" : `-${25 + layer * 25}%`, y: "0%" }}
-        transition={{
-          x: { duration: SCENE_S, delay: elementBeat(0), ease: pixelSteps(10) },
-          y: { duration: 0.5, delay: elementBeat(0), ease: pixelSteps(4) },
-        }}
-      >
-        <PixelArt rows={WAVE_ROWS} palette={{ K: OUTLINE, "+": nation.light, "#": nation.color, "-": nation.dark }} className="block h-auto w-full" />
-      </motion.div>
-    ))}
-  </div>
+// the ring that ties the four together once Air has spoken, turning slowly
+const Ring = () => (
+  <motion.svg
+    viewBox="-50 -50 100 100"
+    className="absolute top-[32%] left-1/2 size-[min(42vmin,24rem)] -translate-x-1/2 -translate-y-1/2 overflow-visible"
+    initial={{ rotate: 0 }}
+    animate={{ rotate: 90 }}
+    transition={{ duration: 6, delay: BEATS.together, ease: "linear" }}
+  >
+    <DrawnPath d="M-48 0a48 48 0 1 0 96 0a48 48 0 1 0-96 0" color="#ffffff55" at={BEATS.together} duration={1.2} width={0.4} />
+  </motion.svg>
 );
 
-const ROCK_PALETTE = { K: OUTLINE, "+": "#8a7458", "#": "#5c4a36", "-": "#3a2e22" };
-
-const RocksRise = ({ nation }) =>
-  ROCKS.map(({ index, rows, left }) => (
-    <motion.div
-      key={index}
-      className="absolute bottom-0 w-[16%]"
-      style={{ left: `${left}%`, filter: `drop-shadow(0 -3px 0 ${nation.color})` }}
-      initial={{ y: "110%" }}
-      animate={{ y: index % 2 === 0 ? "0%" : "18%" }}
-      transition={{ duration: 0.5, delay: elementBeat(1) + Math.abs(index - 3) * 0.04, ease: pixelSteps(5) }}
-    >
-      <PixelArt rows={rows} palette={ROCK_PALETTE} className="block h-auto w-full" />
-    </motion.div>
-  ));
-
-// a tongue of fire flickers by swapping to its mirror image, the two frame loop old games used for every torch
-const Flame = ({ height, flicker, isCalm }) => (
-  <div className="relative" style={{ height: `${height}vh`, aspectRatio: "10 / 16" }}>
-    <PixelArt rows={FLAME_ROWS} palette={FLAME_PALETTE} className="absolute inset-0 size-full" />
-    {!isCalm && (
-      <motion.span
-        className="absolute inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: [0, 1, 0] }}
-        transition={{ duration: flicker * 2, repeat: Infinity, ease: pixelSteps(1) }}
-      >
-        <PixelArt rows={FLAME_FLICKER} palette={FLAME_PALETTE} className="size-full" />
-      </motion.span>
-    )}
-  </div>
-);
-
-const FlamesRise = ({ isCalm }) =>
-  FLAMES.map(({ left, height, flicker }) => (
-    <motion.div
-      key={left}
-      className="absolute bottom-0 -translate-x-1/2"
-      style={{ left: `${left}%` }}
-      initial={{ y: "100%" }}
-      animate={{ y: "0%" }}
-      transition={{ duration: 0.4, delay: elementBeat(2), ease: pixelSteps(4) }}
-    >
-      <Flame height={height} flicker={flicker} isCalm={isCalm} />
-    </motion.div>
-  ));
-
-const GustsSwirl = ({ nation, isCalm }) => {
-  const frames = isCalm ? GUST_FRAMES.slice(0, 1) : GUST_FRAMES;
-  const frameS = SCENE_S / frames.length;
-  return (
-    <div className="absolute top-[42%] left-1/2 size-[min(96vw,34rem)] -translate-x-1/2 -translate-y-1/2">
-      {frames.map((rows, index) => (
-        <motion.span
-          key={index}
-          className="absolute inset-0"
-          initial={{ opacity: 0 }}
-          // each frame blinks on for its slice of the scene and the last one holds until the scene fades
-          animate={{ opacity: index === frames.length - 1 ? [0, 1, 1, 1] : [0, 1, 1, 0] }}
-          transition={{ duration: frameS, delay: elementBeat(3) + index * frameS, times: [0, 0.01, 0.99, 1], ease: pixelSteps(1) }}
-        >
-          <PixelArt rows={rows} palette={{ w: "#fff3dc", "#": nation.color }} className="size-full" />
-        </motion.span>
-      ))}
-    </div>
-  );
-};
-
-const BACKDROPS = {
-  water: WaveRoll,
-  earth: RocksRise,
-  fire: FlamesRise,
-  air: GustsSwirl,
-};
-
-// one line of the narration: the element's backdrop, its emblem big in the middle, and its name
-const ElementScene = ({ nation, index, isCalm }) => {
-  const Backdrop = BACKDROPS[nation.id];
-  return (
-    <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 1, 0] }} transition={sceneTiming(index)}>
-      <Backdrop nation={nation} isCalm={isCalm} />
-      <div className="absolute inset-x-4 top-[42%] flex -translate-y-1/2 flex-col items-center gap-5">
-        <motion.span
-          className="relative block"
-          initial={{ scale: isCalm ? 1 : 0.5 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.4, delay: elementBeat(index), ease: pixelSteps(4) }}
-        >
-          <span className="absolute -inset-1/2" style={{ background: easedGlow(nation.color, { strength: 0.35 }) }} />
-          <NationEmblem nation={nation} className="relative block size-[min(40vw,10rem)]" />
-        </motion.span>
-        <p className="font-pixel text-4xl tracking-[0.12em] text-white sm:text-5xl" style={{ textShadow: pixelShadow(nation.color) }}>
-          {nation.word}
-        </p>
-      </div>
-    </motion.div>
-  );
-};
-
-// all four nations around Aang's arrow, then the narration and what it means here
-const Harmony = ({ isCalm }) => {
-  const spots = diamondSpots(36);
-  return (
-    <div className="absolute inset-x-4 top-[46%] flex -translate-y-1/2 flex-col items-center gap-6 sm:gap-8">
-      <div className="relative size-[min(68vw,17rem)]">
-        <Shockwave color={SCROLL_GOLD} delay={BEATS.together} size="100%" />
-        {NATIONS.map((nation, index) => (
-          <motion.span
-            key={nation.id}
-            className="absolute top-1/2 left-1/2 block size-[26%] -translate-x-1/2 -translate-y-1/2"
-            initial={{ opacity: 0, left: "50%", top: "50%", scale: 0.3 }}
-            animate={{ opacity: 1, left: `${50 + spots[index].x}%`, top: `${50 + spots[index].y}%`, scale: 1 }}
-            transition={{ duration: 0.6, delay: BEATS.together + index * 0.05, ease: pixelSteps(6) }}
-          >
-            <NationEmblem nation={nation} className="block size-full" />
-          </motion.span>
-        ))}
-        <motion.span
-          className="absolute top-1/2 left-1/2 block h-[34%] -translate-x-1/2 -translate-y-1/2"
-          initial={{ opacity: 0, y: isCalm ? 0 : "-45vh" }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: BEATS.together + 0.1, ease: pixelSteps(6) }}
-        >
-          <AangArrow className="h-full w-auto" />
-        </motion.span>
-      </div>
-      <div className="flex max-w-md flex-col items-center gap-3 text-center text-balance font-pixel">
-        <p className="text-[clamp(0.95rem,4vw,1.125rem)] text-[#f3e6c8]" style={{ textShadow: `2px 2px 0 ${OUTLINE}` }}>
-          <TypedText text="Long ago, the four stacks lived together in harmony." startAt={BEATS.harmony} perLetter={0.022} />
-        </p>
-        <p className="flex flex-wrap justify-center gap-x-3 text-[clamp(0.875rem,3.6vw,1rem)] tracking-[0.18em] uppercase">
-          {["Frontend.", "Backend.", "Cloud.", "People."].map((role, index) => (
-            <motion.span
-              key={role}
-              style={{ color: NATIONS[index].color, textShadow: `2px 2px 0 ${OUTLINE}` }}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: BEATS.roles + index * 0.18, ease: pixelSteps(3) }}
-            >
-              {role}
-            </motion.span>
-          ))}
-        </p>
-        <motion.p
-          className="text-[clamp(0.95rem,4vw,1.125rem)] text-white"
-          style={{ textShadow: pixelShadow(SCROLL_GOLD) }}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: BEATS.master, ease: pixelSteps(3) }}
-        >
-          Only an Engineering Manager can master all four.
-        </motion.p>
-      </div>
-    </div>
-  );
-};
-
-/** Avatar: the opening narration. Water, Earth, Fire, Air, one beat apart, then the four nations join around Aang's arrow and stay. */
-const FourNations = ({ onDone }) => {
-  const isCalm = useReducedMotion();
+/** Avatar: Water, Earth, Fire and Air arrive one drum apart, then the ring joins them around Aang's arrow. */
+const FourNationsMoment = ({ onDone }) => {
   useMomentLength(BEATS.lastsMs, onDone);
-
   return (
-    <EffectLayer background={`${easedGlow(SCROLL_GOLD, { strength: 0.08, reach: 80 })}, rgba(2,2,4,0.97)`}>
-      {NATIONS.map((nation, index) => (
-        <ElementScene key={nation.id} nation={nation} index={index} isCalm={isCalm} />
+    <MomentLayer color={AIR_ORANGE} glowAt="50% 32%">
+      <Ring />
+      {ELEMENTS.map((element, index) => (
+        <Element key={element.word} element={element} index={index} />
       ))}
-      <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, delay: BEATS.together - 0.1, ease: pixelSteps(3) }}>
-        <Harmony isCalm={isCalm} />
+      <Bloom color={AIR_ORANGE} at={BEATS.together} size="min(36vmin,16rem)" className="top-[32%]" />
+      <motion.div
+        className="absolute top-[32%] left-1/2 size-[min(16vmin,6rem)] -translate-x-1/2 -translate-y-1/2"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, delay: BEATS.together, ease: easeOutExpo }}
+      >
+        <AirbenderArrow className="size-full" />
       </motion.div>
-    </EffectLayer>
+      <MomentCopy
+        color={AIR_ORANGE}
+        eyebrow="Avatar: The Last Airbender"
+        title="Four stacks, in harmony."
+        lines={["Frontend. Backend. Cloud. People.", "Still mastering the last one."]}
+        at={BEATS.harmony}
+      />
+    </MomentLayer>
   );
 };
 
-export default FourNations;
+export default FourNationsMoment;

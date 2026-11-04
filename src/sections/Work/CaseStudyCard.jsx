@@ -53,10 +53,7 @@ const CaseStudyCard = ({ study, index }) => {
       className="scroll-mt-24"
     >
       <SpotlightCard className="card flex flex-col gap-6 rounded-3xl p-7 sm:p-9">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent">{study.kind}</span>
-          <span className="text-sm text-muted">{study.role}</span>
-        </div>
+        <span className="w-fit rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent">{study.kind}</span>
         <h4 className="text-[clamp(1.6rem,3vw,2.25rem)] leading-tight font-semibold tracking-tight text-balance">{study.title}</h4>
         <p className="text-lg leading-relaxed text-muted text-pretty">{study.summary}</p>
         {study.metrics?.length > 0 && (

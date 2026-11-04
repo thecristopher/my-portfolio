@@ -20,8 +20,19 @@ export const groupByCategory = (tools = []) =>
 export const levelDots = (level = 0) => Array.from({ length: MAX_LEVEL }, (_, index) => index < level);
 
 /**
- * Splits the tools into the two marquee rows, alternating so both rows mix the main stack with the rest.
- * @param {string[]} tools tool names in relevance order
- * @returns {[string[], string[]]} the first row and the second
+ * Lays the tools out in rings around a center, the deepest ones closest in: level 5 on the inner ring, level 4 on the
+ * middle one and everything else on the outer one. Each ring spreads its tools evenly, starting at its own angle so
+ * no two rings line up.
+ * @param {{ name: string, level: number }[]} tools the tools
+ * @returns {{ ring: number, tools: { name: string, level: number, angle: number }[] }[]} rings from inner to outer, empty ones left out
  */
-export const splitMarqueeRows = (tools = []) => [tools.filter((_, index) => index % 2 === 0), tools.filter((_, index) => index % 2 === 1)];
+export const orbitLayout = (tools = []) => {
+  const ringOf = (level) => (level >= 5 ? 0 : level === 4 ? 1 : 2);
+  return [0, 1, 2]
+    .map((ring) => {
+      const members = tools.filter((tool) => ringOf(tool.level) === ring);
+      const start = ring * 23;
+      return { ring, tools: members.map((tool, index) => ({ ...tool, angle: start + (index * 360) / members.length })) };
+    })
+    .filter((ring) => ring.tools.length > 0);
+};

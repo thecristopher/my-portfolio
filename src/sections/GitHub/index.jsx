@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useReducedMotion, useScroll } from "framer-motion";
 import { ArrowUpRight, GitFork, Star } from "lucide-react";
 import SectionHeading, { Sunset } from "../../components/SectionHeading";
 import TechIcon from "../../components/TechIcon";
@@ -9,29 +10,19 @@ import { useScrollRange } from "../../hooks/useScrollRange";
 import { GITHUB_USER, useGetReposQuery } from "../../api/githubApi";
 import { brandColorFor, repoLanguages, slugify } from "../../actions";
 import { usePinnedTrack } from "../../hooks/usePinnedTrack";
-import { easeOutExpo } from "../../lib/motion";
 import { MAIN_PROJECT, lastPushed } from "./actions";
 
 const NO_REPOS = [];
 
 const languageColor = (language) => brandColorFor(language ?? "") ?? "var(--color-accent)";
 
-// the config I live in every day, on a dark stage of its own in either theme
-const MainProject = () => (
-  <motion.a
-    href={MAIN_PROJECT.url}
-    target="_blank"
-    rel="noreferrer"
-    initial={{ opacity: 0, y: 48, scale: 0.97 }}
-    whileInView={{ opacity: 1, y: 0, scale: 1 }}
-    viewport={{ once: true, margin: "-80px" }}
-    transition={{ duration: 1.1, ease: easeOutExpo }}
-    className="group relative grid gap-10 overflow-hidden rounded-[2rem] bg-stage p-8 text-stage-fg sm:p-12 lg:grid-cols-[1fr_1.1fr]"
-  >
+// what's on the screen: the pitch on one side and what it does on the other
+const Screen = () => (
+  <a href={MAIN_PROJECT.url} target="_blank" rel="noreferrer" className="group relative grid gap-8 overflow-hidden rounded-[1.1rem] bg-stage p-6 text-stage-fg sm:p-10 lg:grid-cols-[1fr_1.1fr]">
     <span className="bg-sunset pointer-events-none absolute -top-40 -right-32 size-[28rem] rounded-full opacity-25 blur-3xl transition-opacity duration-700 group-hover:opacity-40" aria-hidden="true" />
     <div className="relative flex flex-col gap-5">
       <p className="text-sm font-semibold text-glow">Featured project</p>
-      <h3 className="text-[clamp(2.6rem,6vw,4.5rem)] leading-none font-semibold tracking-[-0.045em]">{MAIN_PROJECT.title}</h3>
+      <h3 className="text-[clamp(2.4rem,6vw,4.5rem)] leading-none font-semibold tracking-[-0.045em]">{MAIN_PROJECT.title}</h3>
       <p className="text-lg leading-relaxed text-stage-fg/75 text-pretty">{MAIN_PROJECT.pitch}</p>
       <span className="mt-auto flex w-fit items-center gap-1.5 text-sm font-medium text-glow">
         View on GitHub
@@ -46,8 +37,35 @@ const MainProject = () => (
         </li>
       ))}
     </ul>
-  </motion.a>
+  </a>
 );
+
+// the config I live in every day, on a laptop whose lid opens as it scrolls into view
+const MainProject = () => {
+  const ref = useRef(null);
+  const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
+  const lid = useScrollRange(scrollYProgress, [0, 0.85], [78, 0]);
+  const scale = useScrollRange(scrollYProgress, [0, 0.85], [0.82, 1]);
+  const glow = useScrollRange(scrollYProgress, [0.5, 1], [0, 0.6]);
+
+  return (
+    <motion.div ref={ref} style={prefersReducedMotion ? undefined : { scale }} className="relative mx-auto w-full max-w-5xl">
+      <motion.span style={{ opacity: glow }} className="bg-sunset pointer-events-none absolute inset-x-[10%] -bottom-10 h-24 rounded-full blur-3xl" aria-hidden="true" />
+      <div className="[perspective:1800px]">
+        <motion.div
+          style={prefersReducedMotion ? undefined : { rotateX: lid }}
+          className="origin-bottom rounded-t-[1.6rem] bg-[#0c0c0e] p-2.5 shadow-2xl ring-1 ring-white/10 sm:p-3.5"
+        >
+          <Screen />
+        </motion.div>
+      </div>
+      <div className="relative mx-auto h-3.5 w-[106%] -translate-x-[2.8%] rounded-b-[1.4rem] bg-gradient-to-b from-[#c9c9cf] to-[#8d8d94] dark:from-[#3a3a3f] dark:to-[#1d1d20]">
+        <span className="absolute top-0 left-1/2 h-1.5 w-[14%] -translate-x-1/2 rounded-b-lg bg-black/20" aria-hidden="true" />
+      </div>
+    </motion.div>
+  );
+};
 
 const RepoMeta = ({ repo }) => (
   <dl className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted">

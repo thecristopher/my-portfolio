@@ -12,7 +12,7 @@ const Story = ({ description }) => {
   const [lead, ...rest] = splitParagraphs(description);
   return (
     <div className="flex flex-col gap-20 sm:gap-28">
-      {lead && <ScrollWords text={lead} className="text-[clamp(1.9rem,4.6vw,3.6rem)] leading-[1.12] font-semibold tracking-[-0.035em] text-pretty" />}
+      {lead && <ScrollWords pinned text={lead} className="text-[clamp(1.9rem,4.6vw,3.6rem)] leading-[1.12] font-semibold tracking-[-0.035em] text-pretty" />}
       <div className="grid gap-10 lg:grid-cols-12">
         <p className="text-sm font-semibold text-muted lg:col-span-4">How I got here</p>
         <div className="flex flex-col gap-6 lg:col-span-8">
@@ -42,7 +42,7 @@ const About = () => {
           eyebrow="About"
           title={
             <>
-              From the editor <Sunset>to the org chart.</Sunset>
+              From the border <Sunset>to the world.</Sunset>
             </>
           }
           lead="Hand me a hard problem and a team that wants to ship. I'll dig in until it works, and leave code a tired dev can still read at 2 AM."

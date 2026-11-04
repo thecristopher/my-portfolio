@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  pixelBeams,
   pixelsToPaths,
-  pixelRingRows,
   repoLanguages,
-  easedGlow,
-  glowFalloff,
   brandColorFor,
   careerCommits,
   formatMonth,
@@ -376,33 +372,6 @@ describe("brandColorFor", () => {
   });
 });
 
-describe("glowFalloff", () => {
-  it("given the center, expect full strength", () => {
-    expect(glowFalloff(0)).toBe(1);
-  });
-
-  it("given the edge, expect zero", () => {
-    expect(glowFalloff(1)).toBe(0);
-  });
-
-  it("given steps outward from the center, expect each one softer than the last", () => {
-    const samples = [0, 0.2, 0.4, 0.6, 0.8, 1].map(glowFalloff);
-    samples.slice(1).forEach((value, index) => expect(value).toBeLessThan(samples[index]));
-  });
-});
-
-describe("easedGlow", () => {
-  it("given a strength and a reach, expect it to start at that strength and settle to transparent at the reach", () => {
-    const glow = easedGlow("red", { strength: 0.4, reach: 80, steps: 4 });
-    expect(glow.startsWith("radial-gradient(closest-side at center, color-mix(in oklab, red 40%, transparent) 0%")).toBe(true);
-    expect(glow.endsWith("color-mix(in oklab, red 0%, transparent) 80%)")).toBe(true);
-  });
-
-  it("given a shape and a position, expect the gradient to use them", () => {
-    expect(easedGlow("red", { shape: "ellipse", at: "50% 40%" })).toMatch(/^radial-gradient\(ellipse at 50% 40%/);
-  });
-});
-
 describe("repoLanguages", () => {
   it("keeps every language of Claire's webcam app, Swift first, then Rust", () => {
     expect(repoLanguages({ language: "Swift", languages: ["Swift", "Rust"] })).toEqual(["Swift", "Rust"]);
@@ -441,40 +410,3 @@ describe("pixelsToPaths", () => {
   });
 });
 
-describe("pixelRingRows", () => {
-  it("given a size, expect a square grid that size, like the frame around Claire and Inde's anniversary photo", () => {
-    const rows = pixelRingRows(9, 2);
-    expect(rows).toHaveLength(9);
-    expect(rows.every((row) => row.length === 9)).toBe(true);
-  });
-
-  it("given a ring, expect the middle left hollow and the edge drawn", () => {
-    const rows = pixelRingRows(9, 2);
-    expect(rows[4][4]).toBe(".");
-    expect(rows[4][0]).toBe("#");
-  });
-
-  it("given a fill, expect Malenia's ring painted in that character and mirrored on every side", () => {
-    const rows = pixelRingRows(8, 1, "g");
-    expect(rows.join("")).toMatch(/g/);
-    expect(rows).toEqual([...rows].reverse());
-    expect(rows.map((row) => [...row].reverse().join(""))).toEqual(rows);
-  });
-});
-
-describe("pixelBeams", () => {
-  it("given one beam, expect a hard edged wedge of flat color around its angle, like the light on Claire's gift", () => {
-    expect(pixelBeams([{ at: 90, width: 4, strength: 0.5 }], "gold")).toBe(
-      "conic-gradient(from 0deg, transparent 0deg, transparent 86deg, color-mix(in oklab, gold 50%, transparent) 86deg, color-mix(in oklab, gold 50%, transparent) 94deg, transparent 94deg, transparent 360deg)"
-    );
-  });
-
-  it("given Malenia's beams out of order, expect them laid out by angle", () => {
-    const gradient = pixelBeams([{ at: 200, width: 2, strength: 1 }, { at: 20, width: 2, strength: 1 }], "gold");
-    expect(gradient.indexOf("18deg")).toBeLessThan(gradient.indexOf("198deg"));
-  });
-
-  it("given no beams, expect none", () => {
-    expect(pixelBeams([], "gold")).toBe("none");
-  });
-});

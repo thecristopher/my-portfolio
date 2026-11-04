@@ -7,7 +7,7 @@ import { useGetProjectsQuery } from "../../api/projectsApi";
 import { localClock } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 import { HOME_TIMEZONE } from "../../lib/profile";
-import { currentPosition, shortCertName } from "./actions";
+import { arcPoint, currentCompany, shortCertName, skyPosition } from "./actions";
 
 // each tile scales up out of the page as it scrolls in, one after the other
 const Tile = ({ index, className = "", children }) => (
@@ -36,18 +36,52 @@ const useHomeTime = () => {
     const timer = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(timer);
   }, []);
-  return localClock(now, HOME_TIMEZONE).time;
+  return localClock(now, HOME_TIMEZONE);
+};
+
+const SKY = { width: 200, height: 92 };
+const ARC = `M0 ${SKY.height}A${SKY.width / 2} ${SKY.height} 0 0 1 ${SKY.width} ${SKY.height}`;
+
+// the sky over Rosarito right now: the sun on its arc during the day, the moon at night, both moving with the clock
+const Sky = ({ hour, minute }) => {
+  const { isDay, progress } = skyPosition(hour, minute);
+  const body = arcPoint(progress, SKY);
+  return (
+    <svg viewBox={`-10 -10 ${SKY.width + 20} ${SKY.height + 20}`} className="w-full overflow-visible" aria-hidden="true">
+      <path d={ARC} fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="2 5" className="text-line-strong" />
+      <line x1="-10" x2={SKY.width + 10} y1={SKY.height} y2={SKY.height} stroke="currentColor" strokeWidth="1" className="text-line-strong" />
+      <motion.circle
+        cx={body.x}
+        cy={body.y}
+        r={isDay ? 9 : 7}
+        fill={isDay ? "url(#sun)" : "#e8e4d8"}
+        initial={{ scale: 0, opacity: 0 }}
+        whileInView={{ scale: 1, opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1.2, delay: 0.3, ease: easeOutExpo }}
+        style={{ filter: `drop-shadow(0 0 ${isDay ? 12 : 6}px ${isDay ? "#ff9a3d" : "#e8e4d8"})` }}
+      />
+      <defs>
+        <radialGradient id="sun">
+          <stop offset="0%" stopColor="#fff2c2" />
+          <stop offset="100%" stopColor="#ff8a3d" />
+        </radialGradient>
+      </defs>
+    </svg>
+  );
 };
 
 const HomeTile = ({ about, index }) => {
-  const time = useHomeTime();
+  const clock = useHomeTime();
+  const minute = Number(clock.time.split(":")[1]);
   return (
     <Tile index={index} className="justify-between">
       <Label icon={MapPin}>Based in</Label>
       <p className="text-3xl font-semibold tracking-tight">{about.location}</p>
+      <Sky hour={clock.hour} minute={minute} />
       <p className="flex items-center gap-2 text-muted">
         <Clock size={14} aria-hidden="true" />
-        <span className="tabular-nums">{time}</span> there now · {about.timezone}
+        <span className="tabular-nums">{clock.time}</span> there now · {about.timezone}
       </p>
     </Tile>
   );
@@ -60,7 +94,7 @@ const HomeTile = ({ about, index }) => {
  */
 const Glance = ({ about }) => {
   const { data: projects = [] } = useGetProjectsQuery();
-  const position = currentPosition(projects, about.role);
+  const company = currentCompany(projects);
 
   return (
     <div className="flex flex-col gap-8">
@@ -71,13 +105,15 @@ const Glance = ({ about }) => {
           <p className="text-sunset text-[clamp(4.5rem,10vw,8rem)] leading-none font-semibold tracking-[-0.05em]">
             <CountUp value={`${about.years_of_experience}+`} />
           </p>
-          <p className="text-xl font-semibold tracking-tight">years, intern to Engineering Manager.</p>
+          <p className="text-xl font-semibold tracking-tight">years, and still shipping every week.</p>
         </Tile>
         <HomeTile about={about} index={1} />
-        <Tile index={2}>
-          <Label>Right now</Label>
-          <p className="text-2xl font-semibold tracking-tight text-balance">{position}</p>
-        </Tile>
+        {company && (
+          <Tile index={2}>
+            <Label>Building at</Label>
+            <p className="text-3xl font-semibold tracking-tight text-balance">{company}</p>
+          </Tile>
+        )}
         {about.certifications?.length > 0 && (
           <Tile index={3}>
             <span className="flex items-center justify-between gap-2">
