@@ -3,9 +3,8 @@ import { ArrowUpRight } from "lucide-react";
 import ScrollWords from "../../components/ScrollWords";
 import { formatRange, hostnameFromUrl, slugify, usesTech } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
-import { formatRoles } from "../../lib/resume/buildResume";
 import { CompanyMark, StackList } from "./pieces";
-import CaseStudyCard from "./CaseStudyCard";
+import StackedStudies from "./StackedStudies";
 
 // a job that never shipped with the picked tool fades back, so the ones that did stand out
 const FILTERED_OUT = "opacity-20 grayscale";
@@ -19,7 +18,6 @@ const Masthead = ({ project, index, pickedTech }) => {
       <p className="text-sm font-semibold text-muted">Chapter {String(index + 1).padStart(2, "0")}</p>
       <CompanyMark company={project.title} className="h-12 w-40" />
       <h3 className="text-[clamp(2.6rem,5vw,4.5rem)] leading-[0.95] font-semibold tracking-[-0.045em] text-balance">{project.title}</h3>
-      {project.roles?.length > 0 && <p className="text-lg text-muted">{formatRoles(project.roles)}</p>}
       {details.length > 0 && <p className="text-sm text-faint">{details.join(" · ")}</p>}
       <a href={project.url} target="_blank" rel="noreferrer" className="group flex w-fit items-center gap-1 text-sm font-medium text-accent">
         {hostnameFromUrl(project.url)}
@@ -74,9 +72,7 @@ const Chapter = ({ project, index, pickedTech, studies, relic }) => (
             Case studies
             {relic}
           </p>
-          {studies.map((study, at) => (
-            <CaseStudyCard key={study.slug} study={study} index={at} />
-          ))}
+          <StackedStudies studies={studies} />
         </div>
       )}
     </div>

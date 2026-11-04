@@ -13,12 +13,12 @@ Live at [cristophercervantes.com](https://cristophercervantes.com). The content 
 
 Every section is its own scene:
 
-- **Hero**: my name, then my photo rising from below and growing until it owns the screen while the page fills with the green of the wall it was taken against, and the story lands on it.
-- **About**: the first paragraph lights up word by word as you read it, the rest follows, then the at a glance tiles.
-- **Experience**: every title I've held on a row that slides sideways as you scroll down, then one chapter per company with its masthead pinned beside the wins and the case studies. Click any tool in a stack, or in the skills, and the jobs that never used it fade back.
-- **Skills**: two rows of tool logos sliding past, then every category graded from one to five dots.
-- **Side projects**: Eldentree, my Neovim config, featured on its own dark stage, then my public repos live from GitHub on a shelf that slides past while the scene stays pinned.
-- **Contact**: the closing line filling with a sunset as you reach it, and every way to reach me.
+- **Hero**: my name swings up out of the floor over a slow sunset aurora, then my photo rises and grows until it owns the screen while the green of the wall spreads out from behind it. A warm lamp follows the cursor across the photo.
+- **About**: the first paragraph pins to the screen and lights up word by word as you scroll, then the at a glance tiles, with the sun (or the moon) sitting on its arc over Rosarito right now.
+- **Experience**: every title I've held on a row that slides sideways as you scroll down, then one chapter per company with its masthead pinned beside the wins, and its case studies stacking into a deck as you scroll. Click any tool in a stack, or in the skills, and the jobs that never used it fade back.
+- **Skills**: every tool in orbit around a core, the deepest ones closest in, the rings turning against each other as you scroll. Hover one and the core names it. Then every category graded from one to five dots.
+- **Side projects**: Eldentree, my Neovim config, on a laptop whose lid opens as it scrolls in, then my public repos live from GitHub on a shelf that slides past while the scene stays pinned.
+- **Contact**: the sun sets into the sea off Rosarito while the closing line fills with its light, then every way to reach me.
 
 The page paints with real content straight away: every build saves what the API serves into `src/data/snapshot.json`, the page starts from that, and then asks the API for anything newer. Anyone who asks their system for reduced motion gets every section without the pinned scenes.
 
@@ -28,7 +28,7 @@ The theme follows the system until the sun or moon in the bar picks one, and the
 
 ### Relics
 
-Eleven franchises I grew up with left a relic somewhere in the sections: tiny, nearly see through, with no label, so only a careful eye finds them. Each one plays its own full screen moment in its franchise's art, with a jingle synthesized on the fly (no audio files shipped), told through my own career in that franchise's voice. After the first find a counter shows up in the bar and opens the relic log, which keeps what you found and gives a riddle for the rest. Finds from before the redesign carry over. One of them asks the API to roll for you. I'm not saying where any of them are. The sound switch lives in the footer.
+Eleven franchises I grew up with left a relic somewhere in the sections: tiny, nearly see through, with no label, so only a careful eye finds them. Each one is a clean vector emblem and plays its own full screen moment, drawn in the same language as the page (light that draws itself, blooms, keynote type) in its franchise's colors, with a jingle synthesized on the fly (no audio files shipped), told through my own career in that franchise's voice. After the first find a counter shows up in the bar and opens the relic log, which keeps what you found and gives a riddle for the rest. Finds from before the redesign carry over. One of them asks the API to roll for you. I'm not saying where any of them are. The sound switch lives in the footer.
 
 ## Stack
 

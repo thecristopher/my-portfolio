@@ -1,75 +1,67 @@
 import { motion } from "framer-motion";
-import { EffectLayer, LightRays, Shockwave, Sparks, TypedText } from "../shared";
-import { useMomentLength, veil } from "../moment";
-import PixelArt from "../../PixelArt";
-import { pixelSteps } from "../../../lib/motion";
-import { PIECE_ROWS, TRIFORCE_PALETTE, ZELDA_GOLD } from "./pieces";
+import { Bloom, Burst, MomentCopy, MomentLayer } from "../shared";
+import { useMomentLength } from "../moment";
+import { TRIFORCE_GOLD, TRIFORCE_PIECES } from "../artwork";
+import { easeOutExpo } from "../../../lib/motion";
 
-const FLY_AT = 0.1;
-const FLY_FOR = 0.8;
-// all three land on the same frame, and everything else in the moment pours out of that instant
-const JOINED_AT = FLY_AT + FLY_FOR;
-
-// where each piece sits in the whole Triforce, and the corner of the screen it flies in from
+// the pieces fly in from where each virtue lives while the secret run plays, and lock together on its last note
 const PIECES = [
-  { spot: "left-1/4 top-0", from: { x: "0vw", y: "-60vh" } },
-  { spot: "left-0 top-1/2", from: { x: "-70vw", y: "45vh" } },
-  { spot: "left-1/2 top-1/2", from: { x: "70vw", y: "45vh" } },
+  { d: TRIFORCE_PIECES[0], from: { x: 0, y: -60 }, turn: -200, virtue: "Power" },
+  { d: TRIFORCE_PIECES[1], from: { x: -70, y: 40 }, turn: 160, virtue: "Wisdom" },
+  { d: TRIFORCE_PIECES[2], from: { x: 70, y: 40 }, turn: -160, virtue: "Courage" },
 ];
+const ASSEMBLE_S = 0.7;
+const LOCK_AT = 0.75;
+const COPY_AT = 1.5;
+const MOMENT_MS = 3200;
 
-// the hollow in the middle of the Triforce sits two thirds of the way down, so the light starts there
-const HEART = { x: "50%", y: "66.7%" };
+// the light that rises behind it once it's whole, rays turning slowly like the item get screen
+const Rays = () => (
+  <motion.div
+    className="absolute top-[36%] left-1/2 size-[min(120vmin,60rem)] -translate-x-1/2 -translate-y-1/2 rounded-full"
+    style={{
+      background: `repeating-conic-gradient(from 0deg, ${TRIFORCE_GOLD}33 0deg 6deg, transparent 6deg 24deg)`,
+      maskImage: "radial-gradient(circle, black 0%, transparent 65%)",
+    }}
+    initial={{ opacity: 0, rotate: 0, scale: 0.6 }}
+    animate={{ opacity: 1, rotate: 40, scale: 1 }}
+    transition={{ opacity: { duration: 1, delay: LOCK_AT }, scale: { duration: 1.2, delay: LOCK_AT, ease: easeOutExpo }, rotate: { duration: 10, delay: LOCK_AT, ease: "linear" } }}
+  />
+);
 
-/** Item get: the three pieces fly in together and join in one flash over god rays, then the text box stays open. */
-const ItemGet = ({ onDone }) => {
-  useMomentLength(3900, onDone);
+/** Zelda: the three golden pieces fly in from their corners and lock into the Triforce, and the light rises. */
+const TriforceMoment = ({ onDone }) => {
+  useMomentLength(MOMENT_MS, onDone);
   return (
-    <EffectLayer background={veil(ZELDA_GOLD)} className="flex flex-col items-center justify-center gap-10 px-4">
-      <div className="relative aspect-square w-[min(64vw,17rem)]">
-        <LightRays color={ZELDA_GOLD} delay={JOINED_AT} at={HEART} />
-        {/* a box centered on the heart, so the ring and the sparks burst from the same spot as the rays */}
-        <div className="absolute inset-x-0 top-1/3 bottom-0">
-          <Shockwave color={ZELDA_GOLD} delay={JOINED_AT} />
-          <Sparks colors={[ZELDA_GOLD, "#fff6c8"]} count={16} reach={42} delay={JOINED_AT} />
-        </div>
-        {PIECES.map(({ spot, from }) => (
-          <motion.div
-            key={spot}
-            className={`absolute size-1/2 ${spot}`}
-            style={{ filter: `drop-shadow(0 0 14px ${ZELDA_GOLD})` }}
-            initial={{ ...from, opacity: 0 }}
-            animate={{ x: 0, y: 0, opacity: 1 }}
-            transition={{ duration: FLY_FOR, delay: FLY_AT, ease: pixelSteps(8) }}
-          >
-            <PixelArt rows={PIECE_ROWS} palette={TRIFORCE_PALETTE} className="size-full" />
-          </motion.div>
+    <MomentLayer color={TRIFORCE_GOLD} glowAt="50% 36%">
+      <Rays />
+      <Bloom color={TRIFORCE_GOLD} at={LOCK_AT} size="min(50vmin,24rem)" className="top-[36%]" />
+      <svg viewBox="0 0 64 64" className="absolute top-[36%] left-1/2 size-[min(36vmin,15rem)] -translate-x-1/2 -translate-y-1/2 overflow-visible">
+        {PIECES.map((piece, index) => (
+          <motion.path
+            key={piece.d}
+            d={piece.d}
+            fill={TRIFORCE_GOLD}
+            stroke="#fff3c4"
+            strokeWidth="0.8"
+            strokeLinejoin="round"
+            style={{ originX: "32px", originY: "32px", filter: `drop-shadow(0 0 6px ${TRIFORCE_GOLD})` }}
+            initial={{ x: piece.from.x, y: piece.from.y, rotate: piece.turn, opacity: 0 }}
+            animate={{ x: 0, y: 0, rotate: 0, opacity: 1 }}
+            transition={{ duration: ASSEMBLE_S, delay: index * 0.12, ease: easeOutExpo }}
+          />
         ))}
-        {/* the flash of the pieces locking together */}
-        <motion.div
-          className="absolute inset-0 bg-white mix-blend-screen"
-          style={{ clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 1, 0] }}
-          transition={{ duration: 0.4, delay: JOINED_AT, ease: pixelSteps(4) }}
-        />
-      </div>
-      <motion.p
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 1, ease: pixelSteps(3) }}
-        className="snes-window w-full max-w-md px-5 py-4 text-base"
-      >
-        <TypedText text="You got the " startAt={1.2} />
-        <span className="text-[#e04a3a]">
-          <TypedText text="Triforce" startAt={1.68} />
-        </span>
-        <TypedText text="!" startAt={2} />
-        <span className="mt-2 block text-[clamp(0.8rem,3.4vw,0.875rem)] text-white/85">
-          <TypedText text="Courage to lead, Wisdom to review, Power to ship." startAt={2.3} perLetter={0.03} />
-        </span>
-      </motion.p>
-    </EffectLayer>
+      </svg>
+      <Burst color="#fff3c4" at={LOCK_AT} count={14} className="top-[36%]" />
+      <MomentCopy
+        color={TRIFORCE_GOLD}
+        eyebrow="The Legend of Zelda"
+        title="It's dangerous to ship alone."
+        lines={["Courage to lead, Wisdom to review, Power to ship."]}
+        at={COPY_AT}
+      />
+    </MomentLayer>
   );
 };
 
-export default ItemGet;
+export default TriforceMoment;

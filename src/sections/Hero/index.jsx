@@ -17,17 +17,41 @@ const riseIn = (delay) => ({
   transition: { duration: 1.3, delay, ease: easeOutExpo },
 });
 
+// each line of the name tips up out of the floor, like a sign swinging into place
+const NameLine = ({ children, delay, className = "" }) => (
+  <span className="block overflow-hidden pb-[0.06em] [perspective:900px]">
+    <motion.span
+      className={`block origin-bottom ${className}`}
+      initial={{ y: "100%", rotateX: -70, opacity: 0, filter: "blur(10px)" }}
+      animate={{ y: "0%", rotateX: 0, opacity: 1, filter: "blur(0px)" }}
+      transition={{ duration: 1.6, delay, ease: easeOutExpo }}
+    >
+      {children}
+    </motion.span>
+  </span>
+);
+
+// a slow aurora in the sunset's colors drifting behind the name, the light the whole page is tinted with
+const Aurora = () => (
+  <div className="pointer-events-none absolute inset-x-0 top-0 h-[80svh] overflow-hidden opacity-60 [mask-image:linear-gradient(to_bottom,black_55%,transparent)] dark:opacity-45" aria-hidden="true">
+    <span className="aurora absolute top-[8%] left-[18%] size-[36vmax] rounded-full bg-sunset-1 blur-[110px]" />
+    <span className="aurora absolute top-[2%] right-[14%] size-[30vmax] rounded-full bg-sunset-3 blur-[110px] [animation-delay:-6s]" />
+    <span className="aurora absolute top-[22%] left-[40%] size-[26vmax] rounded-full bg-sunset-2 blur-[120px] [animation-delay:-12s]" />
+  </div>
+);
+
 // the name, huge, before the photo takes over the stage
 const Title = ({ role, style }) => (
   <motion.div style={style} className="absolute inset-x-0 top-[15svh] flex flex-col items-center gap-4 px-4 text-center sm:top-[13svh]">
     <motion.p {...riseIn(0.3)} className="text-base font-medium text-muted sm:text-lg">
       {role}
     </motion.p>
-    <motion.h1 {...riseIn(0.45)} className="text-[clamp(3.2rem,11vw,9.5rem)] leading-[0.9] font-semibold tracking-[-0.06em]">
-      Cristopher
-      <br />
-      <span className="text-sunset">Cervantes.</span>
-    </motion.h1>
+    <h1 className="text-[clamp(3.2rem,11vw,9.5rem)] leading-[0.9] font-semibold tracking-[-0.06em]">
+      <NameLine delay={0.4}>Cristopher</NameLine>
+      <NameLine delay={0.55} className="text-sunset">
+        Cervantes.
+      </NameLine>
+    </h1>
   </motion.div>
 );
 
@@ -69,11 +93,22 @@ const ScrollCue = ({ style }) => (
   </motion.p>
 );
 
-// the photo with its own shade, so the caption always reads over it
+// the light in the photo follows the cursor, a warm lamp moving across the wall the way the real one lit the glasses
+const followLamp = (event) => {
+  if (event.pointerType !== "mouse") return;
+  const bounds = event.currentTarget.getBoundingClientRect();
+  event.currentTarget.style.setProperty("--lamp-x", `${((event.clientX - bounds.left) / bounds.width) * 100}%`);
+  event.currentTarget.style.setProperty("--lamp-y", `${((event.clientY - bounds.top) / bounds.height) * 100}%`);
+};
+
+// the photo with its own shade, so the caption always reads over it, and the lamp moving over it
 const Photo = ({ shadeStyle }) => (
   <PlayerOne className="size-full">
-    <img src={portrait} alt="Cristopher Cervantes" className="size-full object-cover" fetchPriority="high" />
-    <motion.div style={shadeStyle} className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+    <div onPointerMove={followLamp} className="relative size-full">
+      <img src={portrait} alt="Cristopher Cervantes" className="size-full object-cover" fetchPriority="high" />
+      <div className="lamp-light pointer-events-none absolute inset-0" aria-hidden="true" />
+      <motion.div style={shadeStyle} className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+    </div>
   </PlayerOne>
 );
 
@@ -124,6 +159,7 @@ const Hero = () => {
   return (
     <section id="home" ref={ref} className="relative h-[280svh]">
       <div className="sticky top-0 h-svh overflow-hidden">
+        <Aurora />
         <motion.div style={{ clipPath: stageReveal }} className="absolute inset-0 bg-stage" aria-hidden="true" />
         <Title role={role} style={{ opacity: titleOpacity, y: titleY, filter: titleBlur }} />
         <div className="absolute inset-0 z-10 grid place-items-center px-4 pt-14">

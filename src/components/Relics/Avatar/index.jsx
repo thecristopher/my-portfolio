@@ -1,14 +1,5 @@
-import { RelicButton, EMBLEM_CLASS } from "../shared";
-import { useRelic } from "../useRelic";
-import { AangArrow } from "./Emblems";
+import RelicTrigger from "../Trigger";
+import { AirbenderArrow } from "../emblems";
 
-/** Aang's airbender arrow, pointing down the way it runs onto his forehead. */
-export const Trigger = ({ className = "", zoom = 1 }) => {
-  const { isFound, touch } = useRelic("airbender");
-
-  return (
-    <RelicButton id="airbender" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
-      <AangArrow className={EMBLEM_CLASS} />
-    </RelicButton>
-  );
-};
+/** Aang's arrow, pointing at the first case study. */
+export const Trigger = (props) => <RelicTrigger id="airbender" emblem={({ className }) => <AirbenderArrow className={className} />} {...props} />;

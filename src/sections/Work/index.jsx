@@ -25,10 +25,10 @@ const Work = () => {
           eyebrow="Experience"
           title={
             <>
-              Intern to Engineering Manager. <Sunset>Every step of it.</Sunset>
+              Five companies. <Sunset>Nine years.</Sunset>
             </>
           }
-          lead="Five companies in nine years, some down the street from home and some an ocean away. Each chapter has the wins and the case studies behind them."
+          lead="Some down the street from home, some an ocean away. Every title I held is on the timeline below, then each company gets a chapter with its wins and the case studies behind them."
         />
         {isLoading && <SkeletonLines lines={5} />}
         {isError && projects.length === 0 && <LoadError what="the work history" />}

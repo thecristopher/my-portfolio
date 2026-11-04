@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { careerSteps, filterSummary } from ".";
+import { careerSteps, filterSummary, stackedScale } from ".";
 
 describe("careerSteps", () => {
   const projects = [
@@ -41,5 +41,16 @@ describe("filterSummary", () => {
 
   it("speaks in singular when there is only one job", () => {
     expect(filterSummary("Lua", 1, 1)).toBe("1 of 1 job shipped with Lua");
+  });
+});
+
+describe("stackedScale", () => {
+  it("leaves the last card Claire reads at full size", () => {
+    expect(stackedScale(2, 3)).toBe(1);
+  });
+
+  it("shrinks the first card the most, since every other card ends up on top of it", () => {
+    expect(stackedScale(0, 3)).toBeCloseTo(0.9);
+    expect(stackedScale(0, 3)).toBeLessThan(stackedScale(1, 3));
   });
 });

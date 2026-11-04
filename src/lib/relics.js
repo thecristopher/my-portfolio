@@ -21,7 +21,7 @@ export const RELICS = {
     section: "work",
     touch: "throw the ball",
     riddle: "Every title on the career timeline is an evolution. A Poké Ball waits where it starts.",
-    quip: "Gotcha! An Engineering Manager joined your party. He knows Code Review.",
+    quip: "Gotcha! Cristopher joined your party. He knows Code Review.",
   },
   alchemy: {
     franchise: "Fullmetal Alchemist",

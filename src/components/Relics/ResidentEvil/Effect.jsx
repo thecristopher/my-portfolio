@@ -1,87 +1,84 @@
 import { motion } from "framer-motion";
-import { EffectLayer, TypedText } from "../shared";
+import { Bloom, MomentLayer, TypedText } from "../shared";
 import { useMomentLength } from "../moment";
-import PixelArt from "../../PixelArt";
-import { easedGlow } from "../../../actions";
-import { pixelSteps } from "../../../lib/motion";
-import { CLAIRE_PALETTE, CLAIRE_ROWS } from "./claire";
-import { Scanlines, Twinkles, TypeCursor } from "./pieces";
+import { UMBRELLA_RED, UMBRELLA_WEDGES } from "../artwork";
+import { easeOutExpo } from "../../../lib/motion";
 
-const SCREEN_AT = 0.15;
-// she shows up a beat after the screen powers on
-const CLAIRE_AT = 0.55;
+const SAVE_ROOM = "#1f6b5c";
 const SAVED = "Your game has been saved.";
-const SAVED_AT = 0.9;
-const SAVED_PER_LETTER = 0.06;
 const PARTNER_LINE = "Every run is better with the right co-op partner.";
-const PARTNER_PER_LETTER = 0.03;
-// the second line waits for the first, the way a typewriter only prints one line at a time
-const PARTNER_AT = SAVED_AT + SAVED.length * SAVED_PER_LETTER + 0.3;
-const TYPED_AT = PARTNER_AT + PARTNER_LINE.length * PARTNER_PER_LETTER;
-const SETTLED_MS = Math.round(TYPED_AT * 1000) + 150;
+const TYPE_AT = 0.8;
+const PER_LETTER = 0.05;
+const PARTNER_AT = TYPE_AT + SAVED.length * PER_LETTER + 0.3;
+const MOMENT_MS = 4300;
 
-// the RE2 inventory palette: navy screen, steel bevels and the warm red of her jacket
-const JACKET_RED = "#c0392b";
-const SCREEN_NAVY = "#14173c";
-const BEVEL = "border-2 border-[#9aa0c4] shadow-[inset_0_0_0_2px_#0a0c24]";
-
-/** Claire in the item viewer, lit warm, breathing one pixel up and back. */
-const Viewer = () => (
-  <div
-    className={`relative grid place-items-center overflow-hidden ${BEVEL} px-14 py-4`}
-    style={{ background: `${easedGlow(JACKET_RED, { strength: 0.55, shape: "ellipse", reach: 70 })}, #0b1a4a` }}
+// the logo assembles wedge by wedge, spinning into place, then turns slowly like the sign over the lab
+const Logo = () => (
+  <motion.svg
+    viewBox="0 0 64 64"
+    className="absolute top-[34%] left-1/2 size-[min(40vmin,16rem)] -translate-x-1/2 -translate-y-1/2 overflow-visible"
+    initial={{ rotate: -90 }}
+    animate={{ rotate: 0 }}
+    transition={{ duration: 2.4, ease: easeOutExpo }}
   >
-    <Twinkles startAt={CLAIRE_AT + 0.6} />
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: [10, 0, -1, 0] }}
-      transition={{
-        opacity: { duration: 0.5, delay: CLAIRE_AT, ease: pixelSteps(4) },
-        y: { duration: 3, delay: CLAIRE_AT, times: [0, 0.15, 0.6, 1], repeat: Infinity, repeatDelay: 0.2, ease: pixelSteps(6) },
-      }}
-    >
-      <PixelArt
-        rows={CLAIRE_ROWS}
-        palette={CLAIRE_PALETTE}
-        className="block h-[min(40vh,22rem)] w-auto"
-        style={{ filter: "drop-shadow(0 0 10px rgb(255 160 170 / 0.35))" }}
+    {UMBRELLA_WEDGES.map((wedge, index) => (
+      <motion.path
+        key={wedge.d}
+        d={wedge.d}
+        fill={wedge.fill}
+        style={{ originX: "32px", originY: "32px" }}
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.7, delay: index * 0.06, ease: easeOutExpo }}
       />
-    </motion.div>
-  </div>
+    ))}
+  </motion.svg>
 );
 
-/** The text box under the viewer, typed out and left on the screen. */
-const Caption = () => (
-  <div className={`${BEVEL} bg-[#0a0c24] px-4 py-3 text-[clamp(0.85rem,3.2vw,1.15rem)] leading-snug tracking-wide text-[#eef0ff] text-pretty`}>
-    <p>
-      <TypedText text={SAVED} startAt={SAVED_AT} perLetter={SAVED_PER_LETTER} />
-    </p>
-    <p className="mt-1 text-[#c8cbe8]">
-      <TypedText text={PARTNER_LINE} startAt={PARTNER_AT} perLetter={PARTNER_PER_LETTER} />
-      <TypeCursor startAt={TYPED_AT} />
-    </p>
-  </div>
+// the ink ribbon sitting on the typewriter, the one item that lets you save
+const InkRibbon = () => (
+  <motion.span
+    className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold tracking-wider text-white/70 uppercase"
+    initial={{ opacity: 0, y: 8 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6, delay: TYPE_AT - 0.3, ease: easeOutExpo }}
+  >
+    <span className="size-2 rounded-full bg-white/70" />
+    Ink ribbon used
+  </motion.span>
 );
 
-/** The save room: an old screen powers on, Claire waits in the viewer and the game says it's saved. */
-const SaveRoom = ({ onDone }) => {
-  useMomentLength(SETTLED_MS, onDone);
+/** Resident Evil: the Umbrella logo turns into place over the save room's green, and the typewriter writes the save. */
+const SaveRoomMoment = ({ onDone }) => {
+  useMomentLength(MOMENT_MS, onDone);
   return (
-    <EffectLayer background="#000" className="flex items-center justify-center px-3 pt-20 pb-28" fade={0.6}>
-      {/* the screen powers on like an old CRT: a bright line that opens up into the picture */}
-      <motion.div
-        className={`relative flex w-[min(92vw,30rem)] flex-col gap-2 p-2 font-pixel ${BEVEL}`}
-        style={{ background: SCREEN_NAVY }}
-        initial={{ opacity: 0, scaleY: 0.02, filter: "brightness(3)" }}
-        animate={{ opacity: 1, scaleY: [0.02, 0.02, 1], filter: ["brightness(3)", "brightness(3)", "brightness(1)"] }}
-        transition={{ duration: 0.45, delay: SCREEN_AT, times: [0, 0.3, 1], ease: pixelSteps(5) }}
-      >
-        <Scanlines startAt={SCREEN_AT + 0.45} />
-        <Viewer />
-        <Caption />
-      </motion.div>
-    </EffectLayer>
+    <MomentLayer color={SAVE_ROOM} glowAt="50% 34%">
+      <Bloom color={UMBRELLA_RED} at={0} size="min(55vmin,26rem)" className="top-[34%]" />
+      <Logo />
+      <div className="absolute inset-x-0 bottom-[12vh] flex flex-col items-center gap-5 px-6 text-center">
+        <p className="text-sm font-semibold tracking-wide" style={{ color: UMBRELLA_RED }}>
+          Resident Evil
+        </p>
+        <InkRibbon />
+        <p className="max-w-4xl font-mono text-[clamp(1.6rem,5vw,3.5rem)] leading-tight font-medium tracking-tight">
+          <TypedText text={SAVED} at={TYPE_AT} perLetter={PER_LETTER} />
+          <motion.span
+            className="ml-1 inline-block h-[0.9em] w-[0.5em] translate-y-[0.12em] bg-white"
+            animate={{ opacity: [1, 0, 1] }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          />
+        </p>
+        <motion.p
+          className="max-w-xl text-lg text-white/70 text-pretty sm:text-xl"
+          initial={{ opacity: 0, y: 12, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 1, delay: PARTNER_AT, ease: easeOutExpo }}
+        >
+          {PARTNER_LINE}
+        </motion.p>
+      </div>
+    </MomentLayer>
   );
 };
 
-export default SaveRoom;
+export default SaveRoomMoment;

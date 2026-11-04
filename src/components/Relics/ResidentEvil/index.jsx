@@ -1,15 +1,5 @@
-import { RelicButton, EMBLEM_CLASS } from "../shared";
-import { useRelic } from "../useRelic";
-import PixelArt from "../../PixelArt";
-import { UMBRELLA_PALETTE, UMBRELLA_ROWS } from "./umbrella";
+import RelicTrigger from "../Trigger";
+import { UmbrellaLogo } from "../emblems";
 
-/** The Umbrella Corporation logo, red and white wedges in pixels, at the end of the career. */
-export const Trigger = ({ className = "", zoom = 1 }) => {
-  const { isFound, touch } = useRelic("umbrella");
-
-  return (
-    <RelicButton id="umbrella" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
-      <PixelArt rows={UMBRELLA_ROWS} palette={UMBRELLA_PALETTE} className={EMBLEM_CLASS} />
-    </RelicButton>
-  );
-};
+/** The Umbrella logo, beside the company that really was called Umbrella. */
+export const Trigger = (props) => <RelicTrigger id="umbrella" emblem={({ className }) => <UmbrellaLogo className={className} />} {...props} />;

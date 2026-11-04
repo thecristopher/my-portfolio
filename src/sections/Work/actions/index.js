@@ -34,3 +34,11 @@ export const careerSteps = (projects = []) =>
  * @returns {string} like "3 of 5 jobs shipped with React"
  */
 export const filterSummary = (tech, matches, total) => `${matches} of ${total} ${total === 1 ? "job" : "jobs"} shipped with ${tech}`;
+
+/**
+ * How small a card in the deck ends up once every card after it has slid over: a little smaller per card on top.
+ * @param {number} index the card's place in the deck, 0 is the first
+ * @param {number} count how many cards the deck has
+ * @returns {number} the scale it settles at, 1 for the last card
+ */
+export const stackedScale = (index, count) => 1 - (count - 1 - index) * 0.05;

@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { motion, useReducedMotion, useScroll } from "framer-motion";
+import { useRef, useState } from "react";
+import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import SectionHeading, { Sunset } from "../../components/SectionHeading";
 import TechIcon from "../../components/TechIcon";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
@@ -10,9 +10,10 @@ import { markMainStack } from "../../actions";
 import { MAGIC_BLUE, MAGIC_PINK, useMagicBuff } from "../../lib/magic";
 import { easeOutExpo } from "../../lib/motion";
 import { echo } from "../../lib/echo";
+import { pointOnCircle } from "../../lib/geometry";
 import { scrollToSection } from "../../lib/smoothScroll";
 import { pickTech, usePickedTech } from "../../lib/stackFilter";
-import { MAX_LEVEL, groupByCategory, levelDots, splitMarqueeRows } from "./actions";
+import { MAX_LEVEL, groupByCategory, levelDots, orbitLayout } from "./actions";
 
 // a tool in the grid filters the work history for it, then takes you there to see which jobs light up
 const showJobsUsing = (tool) => {
@@ -23,33 +24,90 @@ const showJobsUsing = (tool) => {
 
 const BUFFED_DOT = { backgroundImage: `linear-gradient(135deg, ${MAGIC_PINK}, ${MAGIC_BLUE})`, boxShadow: `0 0 6px ${MAGIC_PINK}` };
 
-// one row of logos sliding forever, and drifting a little further with the scroll
-const MarqueeRow = ({ tools, reverse = false, drift }) => (
-  <motion.div style={{ x: drift }} className="marquee overflow-hidden">
-    <div className="marquee-track flex w-max gap-4" data-direction={reverse ? "reverse" : undefined} style={{ "--marquee-duration": `${tools.length * 4}s` }}>
-      {[...tools, ...tools].map((tool, index) => (
-        <span key={`${tool}-${index}`} className="card flex items-center gap-3 rounded-full px-5 py-3 text-lg font-semibold tracking-tight whitespace-nowrap">
-          <TechIcon tech={tool} className="size-6" fallback={<span className="size-2 rounded-full bg-accent" />} />
-          {tool}
-        </span>
+const RING_SIZES = ["52%", "77%", "100%"];
+
+// one tool on its ring: its logo in a round chip that stays upright while the ring turns under it. the name shows in
+// the core, so the rings never crowd
+const Satellite = ({ tool, counterTurn, isPicked, onFocus }) => {
+  const spot = pointOnCircle(tool.angle, 50, { x: 50, y: 50 });
+  return (
+    <motion.button
+      type="button"
+      onClick={() => showJobsUsing(tool.name)}
+      onPointerEnter={() => onFocus(tool)}
+      onFocus={() => onFocus(tool)}
+      aria-label={`${tool.name}, level ${tool.level} of ${MAX_LEVEL}. See the jobs that shipped with it`}
+      style={{ left: `${spot.x}%`, top: `${spot.y}%`, rotate: counterTurn }}
+      className={`card absolute grid size-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full transition-[scale,box-shadow] duration-300 hover:z-10 hover:scale-125 focus-visible:scale-125 sm:size-12 ${isPicked ? "ring-2 ring-accent" : ""}`}
+    >
+      <TechIcon tech={tool.name} className="size-4 sm:size-6" fallback={<span className="text-xs font-semibold">{tool.name.slice(0, 2)}</span>} />
+    </motion.button>
+  );
+};
+
+const Ring = ({ ring, progress, pickedTech, onFocus }) => {
+  const direction = ring.ring % 2 === 0 ? 1 : -1;
+  const turn = useScrollRange(progress, [0, 1], [-40 * direction, 50 * direction]);
+  const counterTurn = useTransform(turn, (degrees) => -degrees);
+  return (
+    <motion.div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-line-strong" style={{ width: RING_SIZES[ring.ring], height: RING_SIZES[ring.ring], rotate: turn }}>
+      {ring.tools.map((tool) => (
+        <Satellite key={tool.name} tool={tool} counterTurn={counterTurn} isPicked={pickedTech === tool.name} onFocus={onFocus} />
       ))}
-    </div>
-  </motion.div>
+    </motion.div>
+  );
+};
+
+// the middle of the orbit names whatever tool the cursor is on, or counts them all
+const Core = ({ focused, total }) => (
+  <div className="absolute top-1/2 left-1/2 flex w-[36%] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2 text-center">
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={focused?.name ?? "all"}
+        initial={{ opacity: 0, scale: 0.9, filter: "blur(6px)" }}
+        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+        exit={{ opacity: 0, scale: 0.9, filter: "blur(6px)" }}
+        transition={{ duration: 0.35, ease: easeOutExpo }}
+        className="flex flex-col items-center gap-2"
+      >
+        {focused ? (
+          <>
+            <TechIcon tech={focused.name} className="size-9 sm:size-12" fallback={null} />
+            <p className="text-lg leading-tight font-semibold tracking-tight sm:text-2xl">{focused.name}</p>
+            <LevelMeter level={focused.level} />
+          </>
+        ) : (
+          <>
+            <p className="text-sunset text-5xl leading-none font-semibold tracking-tight sm:text-7xl">{total}</p>
+            <p className="hidden text-sm text-muted sm:block">tools in orbit. The deeper I've gone, the closer in. Hover one.</p>
+          </>
+        )}
+      </motion.div>
+    </AnimatePresence>
+  </div>
 );
 
-const Marquee = ({ tools }) => {
+// every tool around a core, by how deep I've gone: the rings turn against each other as the section scrolls by
+const Orbit = ({ tools, pickedTech }) => {
   const ref = useRef(null);
-  const prefersReducedMotion = useReducedMotion();
+  const [focused, setFocused] = useState(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const forward = useScrollRange(scrollYProgress, [0, 1], ["4%", "-8%"]);
-  const backward = useScrollRange(scrollYProgress, [0, 1], ["-8%", "4%"]);
-  const [first, second] = splitMarqueeRows(tools);
-
   return (
-    <div ref={ref} className="flex flex-col gap-4" aria-hidden="true">
-      <MarqueeRow tools={first} drift={prefersReducedMotion ? undefined : forward} />
-      <MarqueeRow tools={second} reverse drift={prefersReducedMotion ? undefined : backward} />
-    </div>
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, scale: 0.85 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true, margin: "-120px" }}
+      transition={{ duration: 1.4, ease: easeOutExpo }}
+      onPointerLeave={() => setFocused(null)}
+      className="relative mx-auto aspect-square w-full max-w-[44rem]"
+    >
+      <span className="bg-sunset absolute top-1/2 left-1/2 size-[30%] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-20 blur-3xl" aria-hidden="true" />
+      {orbitLayout(tools).map((ring) => (
+        <Ring key={ring.ring} ring={ring} progress={scrollYProgress} pickedTech={pickedTech} onFocus={setFocused} />
+      ))}
+      <Core focused={focused} total={tools.length} />
+    </motion.div>
   );
 };
 
@@ -113,8 +171,8 @@ const Skills = () => {
       </div>
 
       {tools.length > 0 && (
-        <div className="py-16">
-          <Marquee tools={tools.map((tool) => tool.name)} />
+        <div className="px-4 py-20 sm:px-6">
+          <Orbit tools={tools} pickedTech={pickedTech} />
         </div>
       )}
 

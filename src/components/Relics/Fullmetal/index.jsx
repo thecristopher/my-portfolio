@@ -1,14 +1,5 @@
-import { RelicButton, EMBLEM_CLASS } from "../shared";
-import { useRelic } from "../useRelic";
-import { FlamelSprite } from "./Emblem";
+import RelicTrigger from "../Trigger";
+import { FlamelCross } from "../emblems";
 
-/** The Flamel cross from Ed's coat, pinned where the reading line ends. */
-export const Trigger = ({ className = "", zoom = 1 }) => {
-  const { isFound, touch } = useRelic("alchemy");
-
-  return (
-    <RelicButton id="alchemy" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
-      <FlamelSprite className={EMBLEM_CLASS} />
-    </RelicButton>
-  );
-};
+/** The Flamel cross from Ed's coat, pinned where the story ends. */
+export const Trigger = (props) => <RelicTrigger id="alchemy" emblem={({ className }) => <FlamelCross className={className} />} {...props} />;

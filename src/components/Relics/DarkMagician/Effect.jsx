@@ -1,92 +1,104 @@
 import { useEffect } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { EffectLayer, Shockwave, Sparks } from "../shared";
+import { motion } from "framer-motion";
+import { Bloom, Burst, DrawnPath, MomentCopy, MomentLayer } from "../shared";
 import { useMomentLength } from "../moment";
-import { easedGlow } from "../../../actions";
+import { PUZZLE_GOLD } from "../artwork";
+import { polygonPoints } from "../actions";
 import { MAGIC_BLUE, MAGIC_PINK, castMagic } from "../../../lib/magic";
-import { pixelSteps } from "../../../lib/motion";
+import { easeOutExpo } from "../../../lib/motion";
 import { scrollToSection } from "../../../lib/smoothScroll";
-import darkMagicianGirl from "../../../assets/images/dark-magician-girl.png";
-import { CardBack, CardFace } from "./Card";
 
-const GOLD = "#e8c35a";
-const NIGHT = "#0a0614";
-// the beats: the card is played face down, flips, the circle opens in its art and she climbs out of it
+// the beats in sound.js: the card whooshes off the duel disk, flips on the stabs, and the summon lands on the cast
 const PLAYED_AT = 0.1;
 const FLIP_AT = 0.6;
-const FLIP_S = 0.4;
-const CAST_AT_MS = 1300;
-const CAST_AT_S = CAST_AT_MS / 1000;
-const EMERGE_S = 0.8;
-const SETTLED_MS = 3000;
-// how far she climbs, as a share of her own height, so her feet end up past the top of the art window
-const CLIMB = "-96%";
+const CAST_AT_MS = 1600;
+const CAST_AT = CAST_AT_MS / 1000;
+const COPY_AT = 1.9;
+const MOMENT_MS = 3400;
 
-/** The card hits the field face down and flips over, the back folding away as the face turns up. */
-const PlayedCard = ({ children }) => (
-  <motion.div
-    className="relative aspect-[59/86] w-[min(58vw,15rem)]"
-    style={{ filter: `drop-shadow(6px 6px 0 ${NIGHT})` }}
-    initial={{ y: 80, opacity: 0 }}
-    animate={{ y: 0, opacity: 1, scaleX: [1, 1, 0.08, 1] }}
-    transition={{
-      y: { duration: 0.4, delay: PLAYED_AT, ease: pixelSteps(4) },
-      opacity: { duration: 0.2, delay: PLAYED_AT },
-      scaleX: { duration: FLIP_AT + FLIP_S, times: [0, FLIP_AT / (FLIP_AT + FLIP_S), (FLIP_AT + FLIP_S / 2) / (FLIP_AT + FLIP_S), 1], ease: pixelSteps(2) },
-    }}
+// a star drawn in one stroke: every other corner of a pentagon
+const PENTAGON = polygonPoints(5, 34, { x: 50, y: 50 }).split(" ");
+const PENTAGRAM = `M${[0, 2, 4, 1, 3].map((corner) => PENTAGON[corner]).join("L")}Z`;
+const STARS = Array.from({ length: 6 }, (_, index) => index);
+
+// the card's face: name bar, level stars, the art window with a spell circle drawn in, and the stats
+const CardFace = () => (
+  <div className="absolute inset-0 flex flex-col gap-2 rounded-2xl p-3 [backface-visibility:hidden]" style={{ background: `linear-gradient(160deg, #3b2a6b, #1b1236)`, boxShadow: `inset 0 0 0 2px ${PUZZLE_GOLD}` }}>
+    <p className="rounded-md bg-black/30 px-2 py-1 text-left text-[clamp(0.6rem,1.8vmin,0.85rem)] font-bold tracking-wide">Dark Magician Girl</p>
+    <p className="flex justify-end gap-0.5 text-[clamp(0.5rem,1.5vmin,0.7rem)] text-[#ffcc4d]">
+      {STARS.map((star) => (
+        <span key={star}>★</span>
+      ))}
+    </p>
+    <div className="relative flex-1 overflow-hidden rounded-md" style={{ background: `radial-gradient(circle at 50% 45%, ${MAGIC_PINK}55, #120a26 70%)` }}>
+      <svg viewBox="0 0 100 100" className="absolute inset-0 size-full">
+        <DrawnPath d="M16 50a34 34 0 1 0 68 0a34 34 0 1 0-68 0" color={MAGIC_PINK} at={FLIP_AT + 0.3} duration={0.8} width={1.2} />
+        <DrawnPath d={PENTAGRAM} color={MAGIC_BLUE} at={FLIP_AT + 0.5} duration={0.9} width={1.2} />
+      </svg>
+    </div>
+    <p className="flex justify-between rounded-md bg-black/30 px-2 py-1 text-[clamp(0.55rem,1.6vmin,0.75rem)] font-semibold">
+      {/* her attack climbs by the buff the moment the spell lands */}
+      <span className="relative">
+        ATK/
+        <motion.span initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 0.2, delay: CAST_AT }}>
+          2000
+        </motion.span>
+        <motion.span className="absolute right-0" style={{ color: MAGIC_PINK }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2, delay: CAST_AT }}>
+          2500
+        </motion.span>
+      </span>
+      <span>DEF/1700</span>
+    </p>
+  </div>
+);
+
+const CardBack = () => (
+  <div
+    className="absolute inset-0 grid place-items-center rounded-2xl [backface-visibility:hidden] [transform:rotateY(180deg)]"
+    style={{ background: `radial-gradient(circle, #6b3a1a, #2a1408)`, boxShadow: `inset 0 0 0 2px ${PUZZLE_GOLD}` }}
   >
-    {children}
-    {/* the back covers the face until the flip is halfway, then it's gone */}
-    <motion.div className="absolute inset-0" initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 0.01, delay: FLIP_AT + FLIP_S / 2 }}>
+    <span className="size-1/2 rounded-full" style={{ background: `radial-gradient(circle, ${PUZZLE_GOLD}, transparent 70%)` }} />
+  </div>
+);
+
+// played face down from below, then flipped over in 3D on the stabs
+const Card = () => (
+  <motion.div
+    className="absolute top-[38%] left-1/2 aspect-[59/86] w-[min(34vmin,13rem)] -translate-x-1/2 -translate-y-1/2 [perspective:1200px]"
+    initial={{ y: "70vh", rotate: -12 }}
+    animate={{ y: 0, rotate: 0 }}
+    transition={{ duration: 0.6, delay: PLAYED_AT, ease: easeOutExpo }}
+  >
+    <motion.div
+      className="relative size-full [transform-style:preserve-3d]"
+      initial={{ rotateY: 180 }}
+      animate={{ rotateY: 0, scale: [1, 1.08, 1] }}
+      transition={{ rotateY: { duration: 0.7, delay: FLIP_AT, ease: easeOutExpo }, scale: { duration: 0.6, delay: CAST_AT } }}
+    >
+      <CardFace />
       <CardBack />
     </motion.div>
   </motion.div>
 );
 
-/** She climbs out of the card's art window, growing from the size of her art to full size, then hovers over it. */
-const Emerging = ({ isReduced }) => (
-  <motion.div
-    className="pointer-events-none absolute bottom-[21%] left-1/2 origin-bottom -translate-x-1/2"
-    initial={{ scale: isReduced ? 1 : 0.3, y: isReduced ? CLIMB : "0%", opacity: 0 }}
-    animate={{ scale: 1, y: CLIMB, opacity: 1 }}
-    transition={{ duration: EMERGE_S, delay: CAST_AT_S, ease: pixelSteps(8) }}
-  >
-    <motion.div
-      animate={isReduced ? undefined : { y: [0, -10, 0] }}
-      transition={{ duration: 1.2, delay: CAST_AT_S + EMERGE_S, repeat: Infinity, ease: pixelSteps(3) }}
-      className="relative"
-    >
-      <span className="absolute -inset-[20%]" style={{ background: easedGlow(MAGIC_PINK, { strength: 0.4 }) }} />
-      {/* her sprite is already pixel art, so it only needs to stay crisp when scaled up */}
-      <img
-        src={darkMagicianGirl}
-        alt=""
-        className="relative h-[min(30vh,15rem)] w-auto max-w-none [image-rendering:pixelated]"
-        style={{ filter: `drop-shadow(4px 4px 0 ${NIGHT})` }}
-      />
-    </motion.div>
-  </motion.div>
-);
-
-/** The buff the spell gave her, shouted over the field. */
+// the buff, rising off the card as the spell lands
 const Buff = () => (
   <motion.p
-    className="absolute inset-x-0 top-20 text-center font-pixel text-[clamp(2.25rem,8vw,4rem)] leading-none font-semibold tracking-tight"
-    style={{ color: MAGIC_PINK, textShadow: `3px 3px 0 ${MAGIC_BLUE}, 6px 6px 0 ${NIGHT}` }}
-    initial={{ opacity: 0, y: 16 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.4, delay: CAST_AT_S + 0.4, ease: pixelSteps(4) }}
+    className="absolute top-[4%] left-1/2 -translate-x-1/2 text-[clamp(2rem,6vw,4rem)] font-black tracking-tight"
+    style={{ backgroundImage: `linear-gradient(90deg, ${MAGIC_PINK}, ${MAGIC_BLUE})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}
+    initial={{ opacity: 0, y: 30, scale: 0.6 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    transition={{ duration: 0.8, delay: CAST_AT, ease: easeOutExpo }}
   >
     +500 ATK
   </motion.p>
 );
 
-/** Dark Magician Girl's card is played and flips, she climbs out of its art, casts over the skills and stays hovering over it. */
-const MagicianFlyby = ({ onDone }) => {
-  const isReduced = useReducedMotion();
-  useMomentLength(SETTLED_MS, onDone);
+/** Yu-Gi-Oh: her card is played face down, flips over in 3D, and the spell lands on the skills. */
+const SummonMoment = ({ onDone }) => {
+  useMomentLength(MOMENT_MS, onDone);
 
-  // the page glides up to the stack report as the spell lands, so the buff plays right where you're looking
+  // the page glides to the skills as the spell lands, so the buff plays right where you're looking
   useEffect(() => {
     const castTimer = setTimeout(() => {
       castMagic();
@@ -96,23 +108,21 @@ const MagicianFlyby = ({ onDone }) => {
   }, []);
 
   return (
-    <EffectLayer
-      background={`${easedGlow(MAGIC_BLUE, { strength: 0.18, reach: 85 })}, rgba(10,6,20,0.78)`}
-      className="flex flex-col items-center justify-end pb-[7.5rem]"
-    >
+    <MomentLayer color={MAGIC_PINK} glowAt="50% 36%">
+      <Bloom color={MAGIC_BLUE} at={FLIP_AT} size="min(60vmin,28rem)" className="top-[36%]" />
+      <Card />
+      <Burst color={MAGIC_PINK} at={CAST_AT} count={18} className="top-[36%]" />
       <Buff />
-      <PlayedCard>
-        <CardFace art={darkMagicianGirl} castAt={CAST_AT_S} />
-        {/* the burst comes out of the art window, where she breaks through */}
-        <div className="pointer-events-none absolute inset-x-0 top-[20%] h-[59%]">
-          <Shockwave color={MAGIC_PINK} delay={CAST_AT_S} size="140%" />
-          <Sparks colors={[GOLD, MAGIC_PINK, MAGIC_BLUE]} count={16} reach={40} delay={CAST_AT_S} />
-        </div>
-        <Emerging isReduced={isReduced} />
-      </PlayedCard>
-      <p className="absolute top-4 left-4 font-pixel text-[11px] text-white/60">pixel art by TeykioArts</p>
-    </EffectLayer>
+      <MomentCopy
+        color={MAGIC_PINK}
+        eyebrow="Yu-Gi-Oh!"
+        title="Every skill, +500 ATK."
+        lines={["The heart of the cards believes in the stack."]}
+        at={COPY_AT}
+        className="bottom-[8vh]"
+      />
+    </MomentLayer>
   );
 };
 
-export default MagicianFlyby;
+export default SummonMoment;

@@ -1,16 +1,9 @@
-import { RelicButton, EMBLEM_CLASS } from "../shared";
-import { useRelic } from "../useRelic";
-import { Die } from "./Die";
+import RelicTrigger from "../Trigger";
+import { D20 } from "../emblems";
 import { faceToShow, lastFace } from "./helpers";
 
-/** The gold d20 by the clock. Rolled once, it keeps showing the face it last landed on. */
-export const Trigger = ({ className = "", zoom = 1 }) => {
-  const { isFound, touch } = useRelic("d20");
-  const face = faceToShow(isFound, lastFace.use());
-
-  return (
-    <RelicButton id="d20" isFound={isFound} onTouch={() => touch()} className={className} zoom={zoom}>
-      <Die face={face} className={EMBLEM_CLASS} />
-    </RelicButton>
-  );
+/** The d20 beside the email address. Rolled once, it keeps showing the face it last landed on. */
+export const Trigger = (props) => {
+  const face = lastFace.use();
+  return <RelicTrigger id="d20" emblem={({ isFound, className }) => <D20 face={faceToShow(isFound, face)} className={className} />} {...props} />;
 };

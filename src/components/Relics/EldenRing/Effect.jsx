@@ -1,95 +1,56 @@
 import { motion } from "framer-motion";
-import { EffectLayer, Shockwave } from "../shared";
+import { Bloom, DrawnPath, MomentCopy, MomentLayer } from "../shared";
 import { useMomentLength } from "../moment";
-import { easedGlow } from "../../../actions";
-import { pixelSteps } from "../../../lib/motion";
-import PixelArt from "../../PixelArt";
-import { BIG_SIGIL_ROWS, GRACE_GOLD, SIGIL_STROKES } from "./grace";
-import { edgeFade, graceEmbers } from "./helpers";
+import { GRACE_GOLD, GRACE_STROKES } from "../artwork";
+import { easeOutExpo } from "../../../lib/motion";
 
-// a hard dark outline right around the letters, so the gold reads over the light without a blurry shadow
-const PIXEL_SHADOW = "2px 2px 0 #1a1204, -1px -1px 0 #1a1204, 1px -1px 0 #1a1204, -1px 1px 0 #1a1204";
+// the cello figure plays while the light comes down, and the choir chord opens as the sigil is drawn
+const PILLAR_AT = 0.1;
+const SIGIL_AT = 0.9;
+const COPY_AT = 1.6;
+const MOMENT_MS = 3600;
 
-const GRACE_EMBERS = graceEmbers(18);
+// motes of golden light drifting up through the pillar, each on its own lazy path
+const MOTES = Array.from({ length: 18 }, (_, index) => ({ index, x: ((index * 37) % 100) - 50, delay: (index * 0.23) % 2.4, size: 2 + (index % 3) }));
 
-// one layer per stroke, each one painting only its own letter of the sprite
-const STROKE_LAYERS = SIGIL_STROKES.map((stroke) => ({ stroke, palette: { [stroke]: GRACE_GOLD } }));
-
-// the light of the grace in a few flat bands over the dark, the way a 16 bit palette can afford it
-const GRACE_LIGHT = `${easedGlow(GRACE_GOLD, { strength: 0.2, reach: 80 })}, rgba(5,5,12,0.78)`;
-
-const Rule = () => (
+const Pillar = () => (
   <motion.span
-    initial={{ scaleX: 0 }}
-    animate={{ scaleX: 1 }}
-    transition={{ duration: 1.4, ease: pixelSteps(7) }}
-    className="mx-auto block h-1 max-w-xl"
-    style={{ background: edgeFade(GRACE_GOLD, { strength: 0.75 }) }}
+    className="absolute top-0 left-1/2 h-[62%] w-[min(40vw,18rem)] -translate-x-1/2 blur-2xl"
+    style={{ background: `linear-gradient(to bottom, transparent, ${GRACE_GOLD}66 60%, ${GRACE_GOLD}cc)`, originY: 0 }}
+    initial={{ scaleY: 0, opacity: 0 }}
+    animate={{ scaleY: 1, opacity: 1 }}
+    transition={{ duration: 1.4, delay: PILLAR_AT, ease: easeOutExpo }}
   />
 );
 
-// square motes of gold that tick up the screen a frame at a time
-const Embers = () =>
-  GRACE_EMBERS.map(({ left, delay, size }) => (
+const Motes = () =>
+  MOTES.map((mote) => (
     <motion.span
-      key={left}
-      className="absolute bottom-0"
-      style={{ left: `${left}%`, width: size, height: size, background: GRACE_GOLD, boxShadow: `0 0 0 2px ${GRACE_GOLD}55` }}
+      key={mote.index}
+      className="absolute top-[52%] left-1/2 rounded-full"
+      style={{ width: mote.size, height: mote.size, background: GRACE_GOLD, boxShadow: `0 0 8px ${GRACE_GOLD}`, x: `${mote.x * 0.3}vw` }}
       initial={{ y: 0, opacity: 0 }}
-      animate={{ y: "-85vh", opacity: [0, 1, 0] }}
-      transition={{ duration: 3, delay, ease: pixelSteps(16) }}
+      animate={{ y: "-40vh", opacity: [0, 1, 0] }}
+      transition={{ duration: 3.2, delay: PILLAR_AT + mote.delay, repeat: Infinity, ease: "easeOut" }}
     />
   ));
 
-// the sigil itself, drawn huge and faint behind the banner, each stroke lighting up on its own beat
-const Sigil = () => (
-  <div className="absolute size-[min(80vw,30rem,70vh)]" style={{ opacity: 0.35 }}>
-    {STROKE_LAYERS.map(({ stroke, palette }, index) => (
-      <motion.span
-        key={stroke}
-        className="absolute inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: [0, 1, 0.6, 1] }}
-        transition={{ duration: 1, delay: 0.2 + index * 0.2, ease: pixelSteps(4) }}
-      >
-        <PixelArt rows={BIG_SIGIL_ROWS} palette={palette} className="block size-full" />
-      </motion.span>
-    ))}
-  </div>
-);
-
-/** The gold banner Elden Ring rolls across the screen the first time you touch a grace, in 16 bit, over the light it gives off. */
-const GraceDiscovered = ({ onDone }) => {
-  useMomentLength(3800, onDone);
+/** Elden Ring: a pillar of golden light comes down, the sigil of grace is drawn in it, and the motes rise. */
+const GraceMoment = ({ onDone }) => {
+  useMomentLength(MOMENT_MS, onDone);
   return (
-    <EffectLayer background={GRACE_LIGHT} className="grid place-items-center" fade={1.2}>
-      <Embers />
-      <Sigil />
-      <Shockwave color={GRACE_GOLD} delay={0.4} />
-      <div className="relative w-full px-4 py-8 text-center" style={{ background: edgeFade("rgb(0 0 0)", { solid: 50, strength: 0.9 }) }}>
-        <Rule />
-        <motion.p
-          initial={{ letterSpacing: "0.45em", opacity: 0 }}
-          animate={{ letterSpacing: "0.2em", opacity: 1 }}
-          transition={{ duration: 1.8, ease: pixelSteps(8) }}
-          className="my-4 font-pixel text-[clamp(1.25rem,5.5vw,3.75rem)] uppercase"
-          style={{ color: GRACE_GOLD, textShadow: PIXEL_SHADOW }}
-        >
-          Lost Grace Discovered
-        </motion.p>
-        <Rule />
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.4, ease: pixelSteps(4) }}
-          className="mx-auto mt-4 max-w-xl font-pixel text-xs tracking-[0.2em] text-balance text-[#e9dcb0] uppercase"
-          style={{ textShadow: PIXEL_SHADOW }}
-        >
-          contact.sh · Rest here, Tarnished. Every message gets an answer.
-        </motion.p>
-      </div>
-    </EffectLayer>
+    <MomentLayer color={GRACE_GOLD} glowAt="50% 38%">
+      <Pillar />
+      <Bloom color={GRACE_GOLD} at={SIGIL_AT} size="min(46vmin,22rem)" className="top-[38%]" />
+      <svg viewBox="0 0 64 64" className="absolute top-[38%] left-1/2 size-[min(34vmin,14rem)] -translate-x-1/2 -translate-y-1/2 overflow-visible" style={{ filter: `drop-shadow(0 0 10px ${GRACE_GOLD})` }}>
+        {GRACE_STROKES.map((d, index) => (
+          <DrawnPath key={d} d={d} color={GRACE_GOLD} at={SIGIL_AT + index * 0.15} duration={1.3} width={1.6} />
+        ))}
+      </svg>
+      <Motes />
+      <MomentCopy color={GRACE_GOLD} eyebrow="Elden Ring" title="Lost Grace Discovered." lines={["Rest here, Tarnished. Every message gets an answer."]} at={COPY_AT} />
+    </MomentLayer>
   );
 };
 
-export default GraceDiscovered;
+export default GraceMoment;

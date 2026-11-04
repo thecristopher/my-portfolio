@@ -3,7 +3,6 @@ import { ArrowUpRight } from "lucide-react";
 import { Trigger as UmbrellaLogo } from "../../components/Relics/ResidentEvil";
 import { cleanTechName, formatRange, slugify, usesTech } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
-import { formatRoles } from "../../lib/resume/buildResume";
 import { CompanyMark } from "./pieces";
 import CaseStudyCard from "./CaseStudyCard";
 
@@ -22,7 +21,7 @@ const EarlierRole = ({ project, pickedTech, studies, index }) => (
         {project.title}
         <ArrowUpRight size={16} className="text-faint transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
       </a>
-      <p className="text-sm text-muted">{[formatRoles(project.roles), formatRange(project.start, project.end)].filter(Boolean).join(" · ")}</p>
+      {formatRange(project.start, project.end) && <p className="text-sm text-muted">{formatRange(project.start, project.end)}</p>}
     </div>
     <div className="flex flex-col gap-4">
       <ul className="flex flex-col gap-2 text-lg leading-relaxed text-muted">
