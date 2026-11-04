@@ -1,8 +1,8 @@
 import { createStore } from "./store";
 
 // the relics: one small object per franchise, spread across the sections, each hiding where its line on the page
-// fits it, so the quest log can always jump to the right section.
-// touching one plays its moment, and the quest log keeps what you found and gives a riddle for the rest. the ids
+// fits it, so the relic log can always jump to the right section.
+// touching one plays its moment, and the relic log keeps what you found and gives a riddle for the rest. the ids
 // are the old secret ids, so anyone who found one before keeps the credit
 export const RELICS = {
   scott: {
@@ -10,8 +10,8 @@ export const RELICS = {
     name: "Player 1",
     color: "#ff5ca8",
     section: "home",
-    touch: "poke him",
-    riddle: "Player 1 doesn't like being poked. Three times, quickly.",
+    touch: "poke the photo",
+    riddle: "Player 1 is the guy in the photo, and he doesn't like being poked. Three times, quickly.",
     quip: "K.O.! The backlog never stood a chance.",
   },
   pokeball: {
@@ -20,7 +20,7 @@ export const RELICS = {
     color: "#e3350d",
     section: "work",
     touch: "throw the ball",
-    riddle: "Every commit in the career log is an evolution. A Poké Ball waits beside it.",
+    riddle: "Every title on the career timeline is an evolution. A Poké Ball waits where it starts.",
     quip: "Gotcha! An Engineering Manager joined your party. He knows Code Review.",
   },
   alchemy: {
@@ -47,7 +47,7 @@ export const RELICS = {
     color: "#ff91be",
     section: "skills",
     touch: "solve the puzzle",
-    riddle: "Something golden keeps watch over the health report, an eye on its face.",
+    riddle: "Something golden keeps watch over the skills, an eye on its face.",
     quip: "Every skill bar just got +500 ATK. The heart of the cards approves.",
   },
   airbender: {
@@ -65,26 +65,17 @@ export const RELICS = {
     color: "#e8c35a",
     section: "github",
     touch: "claim the Triforce",
-    riddle: "Past the last side quest, three golden triangles sit in the corner.",
+    riddle: "Past the last side quest, three golden triangles wait at the end of the shelf.",
     quip: "It's dangerous to ship alone. Take these side quests.",
   },
   hanafuda: {
     franchise: "Demon Slayer",
     name: "Nichirin blade",
     color: "#3fa9f5",
-    section: "home",
+    section: "about",
     touch: "total concentration",
-    riddle: "In profile.ts, a black blade rests by the certifications.",
+    riddle: "A black blade rests among the certifications.",
     quip: "Total concentration. That's how both AWS exams got passed.",
-  },
-  spider: {
-    franchise: "Spider-Man",
-    name: "The spider emblem",
-    color: "#e23636",
-    section: "home",
-    touch: "tap the spider",
-    riddle: "In profile.ts, something with eight legs clings to where I studied.",
-    quip: "Peter had Midtown High. I had the Tecnológico de Tijuana.",
   },
   grace: {
     franchise: "Elden Ring",
@@ -92,17 +83,8 @@ export const RELICS = {
     color: "#f5d77a",
     section: "contact",
     touch: "touch grace",
-    riddle: "Log out of the terminal and a golden sigil stays behind.",
+    riddle: "Where the page signs off, a golden sigil rests in the light.",
     quip: "Grace touched. Your respawn point is my inbox.",
-  },
-  bat: {
-    franchise: "Batman: Arkham",
-    name: "The bat symbol",
-    color: "#ffd84a",
-    section: "about",
-    touch: "light the signal",
-    riddle: "Every photo is evidence. Gotham stamped its symbol on my portrait's caption.",
-    quip: "Every bug leaves evidence. I'm the one who goes looking at 3 a.m.",
   },
   d20: {
     franchise: "Baldur's Gate 3",
@@ -110,7 +92,7 @@ export const RELICS = {
     color: "#d8b25a",
     section: "contact",
     touch: "roll persuasion",
-    riddle: "Sending an email is a persuasion check. The die waits on the terminal's first line.",
+    riddle: "Sending an email is a persuasion check. The die waits right beside the address.",
     quip: "Persuasion check passed. Now you just have to send the email.",
   },
   willow: {
@@ -126,7 +108,7 @@ export const RELICS = {
 
 export const RELIC_IDS = Object.keys(RELICS);
 
-export const COMPLETION_QUIP = "Every relic found. Fancy a co-op run? contact.sh is open.";
+export const COMPLETION_QUIP = "Every relic found. Fancy a co-op run? My inbox is open.";
 
 // the grace used to be a Dark Souls bonfire, anyone who lit it keeps the credit
 const RENAMED = { bonfire: "grace" };

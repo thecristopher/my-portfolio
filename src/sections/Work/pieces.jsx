@@ -1,35 +1,34 @@
-import { useRef } from "react";
-import { motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
+import { motion } from "framer-motion";
 import { X } from "lucide-react";
-import EditorWindow from "../../components/EditorWindow";
-import { Trigger as PokeBall } from "../../components/Relics/Pokemon";
 import TechIcon from "../../components/TechIcon";
-import { careerCommits, cleanTechName } from "../../actions";
+import { cleanTechName } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
-import { scrollToSection } from "../../lib/smoothScroll";
 import { clearTech, pickTech } from "../../lib/stackFilter";
 import { COMPANY_LOGOS } from "../../lib/companyLogos";
+import { filterSummary } from "./actions";
 
-// long stacks split into two columns so the side panel never outgrows the story next to it.
-// every tool is a grep: pick one and the other jobs fade back
+/**
+ * A job's tools as chips. Every chip is a filter: pick one and the jobs that never used it fade back.
+ * @param {{ technologies: string[], pickedTech: string | null }} props
+ */
 export const StackList = ({ technologies, pickedTech }) => (
-  <ul className={`grid gap-x-4 gap-y-1.5 ${technologies.length > 8 ? "grid-cols-2" : "grid-cols-1"}`}>
+  <ul className="flex flex-wrap gap-2">
     {technologies.map((tech) => {
       const name = cleanTechName(tech);
       const isPicked = pickedTech === name;
       return (
-        <li key={tech} className="min-w-0">
+        <li key={tech}>
           <button
             type="button"
             onClick={() => pickTech(isPicked ? null : name)}
             aria-pressed={isPicked}
             title={isPicked ? "Show every job" : `Only the jobs that shipped with ${name}`}
-            className={`flex w-full min-w-0 items-center gap-2 text-left transition-colors ${isPicked ? "text-accent" : "text-muted hover:text-fg"}`}
+            className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+              isPicked ? "border-accent bg-accent-soft text-accent" : "border-line text-muted hover:border-line-strong hover:text-fg"
+            }`}
           >
-            <span className="grid w-4 place-items-center text-faint">
-              <TechIcon tech={tech} className="size-3" fallback="·" />
-            </span>
-            <span className="truncate">{name}</span>
+            <TechIcon tech={tech} className="size-3.5" />
+            {name}
           </button>
         </li>
       );
@@ -37,124 +36,33 @@ export const StackList = ({ technologies, pickedTech }) => (
   </ul>
 );
 
-const COMMIT_TONES = { promote: "text-string", join: "text-signal", init: "text-error" };
-
-// every title I held as a commit, newest on top. each one jumps to the card that tells its story
-export const CareerLog = ({ projects }) => {
-  const commits = careerCommits(projects);
-  const listRef = useRef(null);
-  const prefersReducedMotion = useReducedMotion();
-  // the work section's signature: the branch line draws itself down the log as you read it
-  const { scrollYProgress } = useScroll({ target: listRef, offset: ["start 0.85", "end 0.55"] });
-  const drawn = useSpring(scrollYProgress, { stiffness: 90, damping: 26 });
-
-  return (
-    <div id="career-log">
-      <EditorWindow path={["cristopher", "work", "career.log"]}>
-        <div className="flex flex-col gap-4 font-mono text-xs">
-          {/* every commit below is an evolution, so the grass grows beside the log that lists them */}
-          <p className="flex items-center justify-between text-muted">
-            <span>
-              <span className="text-accent">$</span> git log --graph --oneline --all
-            </span>
-            <PokeBall zoom={0.42} />
-          </p>
-          <ol ref={listRef} className="relative flex flex-col">
-            <span className="absolute top-3 bottom-3 left-[5px] w-px bg-line" aria-hidden="true" />
-            <motion.span
-              style={prefersReducedMotion ? undefined : { scaleY: drawn }}
-              className="absolute top-3 bottom-3 left-[5px] w-px origin-top bg-gradient-to-b from-accent via-signal to-error"
-              aria-hidden="true"
-            />
-            {commits.map((commit, index) => (
-              <motion.li
-                key={commit.hash}
-                initial={{ opacity: 0, x: -10 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.07, ease: easeOutExpo }}
-                className="relative"
-              >
-                <button
-                  type="button"
-                  onClick={() => scrollToSection(commit.targetId)}
-                  className={`group relative flex w-full items-baseline gap-3 rounded-md py-1.5 text-left ${commit.isNewestAtCompany && index > 0 ? "mt-2" : ""}`}
-                >
-                  <span className="relative grid size-[11px] shrink-0 translate-y-[1px] place-items-center self-start">
-                    {commit.isHead && <span className="absolute inset-0 animate-ping rounded-full bg-accent/50" aria-hidden="true" />}
-                    <span className={`size-[9px] rounded-full border-2 border-current bg-panel ${commit.isHead ? "bg-current text-accent" : COMMIT_TONES[commit.type]}`} />
-                  </span>
-                  <span className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
-                    <span className="flex min-w-0 flex-wrap items-baseline gap-x-2">
-                      <span className="text-accent">{commit.hash}</span>
-                      {commit.isHead && (
-                        <span>
-                          <span className="text-faint">(</span>
-                          <span className="text-signal">HEAD</span>
-                          <span className="text-faint"> → </span>
-                          <span className="text-string">main</span>
-                          <span className="text-faint">)</span>
-                        </span>
-                      )}
-                      <span>
-                        <span className={COMMIT_TONES[commit.type]}>{commit.type}:</span>{" "}
-                        <span className="text-fg transition-colors group-hover:text-accent">{commit.message}</span>
-                      </span>
-                    </span>
-                    {commit.years && <span className="text-faint sm:ml-auto sm:shrink-0">{commit.years}</span>}
-                  </span>
-                </button>
-              </motion.li>
-            ))}
-          </ol>
-        </div>
-      </EditorWindow>
-    </div>
-  );
-};
-
-// the grep the skills or a card's stack started, with the way back to every job
-export const GrepBanner = ({ tech, matches, total }) => (
+/**
+ * The filter a skill or a chip started, floating over the jobs, with the way back to all of them.
+ * @param {{ tech: string, matches: number, total: number }} props
+ */
+export const FilterBar = ({ tech, matches, total }) => (
   <motion.div
-    initial={{ opacity: 0, y: -8 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -8 }}
+    initial={{ opacity: 0, y: -12, scale: 0.96 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    exit={{ opacity: 0, y: -12, scale: 0.96 }}
     transition={{ duration: 0.4, ease: easeOutExpo }}
-    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/40 bg-panel/90 px-4 py-3 font-mono text-xs shadow-[0_18px_40px_-16px_color-mix(in_oklab,var(--color-shadow)_80%,transparent)] backdrop-blur-xl"
+    className="glass mx-auto flex w-fit items-center gap-3 rounded-full border border-line py-1.5 pr-1.5 pl-4 text-sm shadow-lg"
   >
-    <p className="text-muted">
-      <span className="text-accent">$</span> grep -l "{tech}" ~/work/* <span className="text-fg">→ {matches} of {total} jobs</span>
-    </p>
-    <button
-      type="button"
-      onClick={clearTech}
-      className="flex items-center gap-1.5 text-muted transition-colors hover:text-accent"
-    >
-      <X size={13} aria-hidden="true" /> clear
+    <TechIcon tech={tech} className="size-4" />
+    <span className="text-muted">{filterSummary(tech, matches, total)}</span>
+    <button type="button" onClick={clearTech} className="flex items-center gap-1 rounded-full bg-raised px-3 py-1 text-xs font-medium transition-colors hover:bg-line-strong">
+      <X size={12} aria-hidden="true" /> Clear
     </button>
   </motion.div>
 );
 
-
-// where the mark sits: a chapter's masthead is tall and narrow, an earlier job is a short wide row
-const MARK_SPOTS = {
-  chapter: "-right-6 top-8 size-56 -rotate-12",
-  row: "top-1/2 right-6 h-20 w-[34%] max-w-72 -translate-y-1/2 -rotate-6",
-};
-
-// the company's mark pressed into the background like a watermark, tilted off square in its brand color, the way
-// the side quests press in their languages. it wakes up when the job is hovered
-export const CompanyMark = ({ company, layout = "chapter" }) => {
+/**
+ * The company's mark as a flat shape in its brand color, the way the tool logos are drawn.
+ * @param {{ company: string, className?: string }} props
+ */
+export const CompanyMark = ({ company, className = "" }) => {
   const logo = COMPANY_LOGOS[company];
   if (!logo) return null;
-  // a flat shape tinted in the brand color reads like the tool logos do, a full color logo turns muddy this faint
-  const tint = { background: logo.color, maskImage: `url(${logo.src})`, maskSize: "contain", maskRepeat: "no-repeat", maskPosition: "center" };
-
-  return (
-    <span
-      className={`pointer-events-none absolute -z-10 ${MARK_SPOTS[layout]} opacity-[0.07] transition-[scale,rotate,opacity] duration-700 group-hover:scale-110 group-hover:-rotate-6 group-hover:opacity-[0.14]`}
-      style={tint}
-      aria-hidden="true"
-    />
-  );
+  const tint = { background: logo.color, maskImage: `url(${logo.src})`, maskSize: "contain", maskRepeat: "no-repeat", maskPosition: "left center" };
+  return <span className={`block ${className}`} style={tint} aria-hidden="true" />;
 };

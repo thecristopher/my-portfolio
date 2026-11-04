@@ -1,17 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AnimatePresence, MotionConfig } from "framer-motion";
-import Bufferline from "./components/Bufferline";
-import Statusline from "./components/Statusline";
-import Telescope from "./components/Telescope";
-import WhichKey from "./components/WhichKey";
-import QuestLog from "./components/QuestLog";
-import SearchLine from "./components/SearchLine";
-import HintMode from "./components/HintMode";
-import Banner from "./components/Banner";
-import Rest from "./components/Rest";
-import Hub from "./components/Hub";
-import Pointer from "./components/Pointer";
+import { MotionConfig } from "framer-motion";
+import Nav from "./components/Nav";
 import Footer from "./components/Footer";
+import Toast from "./components/Toast";
+import RelicLog from "./components/RelicLog";
 import Resume from "./components/Resume";
 import RelicStage from "./components/Relics/Stage";
 import Hero from "./sections/Hero";
@@ -21,41 +13,14 @@ import Skills from "./sections/Skills";
 import GitHub from "./sections/GitHub";
 import Contact from "./sections/Contact";
 import { startSmoothScroll } from "./lib/smoothScroll";
-import { earnRunes } from "./lib/runes";
-import { useVimKeys } from "./hooks/useVimKeys";
+import { followSystemTheme } from "./lib/theme";
 import { useActiveSection } from "./hooks/useActiveSection";
 import { usePageLinks } from "./api/navBarApi";
 import { sectionIdFromUrl } from "./actions";
-import { buildLeaderBindings } from "./lib/leader";
 
 const SECTIONS = { home: Hero, about: About, work: Work, skills: Skills, github: GitHub, contact: Contact };
 
-// which dialogs are open, and the mode the statusline shows for them
-const useDialogs = () => {
-  const [open, setOpen] = useState({ telescope: false, telescopeQuery: "", quests: false, search: false, hints: false, whichKey: false });
-  const set = useCallback((patch) => setOpen((current) => ({ ...current, ...patch })), []);
-  const handlers = useMemo(
-    () => ({
-      openTelescope: (query = "") => set({ telescope: true, telescopeQuery: typeof query === "string" ? query : "" }),
-      closeTelescope: () => set({ telescope: false }),
-      openRegions: () => set({ telescope: true, telescopeQuery: "region " }),
-      openQuests: () => set({ quests: true }),
-      closeQuests: () => set({ quests: false }),
-      openSearch: () => set({ search: true }),
-      closeSearch: () => set({ search: false }),
-      openHints: () => set({ hints: true }),
-      closeHints: () => set({ hints: false }),
-      openWhichKey: () => set({ whichKey: true }),
-      closeWhichKey: () => set({ whichKey: false }),
-    }),
-    [set]
-  );
-  const isAnyOpen = open.telescope || open.quests || open.search || open.hints || open.whichKey;
-  const mode = open.telescope ? "COMMAND" : open.search ? "SEARCH" : open.hints ? "HINT" : "NORMAL";
-  return { open, handlers, isAnyOpen, mode };
-};
-
-/** The page as an nvim session: bufferline on top, lualine at the bottom, one buffer per section in between. */
+/** The page: a glass bar on top, one scene per section in between, the relic moments over everything. */
 const App = () => {
   const links = usePageLinks();
   const sections = useMemo(
@@ -64,69 +29,30 @@ const App = () => {
   );
   const sectionIds = useMemo(() => sections.map((section) => section.id), [sections]);
   const activeSectionId = useActiveSection(sectionIds);
-  const { open, handlers, isAnyOpen, mode } = useDialogs();
-  const leaderBindings = useMemo(() => buildLeaderBindings(handlers), [handlers]);
+  const [isRelicLogOpen, setIsRelicLogOpen] = useState(false);
+  const openRelicLog = useCallback(() => setIsRelicLogOpen(true), []);
+  const closeRelicLog = useCallback(() => setIsRelicLogOpen(false), []);
 
   useEffect(() => startSmoothScroll(), []);
-
-  // every buffer you open pays a few runes, once, like the first visit to an area
-  useEffect(() => {
-    if (activeSectionId) earnRunes("section", `section:${activeSectionId}`);
-  }, [activeSectionId]);
-
-  useVimKeys({
-    onOpenCmdline: handlers.openTelescope,
-    onOpenSearch: handlers.openSearch,
-    onOpenHints: handlers.openHints,
-    onOpenWhichKey: handlers.openWhichKey,
-    sectionIds,
-    bufferIds: sectionIds,
-    isPaused: isAnyOpen,
-  });
-
-  useEffect(() => {
-    const toggleOnShortcut = (event) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        handlers.openTelescope();
-      }
-    };
-    window.addEventListener("keydown", toggleOnShortcut);
-    return () => window.removeEventListener("keydown", toggleOnShortcut);
-  }, [handlers]);
+  useEffect(() => followSystemTheme(), []);
 
   return (
     <MotionConfig reducedMotion="user">
-      <a href="#about" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-fg focus:px-4 focus:py-2 focus:text-ink">
+      <a href="#about" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-fg focus:px-4 focus:py-2 focus:text-ink">
         Skip to content
       </a>
-      <Bufferline sections={sections} activeId={activeSectionId} onOpenRegions={handlers.openRegions} />
+      <Nav sections={sections} activeId={activeSectionId} onOpenRelicLog={openRelicLog} />
       <main>
-        {sectionIds.map((id, index) => {
+        {sectionIds.map((id) => {
           const Section = SECTIONS[id];
-          return <Section key={id} number={index + 1} />;
+          return <Section key={id} />;
         })}
       </main>
       <Footer />
-      <Statusline mode={mode} activeId={activeSectionId} onOpenQuestLog={handlers.openQuests} onOpenRegions={handlers.openRegions} />
-      <Telescope
-        isOpen={open.telescope}
-        initialQuery={open.telescopeQuery}
-        onClose={handlers.closeTelescope}
-        onOpenQuestLog={handlers.openQuests}
-        onOpenSearch={handlers.openSearch}
-        onOpenWhichKey={handlers.openWhichKey}
-      />
-      <WhichKey isOpen={open.whichKey} bindings={leaderBindings} onClose={handlers.closeWhichKey} />
-      <AnimatePresence>{open.search && <SearchLine onClose={handlers.closeSearch} />}</AnimatePresence>
-      <QuestLog isOpen={open.quests} onClose={handlers.closeQuests} />
+      <RelicLog isOpen={isRelicLogOpen} sections={sections} onClose={closeRelicLog} />
+      <Toast />
       <Resume />
-      {open.hints && <HintMode onClose={handlers.closeHints} />}
       <RelicStage />
-      <Banner />
-      <Rest isBusy={() => isAnyOpen} />
-      <Hub />
-      <Pointer />
     </MotionConfig>
   );
 };

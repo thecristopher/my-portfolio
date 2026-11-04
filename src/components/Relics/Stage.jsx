@@ -3,9 +3,9 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { clearStage, useStagedRelic } from "../../lib/relicStage";
 import { COMPLETION_QUIP, RELICS, RELIC_IDS, isComplete, foundRelics, useFoundRelics } from "../../lib/relics";
-import { showBanner } from "../../lib/banner";
 import { echo } from "../../lib/echo";
 import { pauseSmoothScroll, resumeSmoothScroll } from "../../lib/smoothScroll";
+import { easeOutExpo } from "../../lib/motion";
 import { RELIC_EFFECTS } from "./registry";
 
 // the continue button shows up once the moment has played, or after this long if a moment never says so
@@ -13,25 +13,22 @@ const SETTLE_FALLBACK_MS = 7000;
 
 const pad = (count) => String(count).padStart(2, "0");
 
-// what's said once a moment is closed: the relic's line, and the big banner when it was the last one
+// what is said once a moment is closed: the relic's line, or the completion line when it was the last one
 const announce = ({ id, isFirstFind }) => {
   if (!isFirstFind) return;
-  if (isComplete(foundRelics.get())) {
-    showBanner("great", { subtitle: COMPLETION_QUIP });
-    return;
-  }
-  echo(RELICS[id].quip, "success");
+  echo(isComplete(foundRelics.get()) ? COMPLETION_QUIP : RELICS[id].quip, "success");
 };
 
 /**
- * The 16 bit counter in the top right corner while a moment plays: how many relics so far, ticking up by one on a
- * new find, and the name of the one just touched.
+ * The counter in the top right corner while a moment plays: how many relics so far, ticking up by one on a new
+ * find, and the name of the one just touched.
  */
 const RelicHud = ({ staged }) => {
   const found = useFoundRelics();
   const total = found.length;
   const before = staged.isFirstFind ? total - 1 : total;
   const [shown, setShown] = useState(before);
+  const relic = RELICS[staged.id];
 
   useEffect(() => {
     if (shown === total) return;
@@ -41,29 +38,29 @@ const RelicHud = ({ staged }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 24 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 24 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      className="snes-window pointer-events-none fixed top-4 right-4 z-[72] flex min-w-44 flex-col gap-1 px-4 py-2.5"
+      initial={{ opacity: 0, y: -16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -16 }}
+      transition={{ duration: 0.5, ease: easeOutExpo }}
+      className="pointer-events-none fixed top-4 right-4 z-[72] flex items-center gap-3 rounded-full bg-black/55 py-2 pr-4 pl-2 text-white ring-1 ring-white/15 backdrop-blur-xl"
       role="status"
     >
-      <p className="flex items-baseline justify-between gap-4 text-sm tracking-wider uppercase">
-        <span>Relics</span>
+      <span className="size-7 rounded-full" style={{ background: relic.color, boxShadow: `0 0 16px ${relic.color}` }} aria-hidden="true" />
+      <span className="flex flex-col leading-tight">
+        <span className="text-xs text-white/60">
+          {staged.isFirstFind && shown === total && <span className="mr-1.5 font-semibold text-white">New relic</span>}
+          {relic.franchise}
+        </span>
         <motion.span
           key={shown}
-          initial={{ scale: shown === before ? 1 : 1.6, color: shown === before ? "#ffffff" : "#ffe066" }}
-          animate={{ scale: 1, color: "#ffffff" }}
-          transition={{ duration: 0.5 }}
-          className="text-xl tabular-nums"
+          initial={{ scale: shown === before ? 1 : 1.4, opacity: shown === before ? 1 : 0.4 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5, ease: easeOutExpo }}
+          className="origin-left text-sm font-semibold tabular-nums"
         >
-          {pad(shown)}/{pad(RELIC_IDS.length)}
+          {pad(shown)} of {pad(RELIC_IDS.length)} found
         </motion.span>
-      </p>
-      <p className="text-xs" style={{ color: RELICS[staged.id].color }}>
-        {staged.isFirstFind && shown === total && <span className="mr-1 text-[#ffe066]">NEW!</span>}
-        {RELICS[staged.id].franchise}
-      </p>
+      </span>
     </motion.div>
   );
 };
@@ -74,14 +71,12 @@ const ContinueButton = ({ onClose }) => (
     type="button"
     autoFocus
     onClick={onClose}
-    initial={{ opacity: 0, y: 12 }}
+    initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0 }}
-    transition={{ duration: 0.35, ease: "easeOut" }}
-    className="snes-window fixed bottom-10 left-1/2 z-[72] -translate-x-1/2 px-6 py-2.5 text-base tracking-wider uppercase outline-none focus-visible:ring-2 focus-visible:ring-[#ffe066]"
+    transition={{ duration: 0.5, ease: easeOutExpo }}
+    className="fixed bottom-10 left-1/2 z-[72] -translate-x-1/2 rounded-full bg-white px-7 py-3 text-sm font-semibold text-black shadow-2xl outline-none transition-transform hover:scale-[1.04] focus-visible:ring-4 focus-visible:ring-white/40 active:scale-[0.97]"
   >
-    {/* the menu cursor every 16 bit game blinks next to the option you're on */}
-    <span className="caret mr-2 inline-block">▶</span>
     Continue
   </motion.button>
 );

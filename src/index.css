@@ -1,195 +1,61 @@
 @import "tailwindcss";
 @import "lenis/dist/lenis.css";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 @theme {
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
-  /* carved capitals for the Elden Ring banners and region names, never for body copy */
-  --font-display: "Cinzel", "Trajan Pro", ui-serif, serif;
-  /* the 16 bit face the relic hud and its dialog boxes speak in */
+  /* the 16 bit face the relic moments speak in, never for the page itself */
   --font-pixel: "Pixelify Sans", ui-monospace, monospace;
 
-  /* every color is a region of Eldentree, the nvim config this site is drawn from: catppuccin mocha recolored for
-     wherever in the Lands Between you wake up. leyndell is the default, gold on ash stone. each token keeps the
-     catppuccin slot it came from, so a region only needs its palette */
-  --color-ink: #0d0b09;
-  --color-mantle: #090705;
-  --color-crust: #060403;
-  --color-panel: #1c1815;
-  --color-raised: #252019;
-  --color-line: #252019;
-  --color-line-strong: #312b22;
-  --color-fg: #e0cda8;
-  --color-muted: #a89278;
-  --color-faint: #6b5e54;
-  --color-accent: #c9a84c;
-  --color-rose: #dcc0a0;
-  --color-lavender: #9b8ec4;
-  --color-mauve: #a888c8;
-  --color-string: #7dae68;
-  --color-signal: #6ba888;
-  --color-peach: #cc8a40;
-  --color-error: #b83838;
-  --color-sky: #68b8c8;
-  --color-blue: #6898b8;
-  /* each filetype's own color, the way nvim-web-devicons paints them */
-  --color-ft-react: #20c2e3;
-  --color-ft-markdown: #519aba;
-  --color-ft-json: #cbcb41;
-  --color-ft-toml: #e0773d;
-  --color-ft-yaml: #e8484f;
-  --color-ft-lua: #51a0cf;
-  --color-ft-shell: #89e051;
-  --color-ft-log: #c5c5c5;
-  --color-ft-git: #f14c28;
-  --color-shadow: #000;
+  /* light is the default. dark repeats every token under [data-theme="dark"] below */
+  --color-ink: #fbfbfd;
+  --color-mantle: #f5f5f7;
+  --color-panel: #ffffff;
+  --color-raised: #ececf0;
+  --color-line: #e3e3e8;
+  --color-line-strong: #d2d2d7;
+  --color-fg: #1d1d1f;
+  --color-muted: #6e6e73;
+  --color-faint: #8e8e93;
+  --color-accent: #d23f1c;
+  --color-accent-soft: #fdeee8;
+  --color-string: #1f8a4c;
+  --color-error: #d70015;
+  --color-shadow: rgb(15 15 30 / 0.12);
+
+  /* the light the hero photo was taken in: the green wall and the warm glow on the glasses */
+  --color-stage: #121a16;
+  --color-stage-fg: #f3efe6;
+  --color-glow: #f2c98a;
+
+  /* a Baja sunset, the one gradient every big headline fills with */
+  --color-sunset-1: #f07a1a;
+  --color-sunset-2: #e23d5a;
+  --color-sunset-3: #8c46e6;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* every region is also a scope, so a swatch of one can sit inside another (telescope's region preview).
-   leyndell repeats the defaults for that reason */
-[data-theme="leyndell"] {
-  --color-ink: #0d0b09;
-  --color-mantle: #090705;
-  --color-crust: #060403;
-  --color-panel: #1c1815;
-  --color-raised: #252019;
-  --color-line: #252019;
-  --color-line-strong: #312b22;
-  --color-fg: #e0cda8;
-  --color-muted: #a89278;
-  --color-faint: #6b5e54;
-  --color-accent: #c9a84c;
-  --color-rose: #dcc0a0;
-  --color-lavender: #9b8ec4;
-  --color-mauve: #a888c8;
-  --color-string: #7dae68;
-  --color-signal: #6ba888;
-  --color-peach: #cc8a40;
-  --color-error: #b83838;
-  --color-sky: #68b8c8;
-  --color-blue: #6898b8;
-}
-
-/* Malenia's scarlet rot and bronze */
-[data-theme="haligtree"] {
-  --color-ink: #0e0a0d;
-  --color-mantle: #0a0709;
-  --color-crust: #060406;
-  --color-panel: #1d141b;
-  --color-raised: #271b24;
-  --color-line: #271b24;
-  --color-line-strong: #332430;
-  --color-fg: #ead5e4;
-  --color-muted: #af93a8;
-  --color-faint: #6e5969;
-  --color-accent: #e47fad;
-  --color-rose: #d8b48a;
-  --color-lavender: #b394c8;
-  --color-mauve: #c9a0dc;
-  --color-string: #9db87a;
-  --color-signal: #7fb5a6;
-  --color-peach: #e0a050;
-  --color-error: #c42b3b;
-  --color-sky: #9ccfd8;
-  --color-blue: #7fa6c4;
-}
-
-/* Rennala's glintstone and the full moon */
-[data-theme="raya-lucaria"] {
-  --color-ink: #0c0b13;
-  --color-mantle: #09080f;
-  --color-crust: #06050b;
-  --color-panel: #191828;
-  --color-raised: #211f33;
-  --color-line: #211f33;
-  --color-line-strong: #2c2a42;
-  --color-fg: #e2e1f5;
-  --color-muted: #a6a4c9;
-  --color-faint: #666289;
-  --color-accent: #a499f7;
-  --color-rose: #d0cded;
-  --color-lavender: #7fb2f0;
-  --color-mauve: #d09add;
-  --color-string: #8cc7a4;
-  --color-signal: #6fc2c2;
-  --color-peach: #e0a86a;
-  --color-error: #e05c6b;
-  --color-sky: #8fd6e8;
-  --color-blue: #d8b86a;
-}
-
-/* the crimson sky over Radahn's battlefield */
-[data-theme="caelid"] {
-  --color-ink: #110a08;
-  --color-mantle: #0c0605;
-  --color-crust: #070303;
-  --color-panel: #1f1310;
-  --color-raised: #2a1914;
-  --color-line: #2a1914;
-  --color-line-strong: #36201a;
-  --color-fg: #eed6c4;
-  --color-muted: #be9a88;
-  --color-faint: #77584d;
-  --color-accent: #e8803a;
-  --color-rose: #e8b48a;
-  --color-lavender: #c08ab0;
-  --color-mauve: #b070a8;
-  --color-string: #a8b060;
-  --color-signal: #8fa878;
-  --color-peach: #f0a848;
-  --color-error: #e03a2e;
-  --color-sky: #a8c0d0;
-  --color-blue: #8aa0c0;
-}
-
-/* bloodflame and the dynasty's gold. errors run hotter than the accent so they never blend into the blood */
-[data-theme="mohgwyn"] {
-  --color-ink: #0b0607;
-  --color-mantle: #070304;
-  --color-crust: #040102;
-  --color-panel: #1a0e10;
-  --color-raised: #241215;
-  --color-line: #241215;
-  --color-line-strong: #30171b;
-  --color-fg: #e8cfcf;
-  --color-muted: #b38a8f;
-  --color-faint: #6e4a50;
-  --color-accent: #cf3b4e;
-  --color-rose: #e5a99a;
-  --color-lavender: #a784c8;
-  --color-mauve: #c76fa8;
-  --color-string: #b4a86a;
-  --color-signal: #8fa89a;
-  --color-peach: #e8b04a;
-  --color-error: #ff5f56;
-  --color-sky: #a9c4d8;
-  --color-blue: #8f9fc8;
-}
-
-/* frost on the Consecrated Snowfield */
-[data-theme="ordina"] {
-  --color-ink: #090d0e;
-  --color-mantle: #070a0b;
-  --color-crust: #040607;
-  --color-panel: #121b1c;
-  --color-raised: #192425;
-  --color-line: #192425;
-  --color-line-strong: #202f31;
-  --color-fg: #e1eeef;
-  --color-muted: #97afb2;
-  --color-faint: #556d70;
-  --color-accent: #84dce0;
-  --color-rose: #d7e6ea;
-  --color-lavender: #a8b4e8;
-  --color-mauve: #c0a8e0;
-  --color-string: #9ccfa8;
-  --color-signal: #7cc4b4;
-  --color-peach: #e8b47a;
-  --color-error: #e06c75;
-  --color-sky: #b4e4f0;
-  --color-blue: #e6c27a;
+[data-theme="dark"] {
+  --color-ink: #000000;
+  --color-mantle: #0b0b0d;
+  --color-panel: #161618;
+  --color-raised: #232326;
+  --color-line: #262629;
+  --color-line-strong: #38383c;
+  --color-fg: #f5f5f7;
+  --color-muted: #a1a1a6;
+  --color-faint: #6e6e73;
+  --color-accent: #ff7a50;
+  --color-accent-soft: #2a140d;
+  --color-string: #4cd88a;
+  --color-error: #ff453a;
+  --color-shadow: rgb(0 0 0 / 0.6);
+  --color-sunset-1: #ff9a3d;
+  --color-sunset-2: #ff4d6d;
+  --color-sunset-3: #a974ff;
 }
 
 /* nothing may ever make the page wider than the screen. iOS Safari zooms the whole page out the moment something
@@ -202,14 +68,16 @@ body {
 html {
   scroll-padding-top: 5rem;
   background: var(--color-ink);
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
   color-scheme: dark;
 }
 
 body {
-  padding-bottom: 1.75rem;
   background: var(--color-ink);
   color: var(--color-fg);
-  transition: background-color 0.6s ease, color 0.6s ease;
   font-family: var(--font-sans);
   font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
@@ -218,94 +86,29 @@ body {
 
 /* Apple's frosted material: the page blurs and saturates through it, so bars feel like glass over the content */
 .glass {
-  background: color-mix(in oklab, var(--color-mantle) 72%, transparent);
+  background: color-mix(in oklab, var(--color-panel) 72%, transparent);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
-.glass-strong {
-  background: color-mix(in oklab, var(--color-mantle) 88%, transparent);
-  backdrop-filter: saturate(180%) blur(28px);
-  -webkit-backdrop-filter: saturate(180%) blur(28px);
-}
-
-/* a hairline that reads on any region: the line color, lifted a touch toward the text */
-.hairline {
-  border-color: color-mix(in oklab, var(--color-line-strong) 80%, var(--color-fg) 6%);
-}
-
-/* the big words Apple fills with a gradient instead of a flat color. here it's the region's gold running into its
-   rosewater, the same pair the editor uses for keywords and functions. the padding keeps descenders out of the clip */
-.text-gold {
+/* the big words fill with the sunset instead of a flat color. the padding keeps descenders out of the clip */
+.text-sunset {
   padding-bottom: 0.08em;
-  background-image: linear-gradient(100deg, var(--color-fg) 10%, var(--color-accent) 55%, var(--color-rose) 90%);
+  background-image: linear-gradient(100deg, var(--color-sunset-1) 0%, var(--color-sunset-2) 50%, var(--color-sunset-3) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-/* the hub's header shimmer: a diagonal band of light crosses the gold once every few seconds, quiet in between */
-.shimmer {
-  background-image: linear-gradient(
-    100deg,
-    var(--color-accent) 0%,
-    var(--color-accent) 40%,
-    color-mix(in oklab, var(--color-accent) 30%, white) 50%,
-    var(--color-accent) 60%,
-    var(--color-accent) 100%
-  );
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer 5.2s linear infinite;
+.bg-sunset {
+  background-image: linear-gradient(110deg, var(--color-sunset-1) 0%, var(--color-sunset-2) 50%, var(--color-sunset-3) 100%);
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: 150% 0;
-  }
-  35%,
-  100% {
-    background-position: -50% 0;
-  }
-}
-
-/* text dimmed until the scroll reaches it, the way Apple lights up a paragraph word by word */
-.word-dim {
-  color: color-mix(in oklab, var(--color-fg) 18%, transparent);
-}
-
-/* the custom cursor takes over only once it's on screen, and text fields keep a real caret */
-.has-pointer,
-.has-pointer * {
-  cursor: none !important;
-}
-
-.has-pointer :is(input, textarea, [contenteditable="true"]) {
-  cursor: text !important;
-}
-
-/* vim's block cursor, gold like the Cursor highlight in Eldentree. whatever is under it shows through inverted */
-.pointer {
-  background: #fff;
-  mix-blend-mode: difference;
-  transition: background-color 0.25s ease, opacity 0.25s ease, scale 0.2s ease;
-}
-
-.pointer[data-pointer="morph"] {
-  mix-blend-mode: normal;
-  background: color-mix(in oklab, var(--color-accent) 14%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-accent) 50%, transparent);
-}
-
-.pointer[data-pointer="bar"] {
-  background: var(--color-accent);
-  mix-blend-mode: normal;
-}
-
-.pointer-down .pointer {
-  scale: 0.92;
+/* cards lift off the page with a shadow in light mode, and with a hairline in dark mode where shadows vanish */
+.card {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  box-shadow: 0 1px 2px var(--color-shadow), 0 12px 40px -24px var(--color-shadow);
 }
 
 /* a tool's logo in its brand color, or the text color for the black ones */
@@ -313,51 +116,16 @@ body {
   color: var(--brand, var(--color-fg));
 }
 
-/* every match of a `/` search, and the one the cursor is on. gold like Search in Eldentree */
-::highlight(search) {
-  background-color: color-mix(in oklab, var(--color-accent) 28%, transparent);
-  color: var(--color-fg);
-}
-
-::highlight(search-current) {
-  background-color: var(--color-peach);
-  color: var(--color-ink);
-}
-
 ::selection {
-  background: color-mix(in oklab, var(--color-rose) 30%, transparent);
+  background: color-mix(in oklab, var(--color-sunset-2) 28%, transparent);
   color: var(--color-fg);
 }
 
-/* film grain over everything, faint enough to add texture without noise */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  pointer-events: none;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* switching regions spreads the new palette out in a circle from wherever you clicked */
+/* switching themes cross fades the page as one picture instead of every color snapping on its own */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-
-::view-transition-new(root) {
-  animation: region-reveal 0.9s var(--ease-out-expo);
-}
-
-@keyframes region-reveal {
-  from {
-    clip-path: circle(0 at var(--reveal-x, 50%) var(--reveal-y, 50%));
-  }
-  to {
-    clip-path: circle(var(--reveal-r, 150vmax) at var(--reveal-x, 50%) var(--reveal-y, 50%));
-  }
+  animation-duration: 0.45s;
+  animation-timing-function: var(--ease-out-expo);
 }
 
 .caret {
@@ -370,19 +138,9 @@ body::after {
   }
 }
 
-/* a 16 bit menu window, the blue box with the white frame SNES role playing games draw every menu in */
-.snes-window {
-  background: linear-gradient(180deg, #3b4fc4 0%, #1d2a8a 55%, #101763 100%);
-  border: 3px solid #f4f4f4;
-  border-radius: 6px;
-  box-shadow:
-    0 0 0 2px #0b0f3a,
-    inset 0 0 0 2px #0b0f3a,
-    0 10px 30px rgb(0 0 0 / 0.55);
-  color: #fff;
-  font-family: var(--font-pixel);
-  image-rendering: pixelated;
-  text-shadow: 2px 2px 0 #0b0f3a;
+/* rows of tool logos that slide forever, the second row the other way */
+.marquee {
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
 }
 
 /* a ring of light on a card's border that follows the cursor around the edge */
@@ -403,10 +161,8 @@ body::after {
   transition: opacity 0.4s ease;
   background: radial-gradient(
     260px circle at var(--spot-x, 50%) var(--spot-y, 50%),
-    var(--color-accent) 0%,
-    color-mix(in oklab, var(--color-accent) 80%, transparent) 20%,
-    color-mix(in oklab, var(--color-accent) 45%, transparent) 45%,
-    color-mix(in oklab, var(--color-accent) 15%, transparent) 70%,
+    var(--spot-color, var(--color-accent)) 0%,
+    color-mix(in oklab, var(--spot-color, var(--color-accent)) 40%, transparent) 45%,
     transparent 100%
   );
   mask:
@@ -416,39 +172,13 @@ body::after {
   -webkit-mask-composite: xor;
 }
 
-.spotlight::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  background: radial-gradient(
-    420px circle at var(--spot-x, 50%) var(--spot-y, 50%),
-    color-mix(in oklab, var(--color-accent) 11%, transparent) 0%,
-    color-mix(in oklab, var(--color-accent) 7%, transparent) 35%,
-    color-mix(in oklab, var(--color-accent) 2%, transparent) 70%,
-    transparent 100%
-  );
-}
-
 @media (hover: hover) {
   .spotlight:hover::after {
-    opacity: 0.85;
-  }
-
-  .spotlight:hover::before {
-    opacity: 1;
+    opacity: 0.9;
   }
 }
 
-/* the editor gutter: line numbers fade out toward the top and bottom of the window like a real scrolloff */
-.gutter-fade {
-  mask-image: linear-gradient(to bottom, transparent, black 18%, black 82%, transparent);
-}
-
-/* a scrollbar that never takes space, for the telescope lists and the sideways shelves */
+/* a scrollbar that never takes space, for the sideways shelves */
 .no-scrollbar {
   scrollbar-width: none;
 }
@@ -458,8 +188,12 @@ body::after {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .caret,
-  .shimmer {
+  .caret {
+    animation: none;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
     animation: none;
   }
 }
@@ -476,11 +210,27 @@ body::after {
     padding: 0 !important;
   }
 
-  body::after {
-    display: none;
-  }
-
   #root > :not(.print-resume) {
     display: none !important;
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee var(--marquee-duration, 40s) linear infinite;
+}
+
+.marquee-track[data-direction="reverse"] {
+  animation-direction: reverse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
   }
 }

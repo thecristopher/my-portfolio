@@ -90,7 +90,7 @@ const MagicianFlyby = ({ onDone }) => {
   useEffect(() => {
     const castTimer = setTimeout(() => {
       castMagic();
-      scrollToSection("checkhealth");
+      scrollToSection("skill-grid");
     }, CAST_AT_MS);
     return () => clearTimeout(castTimer);
   }, []);

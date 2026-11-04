@@ -1,23 +1,31 @@
-// past the last line of the buffer vim draws a column of tildes. the page ends the same way
-const EMPTY_LINES = 4;
+import { ArrowUp, Volume2, VolumeX } from "lucide-react";
+import { setMuted, useMuted } from "../../lib/sound";
+import { scrollToEdge } from "../../lib/smoothScroll";
 
+// the relic moments play a jingle, and some people browse with the sound on
+const SoundToggle = () => {
+  const isMuted = useMuted();
+  const Icon = isMuted ? VolumeX : Volume2;
+  return (
+    <button type="button" onClick={() => setMuted(!isMuted)} className="flex items-center gap-1.5 transition-colors hover:text-fg" aria-pressed={!isMuted}>
+      <Icon size={13} aria-hidden="true" />
+      {isMuted ? "Sound off" : "Sound on"}
+    </button>
+  );
+};
+
+/** The last line of the page: who made it, the sound switch and the way back up. */
 const Footer = () => (
-  <footer className="relative pb-8">
-    <div className="mx-auto flex max-w-6xl flex-col px-4 font-mono text-xs sm:px-6" aria-hidden="true">
-      {Array.from({ length: EMPTY_LINES }, (_, line) => (
-        <span key={line} className="leading-7 text-accent/40" style={{ opacity: 1 - line * 0.2 }}>
-          ~
-        </span>
-      ))}
-    </div>
-    <div className="mx-auto flex max-w-6xl flex-col gap-4 border-t border-line px-4 py-6 font-mono text-xs text-faint sm:flex-row sm:items-center sm:justify-between sm:px-6">
-      <p>
-        © {new Date().getFullYear()} Cristopher Cervantes · written in Neovim, themed by <span className="text-accent">Eldentree</span>
-      </p>
-      <p className="w-fit">
-        press <kbd className="rounded border border-line px-1.5 py-0.5 text-muted">space</kbd> for keymaps,{" "}
-        <kbd className="rounded border border-line px-1.5 py-0.5 text-muted">:</kbd> for telescope
-      </p>
+  <footer className="border-t border-line">
+    <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-xs text-faint sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <p>© {new Date().getFullYear()} Cristopher Cervantes. Designed and built in Rosarito, written in Neovim.</p>
+      <div className="flex items-center gap-6">
+        <SoundToggle />
+        <button type="button" onClick={() => scrollToEdge("top")} className="flex items-center gap-1.5 transition-colors hover:text-fg">
+          Back to top
+          <ArrowUp size={13} aria-hidden="true" />
+        </button>
+      </div>
     </div>
   </footer>
 );

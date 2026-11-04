@@ -1,139 +1,137 @@
-import { motion } from "framer-motion";
-import SectionIntro, { Gold } from "../../components/SectionIntro";
-import EditorWindow from "../../components/EditorWindow";
-import { Trigger as MillenniumPuzzle } from "../../components/Relics/DarkMagician";
-import { MAGIC_BLUE, MAGIC_PINK, useMagicBuff } from "../../lib/magic";
-import { LoadError, SkeletonLines } from "../../components/Skeleton";
-import { useGetAboutQuery } from "../../api/aboutApi";
+import { useRef } from "react";
+import { motion, useReducedMotion, useScroll } from "framer-motion";
+import SectionHeading, { Sunset } from "../../components/SectionHeading";
 import TechIcon from "../../components/TechIcon";
+import { LoadError, SkeletonLines } from "../../components/Skeleton";
+import { Trigger as MillenniumPuzzle } from "../../components/Relics/DarkMagician";
+import { useScrollRange } from "../../hooks/useScrollRange";
+import { useGetAboutQuery } from "../../api/aboutApi";
+import { markMainStack } from "../../actions";
+import { MAGIC_BLUE, MAGIC_PINK, useMagicBuff } from "../../lib/magic";
 import { easeOutExpo } from "../../lib/motion";
-import { isMaxLevel, markMainStack } from "../../actions";
-import { SKILL_CATEGORY_ORDER } from "../../lib/resume/buildResume";
 import { echo } from "../../lib/echo";
 import { scrollToSection } from "../../lib/smoothScroll";
 import { pickTech, usePickedTech } from "../../lib/stackFilter";
+import { MAX_LEVEL, groupByCategory, levelDots, splitMarqueeRows } from "./actions";
 
-// a tool in the report greps the work history for it, then takes you there to see which jobs light up
-const grepWork = (tool) => {
+// a tool in the grid filters the work history for it, then takes you there to see which jobs light up
+const showJobsUsing = (tool) => {
   pickTech(tool);
-  echo(`grep -l "${tool}" ~/work/*`, "success");
+  echo(`Showing the jobs that shipped with ${tool}`, "success");
   scrollToSection("work");
 };
 
-const MAX_LEVEL = 5;
-const BUFFED_BAR = { backgroundImage: `linear-gradient(to right, ${MAGIC_PINK}, ${MAGIC_BLUE})`, boxShadow: `0 0 8px ${MAGIC_PINK}` };
+const BUFFED_DOT = { backgroundImage: `linear-gradient(135deg, ${MAGIC_PINK}, ${MAGIC_BLUE})`, boxShadow: `0 0 6px ${MAGIC_PINK}` };
 
-const HealthHeading = ({ children }) => (
-  <p className="flex items-center gap-3 text-fg">
-    {children}
-    <span className="h-px flex-1 bg-line" />
-  </p>
+// one row of logos sliding forever, and drifting a little further with the scroll
+const MarqueeRow = ({ tools, reverse = false, drift }) => (
+  <motion.div style={{ x: drift }} className="marquee overflow-hidden">
+    <div className="marquee-track flex w-max gap-4" data-direction={reverse ? "reverse" : undefined} style={{ "--marquee-duration": `${tools.length * 4}s` }}>
+      {[...tools, ...tools].map((tool, index) => (
+        <span key={`${tool}-${index}`} className="card flex items-center gap-3 rounded-full px-5 py-3 text-lg font-semibold tracking-tight whitespace-nowrap">
+          <TechIcon tech={tool} className="size-6" fallback={<span className="size-2 rounded-full bg-accent" />} />
+          {tool}
+        </span>
+      ))}
+    </div>
+  </motion.div>
 );
 
-// columns fill top to bottom so the list reads in relevance order, and maxed tools go green like a passing healthcheck
-const RatedReport = ({ tools, isBuffed, pickedTech }) => (
-  <ul className="gap-x-12 md:columns-2">
-    {tools.map((tool, index) => (
-      <li key={tool.name} className="mb-3.5 grid break-inside-avoid grid-cols-[9rem_1fr_2.5rem] items-center gap-3">
-        <button
-          type="button"
-          onClick={() => grepWork(tool.name)}
-          title={`See the jobs that shipped with ${tool.name}`}
-          className={`flex min-w-0 items-center gap-2 text-left underline-offset-4 transition-colors hover:text-accent hover:underline ${
-            pickedTech === tool.name ? "text-accent" : tool.isMain ? "text-fg" : "text-muted"
-          }`}
-        >
-          <span className={`text-[9px] ${tool.isMain ? "text-accent" : "text-transparent"}`} aria-hidden="true">
-            ●
-          </span>
-          <TechIcon tech={tool.name} className="size-3.5" fallback={<span className="size-3.5 shrink-0" />} />
-          <span className="truncate">{tool.name}</span>
-        </button>
-        <span className="h-1.5 overflow-hidden rounded-full bg-line">
-          <motion.span
-            className={`block h-full origin-left rounded-full bg-gradient-to-r transition-[box-shadow] duration-500 ${
-              isMaxLevel(tool.level, MAX_LEVEL) ? "from-string to-string/60" : "from-signal/80 to-signal/40"
-            }`}
-            style={{ width: `${(tool.level / MAX_LEVEL) * 100}%`, ...(isBuffed ? BUFFED_BAR : {}) }}
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.4, delay: 0.2 + index * 0.05, ease: easeOutExpo }}
-          />
-        </span>
-        <span className={`text-right ${isMaxLevel(tool.level, MAX_LEVEL) ? "text-string" : "text-faint"}`}>
-          {tool.level}/{MAX_LEVEL}
-        </span>
-      </li>
-    ))}
-  </ul>
-);
-
-// one block per category, the way :checkhealth lists one block per provider. the order matches the resume
-const groupByCategory = (tools) =>
-  [...SKILL_CATEGORY_ORDER, "Other"]
-    .map((category) => ({ category, tools: tools.filter((tool) => (tool.category ?? "Other") === category) }))
-    .filter((group) => group.tools.length > 0);
-
-// laid out like nvim's :checkhealth so the current stack reads as "all green"
-const StackHealth = ({ mainStack, skillLevels, isBuffed }) => {
-  const groups = groupByCategory(markMainStack(skillLevels, mainStack));
-  const pickedTech = usePickedTech();
+const Marquee = ({ tools }) => {
+  const ref = useRef(null);
+  const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const forward = useScrollRange(scrollYProgress, [0, 1], ["4%", "-8%"]);
+  const backward = useScrollRange(scrollYProgress, [0, 1], ["-8%", "4%"]);
+  const [first, second] = splitMarqueeRows(tools);
 
   return (
-    <EditorWindow path={["cristopher", "skills", "checkhealth"]}>
-      <div className="flex flex-col gap-8 font-mono text-xs">
-        <p className="flex flex-wrap justify-between gap-2 text-muted">
-          <span className="flex items-center gap-3">
-            <span>
-              <span className="text-accent">:</span>checkhealth stack
-            </span>
-            {/* the Millennium Puzzle keeps watch over the report she buffs */}
-            <MillenniumPuzzle zoom={0.42} />
-          </span>
-          <span className="text-faint">● main stack · pick a tool to grep the work history for it</span>
-        </p>
-        {groups.map((group) => (
-          <div key={group.category} className="flex flex-col gap-4">
-            <HealthHeading>
-              {group.category.toLowerCase()} <span className="text-string">✓ OK</span>
-            </HealthHeading>
-            <RatedReport tools={group.tools} isBuffed={isBuffed} pickedTech={pickedTech} />
-          </div>
-        ))}
-      </div>
-    </EditorWindow>
+    <div ref={ref} className="flex flex-col gap-4" aria-hidden="true">
+      <MarqueeRow tools={first} drift={prefersReducedMotion ? undefined : forward} />
+      <MarqueeRow tools={second} reverse drift={prefersReducedMotion ? undefined : backward} />
+    </div>
   );
 };
 
-/** skills.lua: every tool I've shipped with as one :checkhealth report, graded honestly. */
-const Skills = ({ number }) => {
+const LevelMeter = ({ level, isBuffed }) => (
+  <span className="flex gap-1" aria-label={`${level} out of ${MAX_LEVEL}`}>
+    {levelDots(level).map((isLit, index) => (
+      <span key={index} className={`size-1.5 rounded-full ${isLit ? "bg-fg" : "bg-line-strong"}`} style={isLit && isBuffed ? BUFFED_DOT : undefined} />
+    ))}
+  </span>
+);
+
+const CategoryCard = ({ group, index, isBuffed, pickedTech }) => (
+  <motion.li
+    initial={{ opacity: 0, y: 40 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: "-60px" }}
+    transition={{ duration: 1, delay: (index % 3) * 0.08, ease: easeOutExpo }}
+    className="card flex flex-col gap-5 rounded-3xl p-7"
+  >
+    <p className="text-xl font-semibold tracking-tight">{group.category}</p>
+    <ul className="flex flex-col">
+      {group.tools.map((tool) => (
+        <li key={tool.name}>
+          <button
+            type="button"
+            onClick={() => showJobsUsing(tool.name)}
+            title={`See the jobs that shipped with ${tool.name}`}
+            className={`flex w-full items-center gap-3 border-t border-line py-2.5 text-left transition-colors hover:text-accent ${pickedTech === tool.name ? "text-accent" : ""}`}
+          >
+            <TechIcon tech={tool.name} className="size-4" fallback={<span className="size-4 shrink-0" />} />
+            <span className={`flex-1 truncate ${tool.isMain ? "font-semibold" : "text-muted"}`}>{tool.name}</span>
+            <LevelMeter level={tool.level} isBuffed={isBuffed} />
+          </button>
+        </li>
+      ))}
+    </ul>
+  </motion.li>
+);
+
+/** Every tool I've shipped with: the main stack sliding past in two rows, then each category graded honestly. */
+const Skills = () => {
   const { data: about, isLoading, isError } = useGetAboutQuery();
   const isBuffed = useMagicBuff();
+  const pickedTech = usePickedTech();
+  const tools = about ? markMainStack(about.skill_levels, about.main_stack ?? []) : [];
 
   return (
-    <section id="skills" className="relative py-24 sm:py-32">
-      <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 sm:px-6">
-        <SectionIntro
-          sectionId="skills"
-          number={number}
+    <section id="skills" className="relative overflow-hidden py-28 sm:py-40">
+      <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
+        <SectionHeading
+          eyebrow="Skills"
           title={
             <>
-              The tools, <Gold>graded honestly.</Gold>
+              The tools, <Sunset>graded honestly.</Sunset>
             </>
           }
-          lead="Everything I've shipped with, grouped the way the résumé groups it. Click a tool and the jobs that used it light up."
+          lead="Everything I've shipped with, grouped the way the résumé groups it. Pick a tool and the jobs that used it light up."
         />
-
         {isLoading && <SkeletonLines lines={4} />}
-        {isError && !about && <LoadError what="skills" />}
-
-        {about && (
-          <div id="checkhealth">
-            <StackHealth mainStack={about.main_stack ?? []} skillLevels={about.skill_levels} isBuffed={isBuffed} />
-          </div>
-        )}
+        {isError && !about && <LoadError what="the skills" />}
       </div>
+
+      {tools.length > 0 && (
+        <div className="py-16">
+          <Marquee tools={tools.map((tool) => tool.name)} />
+        </div>
+      )}
+
+      {about && (
+        <div id="skill-grid" className="mx-auto flex max-w-6xl scroll-mt-24 flex-col gap-6 px-4 sm:px-6">
+          <p className="flex items-center gap-3 text-sm text-muted">
+            <span className="font-semibold text-fg">Bold</span> is the main stack, dots are how deep I've gone.
+            {/* the Millennium Puzzle keeps watch over the grades she buffs */}
+            <MillenniumPuzzle zoom={0.42} />
+          </p>
+          <ul className="grid items-start gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {groupByCategory(tools).map((group, index) => (
+              <CategoryCard key={group.category} group={group} index={index} isBuffed={isBuffed} pickedTech={pickedTech} />
+            ))}
+          </ul>
+        </div>
+      )}
     </section>
   );
 };

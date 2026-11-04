@@ -1,112 +1,144 @@
-import { motion } from "framer-motion";
-import { ArrowDownRight } from "lucide-react";
-import KineticName from "../../components/KineticName";
+import { useRef } from "react";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { ArrowDown, ArrowRight } from "lucide-react";
+import portrait from "../../assets/images/portrait.jpg";
 import Magnetic from "../../components/Magnetic";
 import { Trigger as PlayerOne } from "../../components/Relics/ScottPilgrim";
+import { useScrollRange } from "../../hooks/useScrollRange";
 import { useGetAboutQuery } from "../../api/aboutApi";
-import { easedGlow } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
-import { INTRO_S } from "../../lib/intro";
-import ProfileWindow from "./ProfileWindow";
+import { HERO_BEATS, headlineStory } from "./actions";
 
-// the soft shadow the sprite stands on
-const FLOOR_SHADOW = easedGlow("var(--color-fg)", { strength: 0.1, shape: "ellipse" });
+const FALLBACK = { role: "Engineering Manager & Tech Lead", story: "Nine years of shipping software from a beach town in Baja to people all over the world." };
 
-// the sprite drops in once the name has landed, so he doesn't steal its moment
-const AVATAR_ENTERS_AT_S = INTRO_S + 1.2;
-
-// everything in the hero waits for the hub, if it plays
 const riseIn = (delay) => ({
-  initial: { opacity: 0, y: 24, filter: "blur(8px)" },
+  initial: { opacity: 0, y: 28, filter: "blur(10px)" },
   animate: { opacity: 1, y: 0, filter: "blur(0px)" },
-  transition: { duration: 1.2, delay: INTRO_S + delay, ease: easeOutExpo },
+  transition: { duration: 1.3, delay, ease: easeOutExpo },
 });
 
-// only shows once the api says what I'm open to. the title and the city already have their own places
-const OpenTo = ({ openTo }) => (
-  <motion.p {...riseIn(0.2)} className="flex w-fit items-center gap-2 rounded-full border border-line-strong bg-panel/60 px-3 py-1.5 font-mono text-xs text-muted backdrop-blur">
-    <span className="relative flex size-2">
-      <span className="absolute inset-0 animate-ping rounded-full bg-string/60" />
-      <span className="relative size-2 rounded-full bg-string" />
-    </span>
-    {openTo}
-  </motion.p>
-);
-
-// the resume lives in the bufferline on every screen, so the hero only points into the page
-const Actions = () => (
-  <motion.div {...riseIn(1.1)} className="flex flex-wrap items-center gap-3">
-    <Magnetic>
-      <a
-        href="#work"
-        className="group inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-ink transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
-      >
-        See the work
-        <ArrowDownRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5" />
-      </a>
-    </Magnetic>
-    <a href="#contact" className="px-2 text-sm text-accent underline-offset-4 hover:underline">
-      Get in touch ›
-    </a>
+// the name, huge, before the photo takes over the stage
+const Title = ({ role, style }) => (
+  <motion.div style={style} className="absolute inset-x-0 top-[15svh] flex flex-col items-center gap-4 px-4 text-center sm:top-[13svh]">
+    <motion.p {...riseIn(0.3)} className="text-base font-medium text-muted sm:text-lg">
+      {role}
+    </motion.p>
+    <motion.h1 {...riseIn(0.45)} className="text-[clamp(3.2rem,11vw,9.5rem)] leading-[0.9] font-semibold tracking-[-0.06em]">
+      Cristopher
+      <br />
+      <span className="text-sunset">Cervantes.</span>
+    </motion.h1>
   </motion.div>
 );
 
-// player one, standing in the tall grass at the edge of the stage
-const Stage = () => (
-  <figure className="relative flex justify-center">
-    <div className="relative">
-      {/* exact multiples of the 63 row sprite keep every pixel square */}
-      <PlayerOne
-        className="h-[126px] sm:h-[252px] lg:h-[315px]"
-        entersAfterMs={AVATAR_ENTERS_AT_S * 1000}
-        firstWaveAfterMs={(AVATAR_ENTERS_AT_S + 1) * 1000}
-      />
-      {/* a gradient, because Safari paints a blurred div solid black */}
-      <div className="pointer-events-none absolute inset-x-[12.5%] top-[120px] -z-10 h-3 sm:top-[243px] lg:top-[306px]" style={{ background: FLOOR_SHADOW }} aria-hidden="true" />
-    </div>
-  </figure>
+// the way in once the photo has the stage: the work, or straight to the inbox
+const Actions = () => (
+  <div className="flex flex-wrap items-center gap-3">
+    <Magnetic>
+      <a
+        href="#work"
+        onClick={(event) => event.stopPropagation()}
+        className="group inline-flex items-center gap-2 rounded-full bg-stage-fg px-5 py-3 text-sm font-semibold text-stage transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
+      >
+        See the work
+        <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+      </a>
+    </Magnetic>
+    <a href="#contact" onClick={(event) => event.stopPropagation()} className="px-2 text-sm font-medium text-glow underline-offset-4 hover:underline">
+      Get in touch
+    </a>
+  </div>
 );
 
-const Intro = ({ about }) => {
-  const summary = about?.headline?.split(". ").slice(1).join(". ");
-  return (
-    <div className="flex flex-col gap-7">
-      {about?.open_to && <OpenTo openTo={about.open_to} />}
-      <KineticName
-        lines={[{ text: "Cristopher" }, { text: "Cervantes.", className: "text-accent" }]}
-        delay={INTRO_S + 0.5}
-        className="text-[clamp(3.25rem,10.5vw,8.5rem)] leading-[0.88] font-semibold tracking-[-0.06em]"
-      />
-      <motion.p {...riseIn(0.95)} className="max-w-xl text-xl leading-snug text-muted text-pretty sm:text-2xl">
-        <span className="text-fg">Engineering Manager &amp; Tech Lead.</span> {summary || "AI products, serverless AWS and the teams that ship them."}
-      </motion.p>
-      <Actions />
+// what the photo says once it fills the stage, laid over its darkest corner
+const Caption = ({ about, story, style }) => (
+  <motion.div style={style} className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-5 p-6 text-stage-fg sm:p-10">
+    <p className="text-sm text-stage-fg/70">
+      {about?.location ?? "Rosarito, Mexico"} · {about?.years_of_experience ?? 9}+ years shipping
+    </p>
+    <p className="max-w-xl text-[clamp(1.5rem,3.4vw,2.6rem)] leading-[1.08] font-semibold tracking-[-0.03em] text-balance">{story}</p>
+    <Actions />
+  </motion.div>
+);
+
+const ScrollCue = ({ style }) => (
+  <motion.p style={style} className="absolute inset-x-0 bottom-6 z-20 flex justify-center text-faint" aria-hidden="true">
+    <motion.span animate={{ y: [0, 6, 0] }} transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}>
+      <ArrowDown size={18} />
+    </motion.span>
+  </motion.p>
+);
+
+// the photo with its own shade, so the caption always reads over it
+const Photo = ({ shadeStyle }) => (
+  <PlayerOne className="size-full">
+    <img src={portrait} alt="Cristopher Cervantes" className="size-full object-cover" fetchPriority="high" />
+    <motion.div style={shadeStyle} className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+  </PlayerOne>
+);
+
+/** Anyone who asked for less movement gets the same story without the pinned stage. */
+const StillHero = ({ about, role, story }) => (
+  <section id="home" className="flex flex-col items-center gap-10 px-4 pt-28 pb-16 text-center">
+    <h1 className="text-[clamp(3.2rem,11vw,9.5rem)] leading-[0.9] font-semibold tracking-[-0.06em]">
+      <span className="block text-base font-medium tracking-normal text-muted sm:text-lg">{role}</span>
+      Cristopher <span className="text-sunset">Cervantes.</span>
+    </h1>
+    <div className="relative aspect-square w-full max-w-xl overflow-hidden rounded-[2rem] bg-stage text-left">
+      <Photo />
+      <Caption about={about} story={story} />
     </div>
-  );
-};
+  </section>
+);
 
 /**
- * The opening: the name huge beside the pixel me, and profile.ts right under it with the facts a recruiter scans for
- * first, so the whole profile is one short scroll away.
+ * The opening scene, pinned while it plays: my name huge, then the photo rising from below and growing until it owns
+ * the stage, the page around it dimming into the green of the wall it was taken against, and the story landing on it.
  */
 const Hero = () => {
   const { data: about } = useGetAboutQuery();
+  const ref = useRef(null);
+  const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const { grow, title, caption, stage } = HERO_BEATS;
+
+  const photoScale = useScrollRange(scrollYProgress, grow, [0.5, 1]);
+  const photoY = useScrollRange(scrollYProgress, grow, ["30svh", "0svh"]);
+  const photoRadius = useScrollRange(scrollYProgress, grow, [48, 28]);
+  const titleOpacity = useScrollRange(scrollYProgress, title, [1, 0]);
+  const titleY = useScrollRange(scrollYProgress, title, [0, -80]);
+  const titleBlur = useScrollRange(scrollYProgress, title, ["blur(0px)", "blur(12px)"]);
+  // the green spreads out from behind the photo in a circle, so the page never passes through a muddy gray on the way
+  const stageReveal = useScrollRange(scrollYProgress, stage, ["circle(0% at 50% 55%)", "circle(120% at 50% 55%)"]);
+  const captionOpacity = useScrollRange(scrollYProgress, caption, [0, 1]);
+  const captionY = useScrollRange(scrollYProgress, caption, [40, 0]);
+  // the buttons only take clicks once they can be seen
+  const captionClicks = useTransform(captionOpacity, (opacity) => (opacity > 0.6 ? "auto" : "none"));
+  const cueOpacity = useScrollRange(scrollYProgress, [0, 0.06], [1, 0]);
+
+  const role = about?.role ?? FALLBACK.role;
+  const story = headlineStory(about?.headline) || FALLBACK.story;
+
+  if (prefersReducedMotion) return <StillHero about={about} role={role} story={story} />;
 
   return (
-    <section id="home" className="relative pb-8 sm:pb-12">
-      <div className="mx-auto grid min-h-[min(100svh,56rem)] w-full max-w-6xl content-center items-center gap-6 px-4 pt-20 pb-10 sm:px-6 lg:grid-cols-12 lg:gap-10">
-        <div className="lg:col-span-8">
-          <Intro about={about} />
+    <section id="home" ref={ref} className="relative h-[280svh]">
+      <div className="sticky top-0 h-svh overflow-hidden">
+        <motion.div style={{ clipPath: stageReveal }} className="absolute inset-0 bg-stage" aria-hidden="true" />
+        <Title role={role} style={{ opacity: titleOpacity, y: titleY, filter: titleBlur }} />
+        <div className="absolute inset-0 z-10 grid place-items-center px-4 pt-14">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.4, delay: 0.7, ease: easeOutExpo }}>
+            <motion.div
+              style={{ scale: photoScale, y: photoY, borderRadius: photoRadius }}
+              className="relative aspect-square w-[min(92vw,calc(100svh-6rem))] overflow-hidden bg-stage shadow-2xl"
+            >
+              <Photo shadeStyle={{ opacity: captionOpacity }} />
+              <Caption about={about} story={story} style={{ opacity: captionOpacity, y: captionY, pointerEvents: captionClicks }} />
+            </motion.div>
+          </motion.div>
         </div>
-        {/* on phones he stands under the buttons */}
-        <div className="lg:col-span-4">
-          <Stage />
-        </div>
+        <ScrollCue style={{ opacity: cueOpacity }} />
       </div>
-
-      <motion.div {...riseIn(1.3)} className="mx-auto w-full max-w-4xl px-4 sm:px-6">
-        <ProfileWindow about={about} />
-      </motion.div>
     </section>
   );
 };
