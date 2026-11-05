@@ -1,28 +1,19 @@
 import SectionHeading, { Sunset } from "../../components/SectionHeading";
 import ScrollWords from "../../components/ScrollWords";
-import Reveal from "../../components/Reveal";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { splitParagraphs } from "../../actions";
 import Glance from "./Glance";
 import Reach from "./Reach";
+import StoryChapters from "./StoryChapters";
 
-// the lead lights up as it's read, the rest of the story follows in a calmer column
+// the lead lights up as it's read, the rest of the story follows as chapters on a rail that fills as you go
 const Story = ({ description }) => {
   const [lead, ...rest] = splitParagraphs(description);
   return (
     <div className="flex flex-col gap-20 sm:gap-28">
       {lead && <ScrollWords pinned text={lead} className="text-[clamp(1.9rem,4.6vw,3.6rem)] leading-[1.12] font-semibold tracking-[-0.035em] text-pretty" />}
-      <div className="grid gap-10 lg:grid-cols-12">
-        <p className="text-sm font-semibold text-muted lg:col-span-4">How I got here</p>
-        <div className="flex flex-col gap-6 lg:col-span-8">
-          {rest.map((paragraph, index) => (
-            <Reveal key={paragraph.slice(0, 24)} delay={index * 0.05}>
-              <p className="text-xl leading-relaxed text-muted text-pretty sm:text-2xl">{paragraph}</p>
-            </Reveal>
-          ))}
-        </div>
-      </div>
+      {rest.length > 0 && <StoryChapters paragraphs={rest} />}
     </div>
   );
 };

@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  careerJourney,
+  sideArc,
+  cityHops,
+  jobCount,
+  leadSentence,
+  journeyStep,
+  journeyTimes,
   arcPath,
   arcPoint,
   cardPlacement,
@@ -247,5 +254,107 @@ describe("chapterFade", () => {
 
   it("given the last chapter, expect it to stay up once Malenia gets there", () => {
     expect(chapterFade([0.58, 1], { isFirst: false, isLast: true }).output.at(-1)).toBe(1);
+  });
+});
+
+describe("careerJourney", () => {
+  const projects = [
+    { title: "S.T.A.R.S.", location: "Raccoon City, USA", work_mode: "Remote" },
+    { title: "TerraSave", location: "Harvardville, USA" },
+    { title: "Haligtree", location: null },
+  ];
+
+  it("starts Claire's trip at her first job", () => {
+    expect(careerJourney(projects).map((stop) => stop.company)).toEqual(["Haligtree", "TerraSave", "S.T.A.R.S."]);
+  });
+
+  it("keeps only the city from the location", () => {
+    expect(careerJourney(projects)[1].city).toBe("Harvardville");
+  });
+
+  it("leaves Malenia's Haligtree without a city when it has no location", () => {
+    expect(careerJourney(projects)[0].city).toBeNull();
+  });
+
+  it("marks the remote job as remote", () => {
+    expect(careerJourney(projects)[2].isRemote).toBe(true);
+  });
+});
+
+describe("journeyTimes", () => {
+  it("spreads Claire's three jobs evenly over the close up", () => {
+    expect(journeyTimes(3, [0.1, 0.3])).toEqual([0.1, 0.2, 0.3]);
+  });
+
+  it("puts a lone job at the start of the close up", () => {
+    expect(journeyTimes(1, [0.1, 0.3])).toEqual([0.1]);
+  });
+});
+
+describe("journeyStep", () => {
+  const times = [0.1, 0.2, 0.6];
+
+  it("has reached nothing before Inde's first stop", () => {
+    expect(journeyStep(times, 0.05)).toBe(-1);
+  });
+
+  it("stands at the latest stop reached", () => {
+    expect(journeyStep(times, 0.4)).toBe(1);
+  });
+
+  it("reaches the last stop at the end of the scroll", () => {
+    expect(journeyStep(times, 1)).toBe(2);
+  });
+});
+
+describe("cityHops", () => {
+  const journey = [{ city: "Raccoon City" }, { city: "Raccoon City" }, { city: "Harvardville" }, { city: null }, { city: "Raccoon City" }];
+
+  it("only counts the moves where Leon actually changed cities", () => {
+    expect(cityHops(journey, [0, 0.1, 0.2, 0.3, 0.4])).toEqual([{ from: "Raccoon City", to: "Harvardville", at: 0.2 }]);
+  });
+});
+
+describe("sideArc", () => {
+  const raccoonCity = { x: 0, y: 0 };
+  const haligtree = { x: 0, y: 10 };
+
+  it("bends Leon's trip south to one side of the straight line", () => {
+    expect(sideArc(raccoonCity, haligtree, 0.3)).toBe("M0 0Q3 5 0 10");
+  });
+
+  it("bends the trip back to the other side, so the two hops never overlap", () => {
+    expect(sideArc(haligtree, raccoonCity, 0.3)).toBe("M0 10Q-3 5 0 0");
+  });
+});
+
+describe("jobCount", () => {
+  it("counts the three jobs Claire held in Raccoon City", () => {
+    expect(jobCount([{}, {}, {}])).toBe("3 jobs");
+  });
+
+  it("says one job, not one jobs", () => {
+    expect(jobCount([{}])).toBe("1 job");
+  });
+
+  it("calls out the remote one Inde worked from home", () => {
+    expect(jobCount([{}, { isRemote: true }])).toBe("2 jobs, 1 remote");
+  });
+});
+
+describe("leadSentence", () => {
+  it("lifts the first sentence of Claire's note out of the paragraph", () => {
+    expect(leadSentence("I found Inde a playlist. It has every song from our first date.")).toEqual({
+      lead: "I found Inde a playlist.",
+      rest: "It has every song from our first date.",
+    });
+  });
+
+  it("keeps a single sentence whole, with nothing left over", () => {
+    expect(leadSentence("Malenia never knew defeat.")).toEqual({ lead: "Malenia never knew defeat.", rest: "" });
+  });
+
+  it("does not split on the dot inside a 1:1 or a version number", () => {
+    expect(leadSentence("Leon ran the 1:1s on Next.js 15. Then he went home.").lead).toBe("Leon ran the 1:1s on Next.js 15.");
   });
 });
