@@ -2,10 +2,10 @@ import SectionHeading, { Sunset } from "../../components/SectionHeading";
 import ScrollWords from "../../components/ScrollWords";
 import Reveal from "../../components/Reveal";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
-import { Trigger as FlamelCross } from "../../components/Relics/Fullmetal";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { splitParagraphs } from "../../actions";
 import Glance from "./Glance";
+import Reach from "./Reach";
 
 // the lead lights up as it's read, the rest of the story follows in a calmer column
 const Story = ({ description }) => {
@@ -21,17 +21,13 @@ const Story = ({ description }) => {
               <p className="text-xl leading-relaxed text-muted text-pretty sm:text-2xl">{paragraph}</p>
             </Reveal>
           ))}
-          {/* Ed's emblem signs off the story: hard problems in, readable code out */}
-          <span className="flex justify-end">
-            <FlamelCross zoom={0.42} />
-          </span>
         </div>
       </div>
     </div>
   );
 };
 
-/** The story in my own words, read to you one word at a time, then the whole profile at a glance. */
+/** The story in my own words, read to you one word at a time, the map of where the work reached, then the whole profile at a glance. */
 const About = () => {
   const { data: about, isLoading, isError } = useGetAboutQuery();
 
@@ -50,6 +46,7 @@ const About = () => {
         {isLoading && <SkeletonLines lines={6} />}
         {isError && !about && <LoadError what="the story" />}
         {about && <Story description={about.description} />}
+        {about && <Reach />}
         {about && <Glance about={about} />}
       </div>
     </section>

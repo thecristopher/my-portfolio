@@ -3,55 +3,35 @@ import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion
 import { ArrowDown, ArrowRight } from "lucide-react";
 import portrait from "../../assets/images/portrait.jpg";
 import Magnetic from "../../components/Magnetic";
-import { Trigger as PlayerOne } from "../../components/Relics/ScottPilgrim";
 import { useScrollRange } from "../../hooks/useScrollRange";
 import { useGetAboutQuery } from "../../api/aboutApi";
 import { easeOutExpo } from "../../lib/motion";
 import { HERO_BEATS, headlineStory } from "./actions";
+import Aurora from "./Aurora";
+import Name from "./Name";
+import Sunrise from "./Sunrise";
+import { useEntrance } from "./useEntrance";
+import { useLetterWeights } from "./useLetterWeights";
 
 const FALLBACK = { role: "Engineering Manager & Tech Lead", story: "Nine years of shipping software from a beach town in Baja to people all over the world." };
 
-const riseIn = (delay) => ({
-  initial: { opacity: 0, y: 28, filter: "blur(10px)" },
-  animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+const RISE_HIDDEN = { opacity: 0, y: 28, filter: "blur(10px)" };
+const RISE_SHOWN = { opacity: 1, y: 0, filter: "blur(0px)" };
+
+// rises into place once the opening may start
+const riseIn = (delay, hasStarted) => ({
+  initial: RISE_HIDDEN,
+  animate: hasStarted ? RISE_SHOWN : RISE_HIDDEN,
   transition: { duration: 1.3, delay, ease: easeOutExpo },
 });
 
-// each line of the name tips up out of the floor, like a sign swinging into place
-const NameLine = ({ children, delay, className = "" }) => (
-  <span className="block overflow-hidden pb-[0.06em] [perspective:900px]">
-    <motion.span
-      className={`block origin-bottom ${className}`}
-      initial={{ y: "100%", rotateX: -70, opacity: 0, filter: "blur(10px)" }}
-      animate={{ y: "0%", rotateX: 0, opacity: 1, filter: "blur(0px)" }}
-      transition={{ duration: 1.6, delay, ease: easeOutExpo }}
-    >
-      {children}
-    </motion.span>
-  </span>
-);
-
-// a slow aurora in the sunset's colors drifting behind the name, the light the whole page is tinted with
-const Aurora = () => (
-  <div className="pointer-events-none absolute inset-x-0 top-0 h-[80svh] overflow-hidden opacity-60 [mask-image:linear-gradient(to_bottom,black_55%,transparent)] dark:opacity-45" aria-hidden="true">
-    <span className="aurora absolute top-[8%] left-[18%] size-[36vmax] rounded-full bg-sunset-1 blur-[110px]" />
-    <span className="aurora absolute top-[2%] right-[14%] size-[30vmax] rounded-full bg-sunset-3 blur-[110px] [animation-delay:-6s]" />
-    <span className="aurora absolute top-[22%] left-[40%] size-[26vmax] rounded-full bg-sunset-2 blur-[120px] [animation-delay:-12s]" />
-  </div>
-);
-
 // the name, huge, before the photo takes over the stage
-const Title = ({ role, style }) => (
+const Title = ({ role, register, hasStarted, style }) => (
   <motion.div style={style} className="absolute inset-x-0 top-[15svh] flex flex-col items-center gap-4 px-4 text-center sm:top-[13svh]">
-    <motion.p {...riseIn(0.3)} className="text-base font-medium text-muted sm:text-lg">
+    <motion.p {...riseIn(0.3, hasStarted)} className="text-base font-medium text-muted sm:text-lg">
       {role}
     </motion.p>
-    <h1 className="text-[clamp(3.2rem,11vw,9.5rem)] leading-[0.9] font-semibold tracking-[-0.06em]">
-      <NameLine delay={0.4}>Cristopher</NameLine>
-      <NameLine delay={0.55} className="text-sunset">
-        Cervantes.
-      </NameLine>
-    </h1>
+    <Name register={register} hasStarted={hasStarted} />
   </motion.div>
 );
 
@@ -103,13 +83,11 @@ const followLamp = (event) => {
 
 // the photo with its own shade, so the caption always reads over it, and the lamp moving over it
 const Photo = ({ shadeStyle }) => (
-  <PlayerOne className="size-full">
-    <div onPointerMove={followLamp} className="relative size-full">
-      <img src={portrait} alt="Cristopher Cervantes" className="size-full object-cover" fetchPriority="high" />
-      <div className="lamp-light pointer-events-none absolute inset-0" aria-hidden="true" />
-      <motion.div style={shadeStyle} className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-    </div>
-  </PlayerOne>
+  <div onPointerMove={followLamp} className="relative size-full">
+    <img src={portrait} alt="Cristopher Cervantes" className="size-full object-cover" fetchPriority="high" />
+    <div className="lamp-light pointer-events-none absolute inset-0" aria-hidden="true" />
+    <motion.div style={shadeStyle} className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+  </div>
 );
 
 /** Anyone who asked for less movement gets the same story without the pinned stage. */
@@ -127,15 +105,18 @@ const StillHero = ({ about, role, story }) => (
 );
 
 /**
- * The opening scene, pinned while it plays: my name huge, then the photo rising from below and growing until it owns
- * the stage, the page around it dimming into the green of the wall it was taken against, and the story landing on it.
+ * The opening scene, pinned while it plays: my name huge over the sea at dawn, the sun climbing out of the water and
+ * the pier's lamps going out while the photo rises from below and grows until it owns the stage, the page around it
+ * dimming into the green of the wall it was taken against, and the story landing on it.
  */
 const Hero = () => {
   const { data: about } = useGetAboutQuery();
   const ref = useRef(null);
   const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const { grow, title, caption, stage } = HERO_BEATS;
+  const { grow, title, caption, stage, sunrise } = HERO_BEATS;
+  const hasStarted = useEntrance();
+  const sunriseProgress = useScrollRange(scrollYProgress, sunrise, [0, 1]);
 
   const photoScale = useScrollRange(scrollYProgress, grow, [0.5, 1]);
   const photoY = useScrollRange(scrollYProgress, grow, ["30svh", "0svh"]);
@@ -149,7 +130,9 @@ const Hero = () => {
   const captionY = useScrollRange(scrollYProgress, caption, [40, 0]);
   // the buttons only take clicks once they can be seen
   const captionClicks = useTransform(captionOpacity, (opacity) => (opacity > 0.6 ? "auto" : "none"));
+  const letterWeights = useLetterWeights();
   const cueOpacity = useScrollRange(scrollYProgress, [0, 0.06], [1, 0]);
+  const exitFade = useScrollRange(scrollYProgress, HERO_BEATS.exit, [0, 1]);
 
   const role = about?.role ?? FALLBACK.role;
   const story = headlineStory(about?.headline) || FALLBACK.story;
@@ -158,12 +141,13 @@ const Hero = () => {
 
   return (
     <section id="home" ref={ref} className="relative h-[280svh]">
-      <div className="sticky top-0 h-svh overflow-hidden">
+      <div className="sticky top-0 h-svh overflow-hidden" onPointerMove={letterWeights.onPointerMove} onPointerLeave={letterWeights.onPointerLeave}>
         <Aurora />
+        <Sunrise progress={sunriseProgress} />
         <motion.div style={{ clipPath: stageReveal }} className="absolute inset-0 bg-stage" aria-hidden="true" />
-        <Title role={role} style={{ opacity: titleOpacity, y: titleY, filter: titleBlur }} />
+        <Title role={role} register={letterWeights.register} hasStarted={hasStarted} style={{ opacity: titleOpacity, y: titleY, filter: titleBlur }} />
         <div className="absolute inset-0 z-10 grid place-items-center px-4 pt-14">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.4, delay: 0.7, ease: easeOutExpo }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: hasStarted ? 1 : 0 }} transition={{ duration: 1.4, delay: 0.7, ease: easeOutExpo }}>
             <motion.div
               style={{ scale: photoScale, y: photoY, borderRadius: photoRadius }}
               className="relative aspect-square w-[min(92vw,calc(100svh-6rem))] overflow-hidden bg-stage shadow-2xl"
@@ -174,6 +158,9 @@ const Hero = () => {
           </motion.div>
         </div>
         <ScrollCue style={{ opacity: cueOpacity }} />
+        {/* the green stage would leave on a hard edge against the page, most of all in light theme, so its bottom melts
+            into the page color as the pin lets go */}
+        <motion.div style={{ opacity: exitFade }} className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[10svh] bg-gradient-to-b from-transparent to-ink" aria-hidden="true" />
       </div>
     </section>
   );

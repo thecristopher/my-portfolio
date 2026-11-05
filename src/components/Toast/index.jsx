@@ -6,7 +6,7 @@ import { easeOutExpo } from "../../lib/motion";
 const TONE_ICONS = { success: Check, error: CircleAlert, info: Info };
 const TONE_COLORS = { success: "text-string", error: "text-error", info: "text-muted" };
 
-/** Whatever the page has to say (a copied email, a résumé download, a relic's line), in a pill at the bottom. */
+/** Whatever the page has to say (a copied email, a résumé download), in a pill at the bottom. */
 const Toast = () => {
   const message = useEchoMessage();
   const Icon = TONE_ICONS[message?.tone] ?? Info;

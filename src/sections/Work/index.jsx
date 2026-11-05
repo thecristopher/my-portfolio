@@ -1,7 +1,6 @@
 import { AnimatePresence } from "framer-motion";
 import SectionHeading, { Sunset } from "../../components/SectionHeading";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
-import { Trigger as AirbenderArrow } from "../../components/Relics/Avatar";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { useGetCaseStudiesQuery } from "../../api/caseStudiesApi";
 import { countUsing, splitFeatured } from "../../actions";
@@ -49,8 +48,6 @@ const Work = () => {
             index={index}
             pickedTech={pickedTech}
             studies={caseStudies.filter((study) => study.company === project.title)}
-            // four kinds of work across the case studies, and the Avatar's arrow at the first of them
-            relic={index === 0 ? <AirbenderArrow zoom={0.42} /> : null}
           />
         ))}
         {earlier.length > 0 && <EarlierRoles projects={earlier} pickedTech={pickedTech} caseStudies={caseStudies} />}

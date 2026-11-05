@@ -5,12 +5,15 @@ import { useScrollRange } from "../../hooks/useScrollRange";
 import { stackedScale } from "./actions";
 import CaseStudyCard from "./CaseStudyCard";
 
-// each card pins a little lower than the one before, and shrinks back into the deck as the next one slides over it
+// each card pins a little lower than the one before, and shrinks back into the deck as the next one slides over it.
+// it also sinks into the page's own color, so the sliver still peeking out reads as depth instead of a cut off title
 const StackedCard = ({ study, index, count, progress }) => {
   const scale = useScrollRange(progress, [index / count, 1], [1, stackedScale(index, count)]);
+  const shade = useScrollRange(progress, [(index + 0.6) / count, (index + 1.2) / count], [0, index === count - 1 ? 0 : 0.7]);
   return (
     <motion.div className="sticky origin-top" style={{ top: `calc(6rem + ${index * 1.5}rem)`, scale }}>
       <CaseStudyCard study={study} index={index} />
+      <motion.span style={{ opacity: shade }} className="pointer-events-none absolute inset-0 rounded-3xl bg-ink" aria-hidden="true" />
     </motion.div>
   );
 };
