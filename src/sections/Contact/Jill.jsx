@@ -3,13 +3,14 @@ import { motion, useInView, useReducedMotion } from "framer-motion";
 import Sprite from "../../components/Sprite";
 import { JILL } from "../../lib/sprites/jill";
 
-const WALK_IN = { distance: 140, seconds: 1.6 };
+// she dashes in from off stage, landing on her spot just before the dash finishes
+const WALK_IN = { distance: 260, seconds: 0.5 };
 
 /**
- * Jill beside the email, facing the buttons. She walks in the first time she shows up, then plays whatever pose she's
+ * Jill beside the email, facing the buttons. She dashes in the first time she shows up, then plays whatever pose she's
  * told to. She's a button too: pressing her sends her after the nearest bug.
  * @param {{ state: { pose: string, take: number }, scale?: number, onArrive: () => void, onEnded: () => void, onFight: () => void }} props
- *   onArrive fires once she's done walking in, onEnded each time a one shot move finishes
+ *   onArrive fires once she has landed on her spot, onEnded each time a one shot move finishes
  */
 const Jill = ({ state, scale = 1, onArrive, onEnded, onFight }) => {
   const prefersReducedMotion = useReducedMotion();
@@ -25,7 +26,7 @@ const Jill = ({ state, scale = 1, onArrive, onEnded, onFight }) => {
         aria-label="Send Jill after the bugs"
         initial={prefersReducedMotion ? false : { x: WALK_IN.distance, opacity: 0 }}
         animate={isInView ? { x: 0, opacity: 1 } : undefined}
-        transition={{ x: { duration: WALK_IN.seconds, ease: "linear" }, opacity: { duration: 0.3 } }}
+        transition={{ x: { duration: WALK_IN.seconds, ease: "easeOut" }, opacity: { duration: 0.2 } }}
         onAnimationComplete={onArrive}
         className="block cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
