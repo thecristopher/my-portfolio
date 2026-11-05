@@ -220,6 +220,8 @@ const TECH_COLORS = {
   Go: "#00add8",
   Swift: "#f05138",
   Shell: "#89e051",
+  Kotlin: "#7f52ff",
+  HTML: "#e34f26",
 };
 
 export const brandColorFor = (tech = "") => TECH_COLORS[cleanTechName(tech)] ?? null;

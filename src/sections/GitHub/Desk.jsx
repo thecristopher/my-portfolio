@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Dumbbell } from "lucide-react";
 import { useScrollRange } from "../../hooks/useScrollRange";
 import { MAIN_PROJECT } from "./actions";
 import { useTypist } from "./useTypist";
@@ -8,14 +8,33 @@ import Editor from "./Editor";
 import Keyboard from "./Keyboard";
 import { Lamp, Mug, NightWindow } from "./Props";
 
+// the drills it runs inside the editor, called out on their own so they never get lost in the feature list
+const Practice = () => (
+  <div className="relative overflow-hidden rounded-2xl p-5 ring-1 ring-glow/30" style={{ background: "linear-gradient(140deg, color-mix(in oklab, var(--color-glow) 16%, transparent), transparent 70%)" }}>
+    <p className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-glow uppercase">
+      <Dumbbell size={14} aria-hidden="true" />
+      Built in: <span className="whitespace-nowrap">{MAIN_PROJECT.practice.name}</span>
+    </p>
+    <ul className="mt-3 flex flex-col gap-2 text-sm leading-snug text-stage-fg/85">
+      {MAIN_PROJECT.practice.perks.map((perk) => (
+        <li key={perk} className="flex gap-2.5">
+          <span className="mt-1.5 size-1.5 shrink-0 rotate-45 bg-glow" aria-hidden="true" />
+          {perk}
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
 // what's on the screen: the pitch on one side and, on the other, the editor typing out what it does
 const Screen = ({ typed }) => (
   <a href={MAIN_PROJECT.url} target="_blank" rel="noreferrer" className="group relative grid gap-8 overflow-hidden rounded-[1.1rem] bg-stage p-6 text-stage-fg sm:p-10 lg:grid-cols-[1fr_1.1fr]">
     <span className="bg-sunset pointer-events-none absolute -top-40 -right-32 size-[28rem] rounded-full opacity-25 blur-3xl transition-opacity duration-700 group-hover:opacity-40" aria-hidden="true" />
     <div className="relative flex flex-col gap-5">
       <p className="text-sm font-semibold text-glow">Featured project</p>
-      <h3 className="text-[clamp(2.4rem,6vw,4.5rem)] leading-none font-semibold tracking-[-0.045em]">{MAIN_PROJECT.title}</h3>
+      <h3 className="text-[clamp(2rem,4.6vw,3.6rem)] leading-none font-semibold tracking-[-0.045em] whitespace-nowrap">{MAIN_PROJECT.title}</h3>
       <p className="text-lg leading-relaxed text-stage-fg/75 text-pretty">{MAIN_PROJECT.pitch}</p>
+      <Practice />
       <span className="mt-auto flex w-fit items-center gap-1.5 text-sm font-medium text-glow">
         View on GitHub
         <ArrowUpRight size={15} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
