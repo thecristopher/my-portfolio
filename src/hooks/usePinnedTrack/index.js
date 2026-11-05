@@ -2,17 +2,22 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { useScroll, useTransform } from "framer-motion";
 import { trackDistance } from "../../lib/motion";
 
+const asIs = (progress) => progress;
+
 /**
  * A scene that pins to the screen while its track slides sideways, one screen of scroll per screen of track, the way
  * Apple walks a row of products past you. The section grows tall enough to scroll the whole track through.
+ * @param {{ shape?: (progress: number) => number, stretch?: number }} options shape bends the scroll before the track
+ *   follows it (to hold still at stops, say), stretch gives the scene that many times more scroll
  * @returns {{ sectionRef: object, trackRef: object, x: import("framer-motion").MotionValue, height: string, progress: import("framer-motion").MotionValue }}
  */
-export const usePinnedTrack = () => {
+export const usePinnedTrack = ({ shape = asIs, stretch = 1 } = {}) => {
   const sectionRef = useRef(null);
   const trackRef = useRef(null);
   const [distance, setDistance] = useState(0);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
-  const x = useTransform(scrollYProgress, [0, 1], [0, -distance]);
+  const progress = useTransform(scrollYProgress, shape);
+  const x = useTransform(progress, [0, 1], [0, -distance]);
 
   useLayoutEffect(() => {
     const track = trackRef.current;
@@ -28,5 +33,5 @@ export const usePinnedTrack = () => {
     };
   }, []);
 
-  return { sectionRef, trackRef, x, height: `calc(100svh + ${distance}px)`, progress: scrollYProgress };
+  return { sectionRef, trackRef, x, height: `calc(100svh + ${distance * stretch}px)`, progress };
 };

@@ -5,13 +5,15 @@ import { formatRange, hostnameFromUrl, slugify, usesTech } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 import { CompanyMark, StackList } from "./pieces";
 import StackedStudies from "./StackedStudies";
+import TeamDots from "./TeamDots";
+import BrandWash from "./BrandWash";
 
 // a job that never shipped with the picked tool fades back, so the ones that did stand out
 const FILTERED_OUT = "opacity-20 grayscale";
 
 // the side that stays put while the story scrolls past it, the way Apple pins a product while its features roll by
 const Masthead = ({ project, index, pickedTech }) => {
-  const details = [formatRange(project.start, project.end), project.location, project.work_mode, project.team_size ? `team of ${project.team_size}` : null].filter(Boolean);
+  const details = [formatRange(project.start, project.end), project.location, project.work_mode].filter(Boolean);
 
   return (
     <div className="flex flex-col gap-5 lg:sticky lg:top-24">
@@ -19,6 +21,7 @@ const Masthead = ({ project, index, pickedTech }) => {
       <CompanyMark company={project.title} className="h-12 w-40" />
       <h3 className="text-[clamp(2.6rem,5vw,4.5rem)] leading-[0.95] font-semibold tracking-[-0.045em] text-balance">{project.title}</h3>
       {details.length > 0 && <p className="text-sm text-faint">{details.join(" · ")}</p>}
+      {project.team_size > 0 && <TeamDots size={project.team_size} />}
       <a href={project.url} target="_blank" rel="noreferrer" className="group flex w-fit items-center gap-1 text-sm font-medium text-accent">
         {hostnameFromUrl(project.url)}
         <ArrowUpRight size={14} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
@@ -47,13 +50,14 @@ const Highlight = ({ text, index }) => (
 /**
  * One company as one chapter: the masthead pinned on the left, and on the right the pitch read out word by word, the
  * wins, and the case studies told in full.
- * @param {{ project: object, index: number, pickedTech: string | null, studies: object[], relic?: React.ReactNode }} props
+ * @param {{ project: object, index: number, pickedTech: string | null, studies: object[] }} props
  */
-const Chapter = ({ project, index, pickedTech, studies, relic }) => (
+const Chapter = ({ project, index, pickedTech, studies }) => (
   <article
     id={`work-${slugify(project.title)}`}
-    className={`grid scroll-mt-20 gap-12 border-t border-line pt-16 transition-[opacity,filter] duration-700 lg:grid-cols-12 lg:gap-16 ${usesTech(project, pickedTech) ? "" : FILTERED_OUT}`}
+    className={`relative isolate grid scroll-mt-20 gap-12 border-t border-line pt-16 transition-[opacity,filter] duration-700 lg:grid-cols-12 lg:gap-16 ${usesTech(project, pickedTech) ? "" : FILTERED_OUT}`}
   >
+    <BrandWash company={project.title} />
     <div className="lg:col-span-5">
       <Masthead project={project} index={index} pickedTech={pickedTech} />
     </div>
@@ -68,10 +72,7 @@ const Chapter = ({ project, index, pickedTech, studies, relic }) => (
       )}
       {studies.length > 0 && (
         <div className="flex flex-col gap-5">
-          <p className="flex items-center gap-3 text-sm font-semibold text-muted">
-            Case studies
-            {relic}
-          </p>
+          <p className="text-sm font-semibold text-muted">Case studies</p>
           <StackedStudies studies={studies} />
         </div>
       )}

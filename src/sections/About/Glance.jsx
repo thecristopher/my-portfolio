@@ -2,16 +2,19 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Award, Clock, GraduationCap, Languages, MapPin } from "lucide-react";
 import CountUp from "../../components/CountUp";
-import { Trigger as NichirinBlade } from "../../components/Relics/DemonSlayer";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { localClock } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 import { HOME_TIMEZONE } from "../../lib/profile";
-import { arcPoint, currentCompany, shortCertName, skyPosition } from "./actions";
+import { currentCompany, shortCertName } from "./actions";
+import Greeting from "./Greeting";
+import Sky from "./Sky";
+import YearsGrid from "./YearsGrid";
 
 // each tile scales up out of the page as it scrolls in, one after the other
-const Tile = ({ index, className = "", children }) => (
+const Tile = ({ index, className = "", children, ...rest }) => (
   <motion.li
+    {...rest}
     initial={{ opacity: 0, y: 40, scale: 0.94 }}
     whileInView={{ opacity: 1, y: 0, scale: 1 }}
     viewport={{ once: true, margin: "-60px" }}
@@ -39,37 +42,35 @@ const useHomeTime = () => {
   return localClock(now, HOME_TIMEZONE);
 };
 
-const SKY = { width: 200, height: 92 };
-const ARC = `M0 ${SKY.height}A${SKY.width / 2} ${SKY.height} 0 0 1 ${SKY.width} ${SKY.height}`;
-
-// the sky over Rosarito right now: the sun on its arc during the day, the moon at night, both moving with the clock
-const Sky = ({ hour, minute }) => {
-  const { isDay, progress } = skyPosition(hour, minute);
-  const body = arcPoint(progress, SKY);
-  return (
-    <svg viewBox={`-10 -10 ${SKY.width + 20} ${SKY.height + 20}`} className="w-full overflow-visible" aria-hidden="true">
-      <path d={ARC} fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="2 5" className="text-line-strong" />
-      <line x1="-10" x2={SKY.width + 10} y1={SKY.height} y2={SKY.height} stroke="currentColor" strokeWidth="1" className="text-line-strong" />
-      <motion.circle
-        cx={body.x}
-        cy={body.y}
-        r={isDay ? 9 : 7}
-        fill={isDay ? "url(#sun)" : "#e8e4d8"}
-        initial={{ scale: 0, opacity: 0 }}
-        whileInView={{ scale: 1, opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.2, delay: 0.3, ease: easeOutExpo }}
-        style={{ filter: `drop-shadow(0 0 ${isDay ? 12 : 6}px ${isDay ? "#ff9a3d" : "#e8e4d8"})` }}
-      />
-      <defs>
-        <radialGradient id="sun">
-          <stop offset="0%" stopColor="#fff2c2" />
-          <stop offset="100%" stopColor="#ff8a3d" />
-        </radialGradient>
-      </defs>
-    </svg>
-  );
+// the light on a foil card, following the cursor across it. mouse only, a finger has nothing to hover with
+const tiltFoil = (event) => {
+  if (event.pointerType !== "mouse") return;
+  const bounds = event.currentTarget.getBoundingClientRect();
+  event.currentTarget.style.setProperty("--foil-x", `${((event.clientX - bounds.left) / bounds.width) * 100}%`);
+  event.currentTarget.style.setProperty("--foil-y", `${((event.clientY - bounds.top) / bounds.height) * 100}%`);
 };
+
+const FOIL = {
+  background: [
+    "radial-gradient(circle at var(--foil-x, 50%) var(--foil-y, 50%), rgb(255 255 255 / 0.28), transparent 42%)",
+    "linear-gradient(115deg, transparent 25%, color-mix(in oklab, var(--color-sunset-1) 22%, transparent) 40%, color-mix(in oklab, var(--color-sunset-3) 22%, transparent) 55%, transparent 70%)",
+  ].join(", "),
+  backgroundSize: "100% 100%, 220% 220%",
+  backgroundPosition: "center, var(--foil-x, 50%) var(--foil-y, 50%)",
+};
+
+// the certifications as foil cards: the shine and a band of sunset slide across as the cursor moves over them
+const CertificationsTile = ({ certifications, index }) => (
+  <Tile index={index} onPointerMove={tiltFoil} className="group relative overflow-hidden">
+    <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={FOIL} aria-hidden="true" />
+    <Label icon={Award}>Certified</Label>
+    <ul className="flex flex-col gap-1.5 text-lg font-semibold tracking-tight">
+      {certifications.map((cert) => (
+        <li key={cert.name}>{shortCertName(cert.name)}</li>
+      ))}
+    </ul>
+  </Tile>
+);
 
 const HomeTile = ({ about, index }) => {
   const clock = useHomeTime();
@@ -100,12 +101,15 @@ const Glance = ({ about }) => {
     <div className="flex flex-col gap-8">
       <p className="text-sm font-semibold text-muted">At a glance</p>
       <ul className="grid gap-4 md:grid-cols-3">
-        <Tile index={0} className="md:col-span-2">
-          <Label>Shipping software for</Label>
-          <p className="text-sunset text-[clamp(4.5rem,10vw,8rem)] leading-none font-semibold tracking-[-0.05em]">
-            <CountUp value={`${about.years_of_experience}+`} />
-          </p>
-          <p className="text-xl font-semibold tracking-tight">years, and still shipping every week.</p>
+        <Tile index={0} className="gap-6 sm:flex-row sm:items-end sm:justify-between md:col-span-2">
+          <div className="flex flex-col gap-3">
+            <Label>Shipping software for</Label>
+            <p className="text-sunset text-[clamp(4.5rem,10vw,8rem)] leading-none font-semibold tracking-[-0.05em]">
+              <CountUp value={`${about.years_of_experience}+`} />
+            </p>
+            <p className="text-xl font-semibold tracking-tight">years, and still shipping every week.</p>
+          </div>
+          <YearsGrid years={about.years_of_experience} />
         </Tile>
         <HomeTile about={about} index={1} />
         {company && (
@@ -114,20 +118,7 @@ const Glance = ({ about }) => {
             <p className="text-3xl font-semibold tracking-tight text-balance">{company}</p>
           </Tile>
         )}
-        {about.certifications?.length > 0 && (
-          <Tile index={3}>
-            <span className="flex items-center justify-between gap-2">
-              <Label icon={Award}>Certified</Label>
-              {/* the exams took total concentration, so Tanjiro's blade rests beside them */}
-              <NichirinBlade zoom={0.42} />
-            </span>
-            <ul className="flex flex-col gap-1.5 text-lg font-semibold tracking-tight">
-              {about.certifications.map((cert) => (
-                <li key={cert.name}>{shortCertName(cert.name)}</li>
-              ))}
-            </ul>
-          </Tile>
-        )}
+        {about.certifications?.length > 0 && <CertificationsTile certifications={about.certifications} index={3} />}
         {about.education?.[0] && (
           <Tile index={4}>
             <Label icon={GraduationCap}>Studied</Label>
@@ -150,6 +141,7 @@ const Glance = ({ about }) => {
         {about.languages?.length > 0 && (
           <Tile index={6}>
             <Label icon={Languages}>Speaks</Label>
+            <Greeting languages={about.languages} />
             <p className="text-2xl font-semibold tracking-tight">{about.languages.map((language) => language.name).join(" & ")}</p>
           </Tile>
         )}

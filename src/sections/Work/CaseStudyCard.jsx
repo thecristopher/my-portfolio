@@ -2,9 +2,9 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import TechIcon from "../../components/TechIcon";
-import CountUp from "../../components/CountUp";
 import SpotlightCard from "../../components/SpotlightCard";
 import { easeOutExpo } from "../../lib/motion";
+import MetricRing from "./MetricRing";
 
 // what was hard and how I went at it, folded away so the card leads with the result
 const HowItWent = ({ study }) => (
@@ -59,12 +59,7 @@ const CaseStudyCard = ({ study, index }) => {
         {study.metrics?.length > 0 && (
           <dl className="grid grid-cols-2 gap-6 sm:grid-cols-3">
             {study.metrics.map((metric) => (
-              <div key={metric.label} className="flex flex-col gap-1">
-                <dt className="text-sunset text-4xl font-semibold tracking-tight">
-                  <CountUp value={metric.value} />
-                </dt>
-                <dd className="text-sm text-muted">{metric.label}</dd>
-              </div>
+              <MetricRing key={metric.label} metric={metric} />
             ))}
           </dl>
         )}

@@ -6,7 +6,7 @@
 @theme {
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
-  /* the 16 bit face the relic moments speak in, never for the page itself */
+  /* the 16 bit face the loader, the credits and the sprites speak in, never for the page copy */
   --font-pixel: "Pixelify Sans", ui-monospace, monospace;
 
   /* light is the default. dark repeats every token under [data-theme="dark"] below */

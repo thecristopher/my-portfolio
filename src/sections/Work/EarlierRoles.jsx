@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
-import { Trigger as UmbrellaLogo } from "../../components/Relics/ResidentEvil";
 import { cleanTechName, formatRange, slugify, usesTech } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 import { CompanyMark } from "./pieces";
@@ -17,9 +16,10 @@ const EarlierRole = ({ project, pickedTech, studies, index }) => (
   >
     <div className="flex flex-col gap-2">
       <CompanyMark company={project.title} className="mb-1 h-7 w-24" />
-      <a href={project.url} target="_blank" rel="noreferrer" className="group flex w-fit items-center gap-1 text-2xl font-semibold tracking-tight">
+      {/* the arrow rides along at the end of the name, even when a long name wraps onto a second line */}
+      <a href={project.url} target="_blank" rel="noreferrer" className="group w-fit text-2xl font-semibold tracking-tight text-balance">
         {project.title}
-        <ArrowUpRight size={16} className="text-faint transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        <ArrowUpRight size={16} className="ml-1 inline align-baseline text-faint transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
       </a>
       {formatRange(project.start, project.end) && <p className="text-sm text-muted">{formatRange(project.start, project.end)}</p>}
     </div>
@@ -34,12 +34,6 @@ const EarlierRole = ({ project, pickedTech, studies, index }) => (
       <p className="text-sm text-faint">{project.technologies.map(cleanTechName).join(" · ")}</p>
       {/* a quiet thank you, it reads like a footnote instead of a headline */}
       {project.note && <p className="text-sm text-muted italic">{project.note}</p>}
-      {/* yes, I really worked at a company called Umbrella. its logo had to be here */}
-      {project.title === "Umbrella Seguros" && (
-        <span className="flex justify-end">
-          <UmbrellaLogo zoom={0.42} />
-        </span>
-      )}
       {studies.map((study, at) => (
         <CaseStudyCard key={study.slug} study={study} index={at} />
       ))}

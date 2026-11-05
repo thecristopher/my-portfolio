@@ -22,6 +22,7 @@ import { crouchLegs, idleMoveDelay, isInRegion, overlaySprite, pickIdleMove, pin
 import { playSound } from "../../lib/sound";
 import { COMBO_WINDOW_MS, isFinisher, landHit } from "../../lib/avatarCombo";
 import { IMPACT_MS, JAB_REACH, SHORYUKEN_LANDS_MS, shiftTransform, throwKick, throwPunch, throwShoryuken } from "./actions";
+import PixelText from "./PixelText";
 
 const WIDTH = AVATAR_ROWS[0].length;
 const HEIGHT = AVATAR_ROWS.length;
@@ -333,11 +334,10 @@ const ShoryukenShout = () => (
     animate={{ opacity: 1, scale: [0.4, 1.15, 1], y: 0, rotate: -6 }}
     exit={{ opacity: 0, y: -12, transition: { duration: 0.3 } }}
     transition={{ duration: 0.35, delay: 0.12, ease: "easeOut" }}
-    className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 font-pixel text-base font-bold tracking-wider whitespace-nowrap text-[#ffe066] sm:text-lg"
-    style={{ textShadow: "2px 2px 0 #ff5ca8, -1px -1px 0 #140812, 1px -1px 0 #140812, -1px 1px 0 #140812, 1px 1px 0 #140812" }}
+    className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2"
     aria-hidden="true"
   >
-    SHORYUKEN!!!
+    <PixelText text="SHORYUKEN!!!" pixelSize={3} />
   </motion.span>
 );
 
@@ -510,7 +510,7 @@ const PixelAvatar = ({ className = "", entersAfterMs = 0, firstWaveAfterMs = FIR
       type="button"
       onClick={strike}
       onPointerEnter={sayHi}
-      aria-label="Pixel art version of Cristopher. Poke him."
+      aria-label="Pixel art version of Cristopher. Press to throw a combo: a jab, a kick, then a shoryuken."
       className={`relative shrink-0 cursor-pointer touch-manipulation select-none [-webkit-tap-highlight-color:transparent] ${className}`}
     >
       <AnimatePresence>{attack === "shoryuken" && <RisingStreaks key="streaks" />}</AnimatePresence>

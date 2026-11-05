@@ -1,24 +1,26 @@
 import { useRef, useState } from "react";
-import { motion, useMotionTemplate, useReducedMotion, useScroll } from "framer-motion";
+import { motion, useInView, useMotionTemplate, useReducedMotion, useScroll } from "framer-motion";
 import { ArrowUpRight, Check, Copy } from "lucide-react";
 import Magnetic from "../../components/Magnetic";
-import { Trigger as GraceSigil } from "../../components/Relics/EldenRing";
-import { Trigger as D20 } from "../../components/Relics/BaldursGate";
-import { Trigger as OneWishWillow } from "../../components/Relics/Obsession";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
+import BugHunt from "./BugHunt";
+import Bottle from "./Bottle";
+import Sea from "./Sea";
+import { Moon, Pier, Stars } from "./Dusk";
 import { useScrollRange } from "../../hooks/useScrollRange";
 import { useGetContactQuery } from "../../api/contactApi";
 import { socialIconMap } from "../../lib/socialIconMap";
 import { easeOutExpo } from "../../lib/motion";
 import { echo } from "../../lib/echo";
 
-const CopyEmailButton = ({ email }) => {
+const CopyEmailButton = ({ email, onCopied }) => {
   const [isCopied, setIsCopied] = useState(false);
 
   const copyEmail = async () => {
     try {
       await navigator.clipboard.writeText(email);
       setIsCopied(true);
+      onCopied();
       echo("Email copied", "success");
       setTimeout(() => setIsCopied(false), 1800);
     } catch {
@@ -45,7 +47,7 @@ const SunsetHeadline = ({ progress, isStill }) => {
   const clipPath = useMotionTemplate`inset(-0.2em ${unlit}% -0.3em 0)`;
 
   return (
-    <h2 className="text-[clamp(3rem,10vw,8.5rem)] leading-[0.92] font-semibold tracking-[-0.055em]">
+    <h2 className="text-[clamp(2.75rem,min(10vw,14svh),8.5rem)] leading-[0.92] font-semibold tracking-[-0.055em]">
       <span className="block">Let's build</span>
       <span className="relative block">
         <span className="block text-line-strong">something worth keeping.</span>
@@ -57,34 +59,45 @@ const SunsetHeadline = ({ progress, isStill }) => {
   );
 };
 
-const HORIZON = "64%";
+// low enough that the headline always ends above the water and the pier, even on a short wide screen
+const HORIZON = "74%";
 
-// the sun going down into the sea off Rosarito: it sinks past the horizon as you scroll, its reflection shrinking with it
+// the reflection as plain stripes, for anyone who asked for less movement
+const StillReflection = () => (
+  <span
+    className="absolute top-0 left-[70%] h-[70%] w-[min(50vmin,26rem)] -translate-x-1/2 blur-[2px]"
+    style={{
+      opacity: 0.5,
+      background: "linear-gradient(to bottom, var(--color-sunset-1), transparent)",
+      maskImage: "repeating-linear-gradient(to bottom, black 0 6px, transparent 6px 14px)",
+    }}
+  />
+);
+
+// the sun going down into the sea off Rosarito: it sinks past the horizon as you scroll, its reflection breaking up
+// wherever the cursor stirs the water, while the stars come out, the moon climbs on the other side and the lamps on the
+// pier turn on
 const Sunset = ({ progress, isStill }) => {
-  const sunY = useScrollRange(progress, [0, 0.9], ["-30%", "62%"]);
+  // by the end only the last sliver is left above the water, so the sunset actually finishes
+  const sunY = useScrollRange(progress, [0, 0.95], ["-30%", "90%"]);
   const sky = useScrollRange(progress, [0, 0.9], [0.15, 0.6]);
-  const reflection = useScrollRange(progress, [0, 0.85], [1, 0.1]);
   const still = { y: "30%" };
   return (
     <div className="pointer-events-none absolute inset-0" aria-hidden="true">
       <motion.div className="bg-sunset absolute inset-x-0 top-0 blur-3xl" style={{ height: HORIZON, opacity: isStill ? 0.35 : sky, maskImage: "linear-gradient(to bottom, transparent, black)" }} />
+      <Stars progress={progress} isStill={isStill} height={HORIZON} />
       <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height: HORIZON }}>
+        <Moon progress={progress} isStill={isStill} />
         <motion.span
           className="absolute bottom-0 left-[70%] aspect-square w-[min(56vmin,30rem)] -translate-x-1/2 rounded-full"
           style={{ ...(isStill ? still : { y: sunY }), background: "radial-gradient(circle at 50% 40%, #fff4d1 0%, var(--color-sunset-1) 45%, var(--color-sunset-2) 100%)", boxShadow: "0 0 120px 30px color-mix(in oklab, var(--color-sunset-1) 45%, transparent)" }}
         />
       </div>
       <div className="absolute inset-x-0 bottom-0 bg-[color-mix(in_oklab,var(--color-sunset-3)_10%,var(--color-ink))]" style={{ top: HORIZON }}>
-        <motion.span
-          className="absolute top-0 left-[70%] h-[70%] w-[min(50vmin,26rem)] -translate-x-1/2 blur-[2px]"
-          style={{
-            opacity: isStill ? 0.5 : reflection,
-            background: "linear-gradient(to bottom, var(--color-sunset-1), transparent)",
-            maskImage: "repeating-linear-gradient(to bottom, black 0 6px, transparent 6px 14px)",
-          }}
-        />
+        {isStill ? <StillReflection /> : <Sea progress={progress} />}
       </div>
       <span className="absolute inset-x-0 h-px bg-[color-mix(in_oklab,var(--color-sunset-1)_60%,transparent)]" style={{ top: HORIZON }} />
+      <Pier progress={progress} isStill={isStill} horizon={HORIZON} />
     </div>
   );
 };
@@ -129,33 +142,41 @@ const rise = (delay) => ({
   transition: { duration: 1, delay, ease: easeOutExpo },
 });
 
-// the address itself, huge, with the die waiting beside it: sending it is a persuasion check like any other
-const Email = ({ contact }) => (
-  <motion.div {...rise(0)} className="flex flex-col gap-5">
-    <p className="flex items-center gap-2 text-sm font-semibold text-muted">
-      Write me at
-      <D20 zoom={0.42} />
-    </p>
-    <a href={contact.mailto} className="group flex w-fit items-center gap-3 text-[clamp(1.5rem,5vw,3.75rem)] font-semibold tracking-[-0.035em] transition-colors hover:text-accent">
-      <EmailAddress email={contact.email} />
-      <ArrowUpRight className="size-[0.8em] shrink-0 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
-    </a>
-    <div className="flex flex-wrap items-center gap-3">
-      <Magnetic>
-        <a
-          href={contact.mailto}
-          className="bg-sunset inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-base font-semibold text-white shadow-lg transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
-        >
-          Email me
-          <ArrowUpRight size={17} />
-        </a>
-      </Magnetic>
-      <CopyEmailButton email={contact.email} />
-      {/* writing me is the wish, the twig is right there for it */}
-      <OneWishWillow zoom={0.2} />
-    </div>
-  </motion.div>
-);
+// the address itself, huge, with the ways to send it right under it and Jill's stage below, reacting to both
+const Email = ({ contact, onCopy, isMissionComplete }) => {
+  const [cue, setCue] = useState(null);
+  const cueJill = (name) => setCue((last) => ({ name, key: (last?.key ?? 0) + 1 }));
+  // a copied address is on its way: Jill celebrates and a bottle sets out to sea
+  const sendOff = () => {
+    cueJill("happy");
+    onCopy();
+  };
+
+  return (
+    <motion.div {...rise(0)} className="flex flex-col gap-5">
+      <p className="text-sm font-semibold text-muted">Write me at</p>
+      <a href={contact.mailto} className="group flex w-fit items-center gap-3 text-[clamp(1.5rem,5vw,3.75rem)] font-semibold tracking-[-0.035em] transition-colors hover:text-accent">
+        <EmailAddress email={contact.email} />
+        <ArrowUpRight className="size-[0.8em] shrink-0 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
+      </a>
+      <div className="flex flex-wrap items-center gap-3">
+        <Magnetic>
+          <a
+            href={contact.mailto}
+            onPointerEnter={() => cueJill("herb")}
+            onFocus={() => cueJill("herb")}
+            className="bg-sunset inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-base font-semibold text-white shadow-lg transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
+          >
+            Email me
+            <ArrowUpRight size={17} />
+          </a>
+        </Magnetic>
+        <CopyEmailButton email={contact.email} onCopied={sendOff} />
+      </div>
+      <BugHunt cue={cue} isMissionComplete={isMissionComplete} />
+    </motion.div>
+  );
+};
 
 const Socials = ({ socials }) => (
   <ul className="flex flex-wrap gap-3">
@@ -179,9 +200,14 @@ const Socials = ({ socials }) => (
   </ul>
 );
 
-/** The closing line, filling with the sunset as you reach it, and every way to reach me. */
+/** The closing line, filling with the sunset as you reach it, every way to reach me, and a bottle for every copy. */
 const Contact = () => {
   const { data: contact, isLoading, isError } = useGetContactQuery();
+  const [bottles, setBottles] = useState(0);
+  // the last line counts as reached as soon as it's clearly on screen, while Jill's stage right above it is still in
+  // view, so her mission complete is something the visitor actually sees
+  const lastLine = useRef(null);
+  const isMissionComplete = useInView(lastLine, { once: true, margin: "0px 0px -10% 0px" });
 
   return (
     <section id="contact" className="relative pb-24 sm:pb-32">
@@ -193,15 +219,14 @@ const Contact = () => {
 
         {isLoading && <SkeletonLines lines={2} />}
         {isError && !contact && <LoadError what="the contact details" />}
-        {contact && <Email contact={contact} />}
+        {contact && <Email contact={contact} onCopy={() => setBottles((count) => count + 1)} isMissionComplete={isMissionComplete} />}
         {contact && <Socials socials={contact.socials} />}
 
-        <p className="flex items-center gap-2 text-sm text-faint">
+        <p ref={lastLine} className="text-sm text-faint">
           Thanks for scrolling all the way down.
-          {/* the page signs off at a site of grace, the place you come back to */}
-          <GraceSigil zoom={0.42} />
         </p>
       </div>
+      <Bottle launch={bottles} />
     </section>
   );
 };

@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-// every relic gets a tiny synth jingle built on the fly, so we ship zero audio files
+// every sound is a tiny synth jingle built on the fly, so we ship zero audio files
 let audioContext = null;
 
 // the statusline can mute every jingle, and the choice sticks between visits

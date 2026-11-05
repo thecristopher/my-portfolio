@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { MotionConfig } from "framer-motion";
 import Nav from "./components/Nav";
 import Footer from "./components/Footer";
+import Loader from "./components/Loader";
 import Toast from "./components/Toast";
-import RelicLog from "./components/RelicLog";
 import Resume from "./components/Resume";
-import RelicStage from "./components/Relics/Stage";
 import Hero from "./sections/Hero";
 import About from "./sections/About";
 import Work from "./sections/Work";
@@ -20,7 +19,7 @@ import { sectionIdFromUrl } from "./actions";
 
 const SECTIONS = { home: Hero, about: About, work: Work, skills: Skills, github: GitHub, contact: Contact };
 
-/** The page: a glass bar on top, one scene per section in between, the relic moments over everything. */
+/** The page: the loader first, then a glass bar on top and one scene per section in between. */
 const App = () => {
   const links = usePageLinks();
   const sections = useMemo(
@@ -29,9 +28,6 @@ const App = () => {
   );
   const sectionIds = useMemo(() => sections.map((section) => section.id), [sections]);
   const activeSectionId = useActiveSection(sectionIds);
-  const [isRelicLogOpen, setIsRelicLogOpen] = useState(false);
-  const openRelicLog = useCallback(() => setIsRelicLogOpen(true), []);
-  const closeRelicLog = useCallback(() => setIsRelicLogOpen(false), []);
 
   useEffect(() => startSmoothScroll(), []);
   useEffect(() => followSystemTheme(), []);
@@ -41,7 +37,7 @@ const App = () => {
       <a href="#about" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-fg focus:px-4 focus:py-2 focus:text-ink">
         Skip to content
       </a>
-      <Nav sections={sections} activeId={activeSectionId} onOpenRelicLog={openRelicLog} />
+      <Nav sections={sections} activeId={activeSectionId} />
       <main>
         {sectionIds.map((id) => {
           const Section = SECTIONS[id];
@@ -49,10 +45,9 @@ const App = () => {
         })}
       </main>
       <Footer />
-      <RelicLog isOpen={isRelicLogOpen} sections={sections} onClose={closeRelicLog} />
       <Toast />
       <Resume />
-      <RelicStage />
+      <Loader />
     </MotionConfig>
   );
 };

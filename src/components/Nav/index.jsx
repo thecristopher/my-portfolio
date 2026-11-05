@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring } from "framer-motion";
 import { Download, Menu, Moon, Sun, X } from "lucide-react";
 import { easeOutExpo } from "../../lib/motion";
+import { usePageReady } from "../../lib/pageReady";
 import { exportResume } from "../../lib/resume/exportResume";
 import { otherTheme, setTheme, useTheme } from "../../lib/theme";
-import { RELIC_IDS, useFoundRelics } from "../../lib/relics";
 
 const SectionLink = ({ section, isActive }) => (
   <li className="relative">
@@ -36,7 +36,7 @@ const SectionMenu = ({ sections, activeId, onClose }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.3, ease: easeOutExpo }}
-      className="glass absolute inset-x-0 top-full flex flex-col border-b border-line px-4 pt-2 pb-6 lg:hidden"
+      className="glass absolute inset-x-0 top-full flex flex-col border-b border-line bg-ink/95! px-4 pt-2 pb-6 lg:hidden"
     >
       {sections.map((section) => (
         <li key={section.id}>
@@ -93,25 +93,6 @@ const ThemeToggle = () => {
   );
 };
 
-// nothing says relics exist until the first one is found, then this pill keeps the count and opens the log
-const RelicCount = ({ onOpen }) => {
-  const found = useFoundRelics();
-  if (found.length === 0) return null;
-  return (
-    <motion.button
-      type="button"
-      onClick={onOpen}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-muted tabular-nums transition-colors hover:text-fg"
-      aria-label={`Relics found: ${found.length} of ${RELIC_IDS.length}. Open the relic log`}
-    >
-      <span className="bg-sunset size-1.5 rotate-45" aria-hidden="true" />
-      {found.length}/{RELIC_IDS.length}
-    </motion.button>
-  );
-};
-
 // a hairline of sunset under the bar that fills as the page is read
 const ReadingProgress = () => {
   const { scrollYProgress } = useScroll();
@@ -121,21 +102,23 @@ const ReadingProgress = () => {
 
 /**
  * The bar across the top in frosted glass: my name, one link per section on wide screens and a sheet with the same
- * list on small ones, the relic count once there is one, the theme toggle and the résumé.
- * @param {{ sections: { id: string, title: string }[], activeId: string, onOpenRelicLog: () => void }} props
+ * list on small ones, the theme toggle and the résumé.
+ * @param {{ sections: { id: string, title: string }[], activeId: string }} props
  */
-const Nav = ({ sections, activeId, onOpenRelicLog }) => {
+const Nav = ({ sections, activeId }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { scrollY } = useScroll();
   useMotionValueEvent(scrollY, "change", (latest) => setIsScrolled(latest > 24));
   const closeMenu = () => setIsMenuOpen(false);
   const isFrosted = isScrolled || isMenuOpen;
+  // the bar drops in with the rest of the opening, once the loader's iris starts to open, not behind it
+  const isPageReady = usePageReady();
 
   return (
     <motion.header
       initial={{ y: -40, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
+      animate={isPageReady ? { y: 0, opacity: 1 } : { y: -40, opacity: 0 }}
       transition={{ duration: 1, delay: 0.2, ease: easeOutExpo }}
       className={`fixed inset-x-0 top-0 z-40 border-b transition-colors duration-500 ${isFrosted ? "glass border-line" : "border-transparent"}`}
     >
@@ -151,7 +134,6 @@ const Nav = ({ sections, activeId, onOpenRelicLog }) => {
         </ul>
 
         <div className="ml-auto flex items-center gap-1 lg:ml-0">
-          <RelicCount onOpen={onOpenRelicLog} />
           <ThemeToggle />
           <button
             type="button"
@@ -175,9 +157,7 @@ const Nav = ({ sections, activeId, onOpenRelicLog }) => {
       </nav>
       {isScrolled && <ReadingProgress />}
       <AnimatePresence>
-        {isMenuOpen && (
-<SectionMenu sections={sections} activeId={activeId} onClose={closeMenu} />
-        )}
+        {isMenuOpen && <SectionMenu sections={sections} activeId={activeId} onClose={closeMenu} />}
       </AnimatePresence>
     </motion.header>
   );

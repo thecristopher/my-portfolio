@@ -92,3 +92,64 @@ export const throwShoryuken = async ({ body, setPose }) => {
  * @returns {string | undefined} a translate, or nothing when there's nothing to move
  */
 export const shiftTransform = ([dx, dy] = [0, 0]) => (dx === 0 && dy === 0 ? undefined : `translate(${dx} ${dy})`);
+
+// a 5 pixel tall arcade font, one string per row, just the letters the fight shouts need
+const GLYPHS = {
+  0: ["###", "#.#", "#.#", "#.#", "###"],
+  1: [".#.", "##.", ".#.", ".#.", "###"],
+  2: ["###", "..#", "###", "#..", "###"],
+  3: ["###", "..#", ".##", "..#", "###"],
+  4: ["#.#", "#.#", "###", "..#", "..#"],
+  5: ["###", "#..", "###", "..#", "###"],
+  6: ["###", "#..", "###", "#.#", "###"],
+  7: ["###", "..#", ".#.", ".#.", ".#."],
+  8: ["###", "#.#", "###", "#.#", "###"],
+  9: ["###", "#.#", "###", "..#", "###"],
+  S: ["###", "#..", "###", "..#", "###"],
+  H: ["#.#", "#.#", "###", "#.#", "#.#"],
+  O: ["###", "#.#", "#.#", "#.#", "###"],
+  R: ["##.", "#.#", "##.", "#.#", "#.#"],
+  Y: ["#.#", "#.#", ".#.", ".#.", ".#."],
+  U: ["#.#", "#.#", "#.#", "#.#", "###"],
+  K: ["#.#", "##.", "#..", "##.", "#.#"],
+  E: ["###", "#..", "##.", "#..", "###"],
+  N: ["#..#", "##.#", "#.##", "#..#", "#..#"],
+  I: ["###", ".#.", ".#.", ".#.", "###"],
+  T: ["###", ".#.", ".#.", ".#.", ".#."],
+  "!": ["#", "#", "#", ".", "#"],
+  " ": ["..", "..", "..", "..", ".."],
+};
+
+export const GLYPH_HEIGHT = 5;
+
+/**
+ * Lays text out in the arcade font as lit cells, one pixel of space between letters. Letters it doesn't know are skipped.
+ * @param {string} text like "3 HITS"
+ * @returns {{ width: number, height: number, cells: { x: number, y: number }[] }} the size in pixels and every lit cell
+ */
+export const layOutPixelText = (text = "") => {
+  const cells = [];
+  let cursor = 0;
+  for (const letter of String(text).toUpperCase()) {
+    const glyph = GLYPHS[letter];
+    if (!glyph) continue;
+    glyph.forEach((row, y) => [...row].forEach((pixel, x) => pixel === "#" && cells.push({ x: cursor + x, y })));
+    cursor += glyph[0].length + 1;
+  }
+  return { width: Math.max(0, cursor - 1), height: GLYPH_HEIGHT, cells };
+};
+
+/**
+ * The cells around lit text that make its outline, so it reads over a busy photo the way arcade text does.
+ * @param {{ x: number, y: number }[]} cells lit cells from layOutPixelText
+ * @returns {{ x: number, y: number }[]} every cell touching a lit one, the lit ones included, each once
+ */
+export const outlineCells = (cells = []) => {
+  const seen = new Map();
+  for (const { x, y } of cells) {
+    for (let dy = -1; dy <= 1; dy += 1) {
+      for (let dx = -1; dx <= 1; dx += 1) seen.set(`${x + dx},${y + dy}`, { x: x + dx, y: y + dy });
+    }
+  }
+  return [...seen.values()];
+};

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { careerSteps, filterSummary, stackedScale } from ".";
+import { careerSteps, clusterDots, filterSummary, metricRing, scatterDots, stackedScale } from ".";
 
 describe("careerSteps", () => {
   const projects = [
@@ -52,5 +52,51 @@ describe("stackedScale", () => {
   it("shrinks the first card the most, since every other card ends up on top of it", () => {
     expect(stackedScale(0, 3)).toBeCloseTo(0.9);
     expect(stackedScale(0, 3)).toBeLessThan(stackedScale(1, 3));
+  });
+});
+
+describe("metricRing", () => {
+  it("given Claire's 40% faster rescues, expect the ring filled to 40%", () => {
+    expect(metricRing("40%")).toEqual({ fill: 0.4, segments: 1 });
+  });
+
+  it("given a percentage over 100, expect the ring full and never past it", () => {
+    expect(metricRing("150%").fill).toBe(1);
+  });
+
+  it("given Inde's love notes written 3× faster, expect one full lap in three equal parts", () => {
+    expect(metricRing("3×")).toEqual({ fill: 1, segments: 3 });
+  });
+
+  it("given a plain x for the multiplier, expect it read the same as ×", () => {
+    expect(metricRing("2x")).toEqual({ fill: 1, segments: 2 });
+  });
+
+  it("given a plain count like Malenia's 12 duels, expect a single full lap", () => {
+    expect(metricRing("12")).toEqual({ fill: 1, segments: 1 });
+  });
+});
+
+describe("clusterDots", () => {
+  it("given a team of seven, expect seven people all inside the circle", () => {
+    const dots = clusterDots(7);
+    expect(dots).toHaveLength(7);
+    expect(dots.every(({ x, y }) => Math.hypot(x, y) <= 1.0001)).toBe(true);
+  });
+
+  it("given Inde working alone, expect her right in the middle", () => {
+    expect(clusterDots(1)).toEqual([{ x: 0, y: 0 }]);
+  });
+});
+
+describe("scatterDots", () => {
+  it("given Claire and Malenia far apart before the date, expect them at both ends of the line", () => {
+    const [claire, malenia] = scatterDots(2);
+    expect(claire.x).toBe(-3);
+    expect(malenia.x).toBe(3);
+  });
+
+  it("given the same team twice, expect the same starting spots every visit", () => {
+    expect(scatterDots(5)).toEqual(scatterDots(5));
   });
 });

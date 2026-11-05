@@ -42,3 +42,44 @@ export const filterSummary = (tech, matches, total) => `${matches} of ${total} $
  * @returns {number} the scale it settles at, 1 for the last card
  */
 export const stackedScale = (index, count) => 1 - (count - 1 - index) * 0.05;
+
+/**
+ * How a metric fills its ring, told honestly: a percentage fills to its value, a multiplier draws one full lap split
+ * into that many equal parts, anything else draws a single full lap.
+ * @param {string | number} value like "40%", "3×" or "12"
+ * @returns {{ fill: number, segments: number }} fill from 0 to 1, segments from 1 to 12
+ */
+export const metricRing = (value) => {
+  const text = String(value).trim();
+  const percent = text.match(/^(\d+(?:\.\d+)?)\s*%$/);
+  if (percent) return { fill: Math.min(Number(percent[1]), 100) / 100, segments: 1 };
+  const times = text.match(/^(\d+(?:\.\d+)?)\s*[x×]$/i);
+  if (times) return { fill: 1, segments: Math.min(Math.max(Math.round(Number(times[1])), 1), 12) };
+  return { fill: 1, segments: 1 };
+};
+
+// the golden angle spreads points around a center so none ever line up, the way seeds sit in a sunflower
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
+/**
+ * Where each person sits once the team gathers: a tight round cluster, the first one in the middle.
+ * @param {number} count how many people
+ * @returns {{ x: number, y: number }[]} offsets from the center, inside a circle of radius 1
+ */
+export const clusterDots = (count) =>
+  Array.from({ length: count }, (_, index) => {
+    const radius = count > 1 ? Math.sqrt(index / (count - 1)) : 0;
+    const angle = index * GOLDEN_ANGLE;
+    return { x: radius * Math.cos(angle), y: radius * Math.sin(angle) };
+  });
+
+/**
+ * Where each person starts before the team gathers: spread out in a wide line, the same spot every visit.
+ * @param {number} count how many people
+ * @returns {{ x: number, y: number }[]} offsets from the center, x from -3 to 3 and y from -1 to 1
+ */
+export const scatterDots = (count) =>
+  Array.from({ length: count }, (_, index) => ({
+    x: count > 1 ? (index / (count - 1)) * 6 - 3 : 0,
+    y: Math.sin(index * 2.4) * 0.9,
+  }));

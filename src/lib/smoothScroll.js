@@ -26,7 +26,3 @@ export const scrollToEdge = (edge) => {
   if (lenis) lenis.scrollTo(top);
   else window.scrollTo({ top, behavior: "smooth" });
 };
-
-// dialogs and relic moments need the page frozen while they are open
-export const pauseSmoothScroll = () => lenis?.stop();
-export const resumeSmoothScroll = () => lenis?.start();
