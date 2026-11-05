@@ -5,7 +5,9 @@ import {
   SiGithubactions,
   SiGnubash,
   SiGo,
+  SiHtml5,
   SiJavascript,
+  SiKotlin,
   SiKubernetes,
   SiLua,
   SiMysql,
@@ -58,4 +60,6 @@ export const techIconMap = {
   Go: SiGo,
   Swift: SiSwift,
   Shell: SiGnubash,
+  Kotlin: SiKotlin,
+  HTML: SiHtml5,
 };

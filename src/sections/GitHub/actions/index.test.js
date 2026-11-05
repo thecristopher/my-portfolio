@@ -26,6 +26,20 @@ describe("MAIN_PROJECT", () => {
     expect(MAIN_PROJECT.url).toMatch(/nvim-config$/);
     expect(MAIN_PROJECT.pitch).not.toContain("\u2014");
   });
+
+  it("goes by the repo's own name, not the world inside it", () => {
+    expect(MAIN_PROJECT.title).toBe("nvim-config");
+  });
+
+  it("leads with back-to-basics, the drills it runs inside the editor", () => {
+    expect(MAIN_PROJECT.practice.name).toBe("back-to-basics");
+    expect(MAIN_PROJECT.features[0][0]).toBe("Back to basics");
+  });
+
+  it("gives every feature its own which-key letter, so Claire never presses one that opens two", () => {
+    const keys = whichKeys(MAIN_PROJECT.features).map((entry) => entry.key);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
 });
 
 describe("luaKey", () => {

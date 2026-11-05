@@ -8,6 +8,7 @@ import {
   isFarEnough,
   jillStart,
   jillStep,
+  lineFor,
   lampWindows,
   missionDelay,
   nextBugWait,
@@ -117,14 +118,36 @@ describe("reflectionStrength", () => {
 });
 
 describe("jillStep", () => {
-  const standing = jillStep(jillStart(), { type: "arrive" });
+  const pointing = jillStep(jillStep(jillStart(), { type: "arrive" }), { type: "ended" });
+  const standing = jillStep(pointing, { type: "ended" });
 
-  it("given Jill walking in, expect her to ignore Claire's copy until she arrives", () => {
-    expect(jillStep(jillStart(), { type: "cue", name: "happy" }).pose).toBe("walk");
+  it("given Jill dashing in, expect her to ignore Claire's copy until she arrives", () => {
+    expect(jillStep(jillStart(), { type: "cue", name: "happy" }).pose).toBe("dash");
   });
 
-  it("given she arrived, expect her standing ready", () => {
+  it("given she reached her spot mid dash, expect the dash to finish instead of being cut", () => {
+    expect(jillStep(jillStart(), { type: "arrive" }).pose).toBe("dash");
+  });
+
+  it("given the dash finished, expect her to point Inde to the email first", () => {
+    expect(pointing.pose).toBe("point");
+  });
+
+  it("given she pointed, expect her standing ready", () => {
     expect(standing.pose).toBe("idle");
+  });
+
+  it("given the visitor asked for less movement, expect her already standing with nothing queued", () => {
+    expect(jillStart(true)).toMatchObject({ pose: "idle", queue: [], hasArrived: true });
+  });
+
+  it("given a bug still crawling, expect her to draw the handgun instead of throwing the combo", () => {
+    expect(jillStep(standing, { type: "combo", isFar: true }).pose).toBe("shoot");
+  });
+
+  it("given a shot underway, expect Malenia's radio cue to wait", () => {
+    const shooting = jillStep(standing, { type: "combo", isFar: true });
+    expect(jillStep(shooting, { type: "cue", name: "radio" }).pose).toBe("shoot");
   });
 
   it("given a bug to fight, expect a punch with the kick and roundhouse lined up", () => {
@@ -164,6 +187,20 @@ describe("jillStep", () => {
   });
 });
 
+describe("lineFor", () => {
+  it("given Jill pointing, expect her to tell Claire where the address is", () => {
+    expect(lineFor("point")).toContain("address");
+  });
+
+  it("given the radio, expect her to call it in", () => {
+    expect(lineFor("radio")).toMatch(/^Jill here/);
+  });
+
+  it("given a punch, expect her to fight in silence", () => {
+    expect(lineFor("punch")).toBeNull();
+  });
+});
+
 describe("missionDelay", () => {
   it("given Jill on stage for a while already, expect Claire's mission to end right away", () => {
     expect(missionDelay(1000, 20000, 10000)).toBe(0);
@@ -182,6 +219,10 @@ describe("hitFor", () => {
 
   it("given the roundhouse, expect the bug squashed for Claire", () => {
     expect(hitFor("roundhouse")).toBe("squash");
+  });
+
+  it("given the shot from across the stage, expect the bug squashed", () => {
+    expect(hitFor("shoot")).toBe("squash");
   });
 
   it("given Jill just showing Inde the herb, expect no hit at all", () => {

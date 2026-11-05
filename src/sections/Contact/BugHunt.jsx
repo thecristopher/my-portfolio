@@ -4,7 +4,7 @@ import { JILL } from "../../lib/sprites/jill";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import Jill from "./Jill";
 import { Bug, BugIcon } from "./Bugs";
-import { BUG_SIZE, MAX_BUGS, aliveCount, bugStop, hitFor, isAttacking, jillStart, jillStep, missionDelay, nextBugWait, pickTarget, squashLine } from "./actions";
+import { BUG_SIZE, MAX_BUGS, aliveCount, bugStop, hitFor, isAttacking, jillStart, jillStep, lineFor, missionDelay, nextBugWait, pickTarget, squashLine } from "./actions";
 
 const FIRST_BUG_MS = 2500;
 
@@ -74,6 +74,46 @@ const useMissionEnd = (isReached, hasArrived, onEnd) => {
 
   return hasEnded;
 };
+
+// how long a line stays up after she says it
+const LINE_MS = 5200;
+
+// the last thing she said, until it's time to clear it. a new line replaces it on the spot
+const useLine = (pose, take) => {
+  const [line, setLine] = useState(null);
+  useEffect(() => {
+    const said = lineFor(pose);
+    if (!said) return undefined;
+    setLine({ text: said, key: take });
+    const timer = setTimeout(() => setLine(null), LINE_MS);
+    return () => clearTimeout(timer);
+  }, [pose, take]);
+  return line;
+};
+
+// her radio call, written out under her plate the way a codec box would, letters typing in, high enough that the bugs
+// crawl under it
+const Transmission = ({ line }) => (
+  <div className="pointer-events-none absolute inset-x-4 top-20 z-10 flex justify-start sm:inset-x-6 sm:top-24" aria-live="polite">
+    <AnimatePresence mode="wait">
+      {line && (
+        <motion.div
+          key={line.key}
+          initial={{ opacity: 0, y: 8, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.25 }}
+          className="font-pixel max-w-[min(26rem,62%)] rounded-lg border border-[#7fd8ff]/40 bg-[#06122a]/85 px-3 py-2 text-[11px] leading-relaxed text-[#cfefff] shadow-[0_0_24px_-6px_#7fd8ff] backdrop-blur sm:text-xs"
+        >
+          <span className="mb-0.5 block text-[10px] tracking-[0.25em] text-[#7fd8ff]">◆ JILL · S.T.A.R.S.</span>
+          <motion.span initial={{ clipPath: "inset(0 100% 0 0)" }} animate={{ clipPath: "inset(0 0% 0 0)" }} transition={{ duration: 0.9, ease: "linear" }} className="block">
+            {line.text}
+          </motion.span>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </div>
+);
 
 // how tall the floor strip is and how much room the plates take above her head, in px
 const FLOOR = 30;
@@ -159,6 +199,7 @@ const BugHunt = ({ cue, isMissionComplete }) => {
   const scale = isWide ? 2 : 1;
   const jillWidth = JILL.cell.width * scale;
   const stopX = bugStop(width, jillWidth, BUG_SIZE.width * scale, scale);
+  const line = useLine(jill.pose, jill.take);
 
   const hasMissionEnded = useMissionEnd(isMissionComplete, jill.hasArrived, () => {
     send({ type: "missionComplete" });
@@ -174,8 +215,10 @@ const BugHunt = ({ cue, isMissionComplete }) => {
   const fight = (clickedId = null) => {
     if (!jill.hasArrived || isAttacking(jill.pose)) return;
     target.current = pickTarget(bugs, clickedId);
-    if (target.current !== null) rush(target.current);
-    send({ type: "combo" });
+    // a bug still crawling in gets the handgun from across the stage, one already at her feet gets the combo
+    const isFar = bugs.find((bug) => bug.id === target.current)?.status === "crawling";
+    if (target.current !== null && !isFar) rush(target.current);
+    send({ type: "combo", isFar });
   };
 
   // a finished move lands on the bug in front of her before the next one starts
@@ -196,6 +239,7 @@ const BugHunt = ({ cue, isMissionComplete }) => {
       style={{ height: JILL.cell.height * scale + FLOOR + (isWide ? HUD_ROOM.wide : HUD_ROOM.phone) }}
     >
       <Arena />
+      <Transmission line={line} />
       <Hud count={squashed} isStill={prefersReducedMotion} />
       {/* the lane the fight happens in: her feet and the bugs rest just inside the top edge of the floor */}
       <div ref={cornerRef} className="absolute inset-x-3 top-0 sm:inset-x-8" style={{ bottom: FLOOR - 6 }}>

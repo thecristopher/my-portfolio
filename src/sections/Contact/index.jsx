@@ -143,9 +143,7 @@ const rise = (delay) => ({
 });
 
 // the address itself, huge, with the ways to send it right under it and Jill's stage below, reacting to both
-const Email = ({ contact, onCopy, isMissionComplete }) => {
-  const [cue, setCue] = useState(null);
-  const cueJill = (name) => setCue((last) => ({ name, key: (last?.key ?? 0) + 1 }));
+const Email = ({ contact, onCopy, cue, cueJill, isMissionComplete }) => {
   // a copied address is on its way: Jill celebrates and a bottle sets out to sea
   const sendOff = () => {
     cueJill("happy");
@@ -155,7 +153,11 @@ const Email = ({ contact, onCopy, isMissionComplete }) => {
   return (
     <motion.div {...rise(0)} className="flex flex-col gap-5">
       <p className="text-sm font-semibold text-muted">Write me at</p>
-      <a href={contact.mailto} className="group flex w-fit items-center gap-3 text-[clamp(1.5rem,5vw,3.75rem)] font-semibold tracking-[-0.035em] transition-colors hover:text-accent">
+      <a
+        href={contact.mailto}
+        onPointerEnter={() => cueJill("point")}
+        className="group flex w-fit items-center gap-3 text-[clamp(1.5rem,5vw,3.75rem)] font-semibold tracking-[-0.035em] transition-colors hover:text-accent"
+      >
         <EmailAddress email={contact.email} />
         <ArrowUpRight className="size-[0.8em] shrink-0 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
       </a>
@@ -163,8 +165,8 @@ const Email = ({ contact, onCopy, isMissionComplete }) => {
         <Magnetic>
           <a
             href={contact.mailto}
-            onPointerEnter={() => cueJill("herb")}
-            onFocus={() => cueJill("herb")}
+            onPointerEnter={() => cueJill("radio")}
+            onFocus={() => cueJill("radio")}
             className="bg-sunset inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-base font-semibold text-white shadow-lg transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
           >
             Email me
@@ -178,7 +180,7 @@ const Email = ({ contact, onCopy, isMissionComplete }) => {
   );
 };
 
-const Socials = ({ socials }) => (
+const Socials = ({ socials, onHover }) => (
   <ul className="flex flex-wrap gap-3">
     {socials.map((social, index) => {
       const Icon = socialIconMap[social.name];
@@ -188,6 +190,7 @@ const Socials = ({ socials }) => (
             href={social.url}
             target="_blank"
             rel="noreferrer"
+            onPointerEnter={onHover}
             className="card group inline-flex items-center gap-2.5 rounded-full px-5 py-3 font-medium transition-transform duration-300 hover:-translate-y-0.5"
           >
             {Icon && <Icon size={16} aria-hidden="true" />}
@@ -204,6 +207,9 @@ const Socials = ({ socials }) => (
 const Contact = () => {
   const { data: contact, isLoading, isError } = useGetContactQuery();
   const [bottles, setBottles] = useState(0);
+  // the cue Jill reacts to next, from the address, the buttons or the socials
+  const [cue, setCue] = useState(null);
+  const cueJill = (name) => setCue((last) => ({ name, key: (last?.key ?? 0) + 1 }));
   // the last line counts as reached as soon as it's clearly on screen, while Jill's stage right above it is still in
   // view, so her mission complete is something the visitor actually sees
   const lastLine = useRef(null);
@@ -219,8 +225,9 @@ const Contact = () => {
 
         {isLoading && <SkeletonLines lines={2} />}
         {isError && !contact && <LoadError what="the contact details" />}
-        {contact && <Email contact={contact} onCopy={() => setBottles((count) => count + 1)} isMissionComplete={isMissionComplete} />}
-        {contact && <Socials socials={contact.socials} />}
+        {contact && <Email contact={contact} onCopy={() => setBottles((count) => count + 1)} cue={cue} cueJill={cueJill} isMissionComplete={isMissionComplete} />}
+        {/* a social link is another way in, so she offers a herb for the road */}
+        {contact && <Socials socials={contact.socials} onHover={() => cueJill("herb")} />}
 
         <p ref={lastLine} className="text-sm text-faint">
           Thanks for scrolling all the way down.

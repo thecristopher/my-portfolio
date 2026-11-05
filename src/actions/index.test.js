@@ -363,6 +363,10 @@ describe("brandColorFor", () => {
     expect(brandColorFor("Docker (optional)")).toBe("#2496ed");
   });
 
+  it("given Kotlin, the language Inde's TV launcher is built in, expect its purple", () => {
+    expect(brandColorFor("Kotlin")).toBe("#7f52ff");
+  });
+
   it("given a black logo like Next.js, expect null so the text color takes over", () => {
     expect(brandColorFor("Next.js")).toBeNull();
   });

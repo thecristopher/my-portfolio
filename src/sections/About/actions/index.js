@@ -225,3 +225,85 @@ export const chapterFade = ([from, to], { isFirst, isLast, fade = 0.04 }) => ({
   input: isFirst ? [from - fade, from, to - fade, to] : [from, from + fade, to - fade, to],
   output: [0, 1, 1, isLast ? 1 : 0],
 });
+
+/**
+ * The career as a trip: every job oldest first, with the city it happened in, so the map can hop between them.
+ * @param {{ title: string, location?: string | null, work_mode?: string | null }[]} projects every job, newest first
+ * @returns {{ company: string, city: string | null, isRemote: boolean }[]} city is the part of the location before the comma
+ */
+export const careerJourney = (projects = []) =>
+  [...projects].reverse().map((project) => ({
+    company: project.title,
+    city: project.location?.split(",")[0].trim() || null,
+    isRemote: project.work_mode === "Remote",
+  }));
+
+/**
+ * When each job lights up on the trip, spread evenly over the close up of Baja, oldest first.
+ * @param {number} count how many jobs
+ * @param {[number, number]} window the scroll progress the trip starts and ends at
+ * @returns {number[]} one scroll progress per job
+ */
+export const journeyTimes = (count, [from, to]) => {
+  const gap = count > 1 ? (to - from) / (count - 1) : 0;
+  return Array.from({ length: count }, (_, index) => Math.round((from + index * gap) * 1000) / 1000);
+};
+
+/**
+ * Which job the trip has reached at a given point of the scroll.
+ * @param {number[]} times when each job lights up, from journeyTimes
+ * @param {number} progress the scene's scroll progress
+ * @returns {number} the index of the latest job reached, -1 before the first
+ */
+export const journeyStep = (times = [], progress = 0) => times.reduce((reached, time, index) => (progress >= time ? index : reached), -1);
+
+/**
+ * The hops between cities on the trip, leaving out the jobs that stayed in the same city as the one before.
+ * @param {{ city: string | null }[]} journey the jobs, oldest first
+ * @param {number[]} times when each job lights up
+ * @returns {{ from: string, to: string, at: number }[]} each move from one city to another and when it happens
+ */
+export const cityHops = (journey = [], times = []) =>
+  journey.slice(1).flatMap((stop, index) => {
+    const before = journey[index];
+    if (!stop.city || !before.city || stop.city === before.city) return [];
+    return [{ from: before.city, to: stop.city, at: times[index + 1] }];
+  });
+
+/**
+ * A hop between two close points, bent to one side of the straight line, so a trip back and forth draws two arcs
+ * instead of one line on top of the other.
+ * @param {{ x: number, y: number }} from
+ * @param {{ x: number, y: number }} to
+ * @param {number} bend how far the curve leans, as a share of the distance, positive to the left of the way it goes
+ * @returns {string} the path data
+ */
+export const sideArc = (from, to, bend = 0.3) => {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const control = { x: (from.x + to.x) / 2 + dy * bend, y: (from.y + to.y) / 2 - dx * bend };
+  const round = (value) => Math.round(value * 100) / 100;
+  return `M${round(from.x)} ${round(from.y)}Q${round(control.x)} ${round(control.y)} ${round(to.x)} ${round(to.y)}`;
+};
+
+/**
+ * How a city in the loupe sums up the jobs it held.
+ * @param {{ isRemote: boolean }[]} stops the jobs in that city
+ * @returns {string} like "3 jobs" or "2 jobs, 1 remote"
+ */
+export const jobCount = (stops = []) => {
+  const remote = stops.filter((stop) => stop.isRemote).length;
+  const jobs = `${stops.length} ${stops.length === 1 ? "job" : "jobs"}`;
+  return remote > 0 ? `${jobs}, ${remote} remote` : jobs;
+};
+
+/**
+ * Splits a paragraph of the story into its opening sentence and the rest, so the opening can carry the weight.
+ * @param {string} paragraph one paragraph of the story
+ * @returns {{ lead: string, rest: string }} rest is empty when the paragraph is a single sentence
+ */
+export const leadSentence = (paragraph = "") => {
+  const match = paragraph.match(/^(.+?[.!?])\s+(.+)$/s);
+  if (!match) return { lead: paragraph.trim(), rest: "" };
+  return { lead: match[1], rest: match[2].trim() };
+};

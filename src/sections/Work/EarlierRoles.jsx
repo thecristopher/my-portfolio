@@ -5,6 +5,9 @@ import { easeOutExpo } from "../../lib/motion";
 import { CompanyMark } from "./pieces";
 import CaseStudyCard from "./CaseStudyCard";
 
+// the dates when there are any, and the city the job was in
+const details = (project) => [formatRange(project.start, project.end), project.location, project.work_mode].filter(Boolean);
+
 const EarlierRole = ({ project, pickedTech, studies, index }) => (
   <motion.li
     id={`work-${slugify(project.title)}`}
@@ -21,7 +24,7 @@ const EarlierRole = ({ project, pickedTech, studies, index }) => (
         {project.title}
         <ArrowUpRight size={16} className="ml-1 inline align-baseline text-faint transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
       </a>
-      {formatRange(project.start, project.end) && <p className="text-sm text-muted">{formatRange(project.start, project.end)}</p>}
+      {details(project).length > 0 && <p className="text-sm text-muted">{details(project).join(" · ")}</p>}
     </div>
     <div className="flex flex-col gap-4">
       <ul className="flex flex-col gap-2 text-lg leading-relaxed text-muted">

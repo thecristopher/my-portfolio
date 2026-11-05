@@ -3,15 +3,27 @@ import { GITHUB_USER } from "../../../api/githubApi";
 // the config I write everything in, featured above the rest. what it does comes from its own README
 export const MAIN_PROJECT = {
   name: "nvim-config",
-  title: "Eldentree",
+  title: "nvim-config",
   url: `https://github.com/${GITHUB_USER}/nvim-config`,
   pitch:
-    "My Neovim config, built like a game world. Themes that change with the day, a dashboard drawn in its own buffer, banners for commits and passing tests, and Claude Code wired in for reviews and commit messages.",
+    "My Neovim config, built like a game world and used as a full daily editor. It also runs back-to-basics, my drills for writing code by hand, right inside the editor.",
+  // the practice app it runs inside the editor, the part worth calling out on its own
+  practice: {
+    name: "back-to-basics",
+    perks: [
+      "Daily drills by hand, coached by the character of the day",
+      "Saving runs the tests, failures land on the line that broke",
+      "Claude reviews your solution beside the reference",
+      "Every track drawn as a map of levels",
+    ],
+  },
+  // short enough that the whole table fits the laptop's screen once it's typed out
   features: [
-    ["Living themes", "a palette per region, picked fresh every day"],
-    ["Inventory HUD", "recent files, branches and projects as items"],
-    ["Banners", "for commits, merged PRs and green test runs"],
-    ["Claude Code", "PR reviews and commit drafts from the editor"],
+    ["Back to basics", "coached drills, tests on save"],
+    ["Worlds", "a new game world every day"],
+    ["Inventory HUD", "files and branches as items"],
+    ["Claude Code", "drafts commits, reviews PRs"],
+    ["Git and CI", "threads and CI in the buffer"],
   ],
 };
 

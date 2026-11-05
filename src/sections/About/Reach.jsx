@@ -3,8 +3,10 @@ import { AnimatePresence, motion, useMotionValue, useReducedMotion, useScroll } 
 import { useScrollRange } from "../../hooks/useScrollRange";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { easeOutExpo } from "../../lib/motion";
-import { chapterFade, stopCard } from "./actions";
-import { LIGHTS, STOPS } from "./mapStory";
+import { careerJourney, chapterFade, journeyTimes, stopCard } from "./actions";
+import { BEATS, LIGHTS, STOPS } from "./mapStory";
+import Itinerary from "./Itinerary";
+import Loupe from "./Loupe";
 import ReachMap from "./ReachMap";
 import { CardBody, Lights } from "./StopCards";
 
@@ -43,11 +45,13 @@ const Scene = ({ progress, isStill }) => {
   // the tap hint waits for the first light, there's nothing to tap before it
   const firstLight = Math.min(...LIGHTS.map((light) => light.appearsAt));
   const hintOpacity = useScrollRange(progress, [firstLight - 0.03, firstLight], [0, 1]);
+  const journey = careerJourney(projects);
+  const times = journeyTimes(journey.length, BEATS.closeUp);
 
   return (
     <div className="flex w-full flex-col gap-6">
       <div className="flex items-end justify-between gap-6">
-        <p className="text-sm font-semibold text-muted">Where the work reached</p>
+        <p className="text-sm font-semibold text-muted">Where I worked, and where the work reached</p>
         <p className="hidden text-xs text-faint sm:block">Hover a light to see the work behind it</p>
       </div>
       <div className="relative h-24 sm:h-20">
@@ -57,8 +61,10 @@ const Scene = ({ progress, isStill }) => {
       </div>
       <div className="relative">
         <ReachMap progress={progress} isStill={isStill} />
+        <Loupe journey={journey} times={times} progress={progress} isStill={isStill} />
         <Lights lights={LIGHTS} progress={progress} openKey={openKey} cardFor={cardFor} onOpen={open} onClose={close} />
       </div>
+      <Itinerary journey={journey} times={times} progress={progress} />
       {/* phones read the open card under the map, there's no room to float it over */}
       <div className="min-h-40 md:hidden">
         <AnimatePresence mode="wait">
@@ -91,7 +97,7 @@ const Reach = () => {
   if (prefersReducedMotion) return <Scene progress={finished} isStill />;
 
   return (
-    <div ref={ref} className="relative h-[320svh]">
+    <div ref={ref} className="relative h-[420svh]">
       <div className="sticky top-0 flex h-svh items-center">
         <Scene progress={scrollYProgress} isStill={false} />
       </div>
