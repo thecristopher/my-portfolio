@@ -4,9 +4,11 @@ import { JILL } from "../../lib/sprites/jill";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import Jill from "./Jill";
 import { Bug, BugIcon } from "./Bugs";
-import { BUG_SIZE, MAX_BUGS, aliveCount, bugStop, hitFor, isAttacking, jillStart, jillStep, lineFor, missionDelay, nextBugWait, pickTarget, squashLine } from "./actions";
+import { BUG_SIZE, MAX_BUGS, aliveCount, bugStop, hitFor, isAttacking, isMissionComplete, jillStart, jillStep, nextBugWait, pickTarget, squashLine } from "./actions";
 
 const FIRST_BUG_MS = 2500;
+// the empty rows under her boots in each sprite cell, so her feet land on the ground line instead of above it
+const FEET_BELOW_CELL = 2;
 
 // how wide the corner is, so the bugs know where Jill's punch lands
 const useWidth = () => {
@@ -52,25 +54,17 @@ const useSpawner = (isOn, spawn) => {
   }, [isOn]);
 };
 
-// the mission only ends once she has had her time on stage, then calls onEnd once
-const useMissionEnd = (isReached, hasArrived, onEnd) => {
-  const arrivedAt = useRef(null);
+// the mission ends the first time it counts as complete once she's on stage, and calls onEnd that one time
+const useMissionEnd = (isComplete, hasArrived, onEnd) => {
   const latest = useRef(onEnd);
   latest.current = onEnd;
   const [hasEnded, setHasEnded] = useState(false);
 
   useEffect(() => {
-    if (hasArrived && arrivedAt.current === null) arrivedAt.current = Date.now();
-  }, [hasArrived]);
-
-  useEffect(() => {
-    if (!isReached || !hasArrived || hasEnded) return undefined;
-    const timer = setTimeout(() => {
-      setHasEnded(true);
-      latest.current();
-    }, missionDelay(arrivedAt.current ?? Date.now(), Date.now()));
-    return () => clearTimeout(timer);
-  }, [isReached, hasArrived, hasEnded]);
+    if (!isComplete || !hasArrived || hasEnded) return;
+    setHasEnded(true);
+    latest.current();
+  }, [isComplete, hasArrived, hasEnded]);
 
   return hasEnded;
 };
@@ -78,23 +72,24 @@ const useMissionEnd = (isReached, hasArrived, onEnd) => {
 // how long a line stays up after she says it
 const LINE_MS = 5200;
 
-// the last thing she said, until it's time to clear it. a new line replaces it on the spot
-const useLine = (pose, take) => {
+// the last thing she said, until it's time to clear it. a new line replaces it on the spot, and a silent move (her
+// idle, a punch) leaves the current one up until its own time runs out
+const useLine = (said, take) => {
   const [line, setLine] = useState(null);
+  const timer = useRef(null);
   useEffect(() => {
-    const said = lineFor(pose);
-    if (!said) return undefined;
+    if (!said) return;
     setLine({ text: said, key: take });
-    const timer = setTimeout(() => setLine(null), LINE_MS);
-    return () => clearTimeout(timer);
-  }, [pose, take]);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => setLine(null), LINE_MS);
+  }, [said, take]);
+  useEffect(() => () => clearTimeout(timer.current), []);
   return line;
 };
 
-// her radio call, written out under her plate the way a codec box would, letters typing in, high enough that the bugs
-// crawl under it
-const Transmission = ({ line }) => (
-  <div className="pointer-events-none absolute inset-x-4 top-20 z-10 flex justify-start sm:inset-x-6 sm:top-24" aria-live="polite">
+// her radio call as a codec bubble over her head, letters typing in, its tail pointing down at her
+const Transmission = ({ line, jillWidth, jillHeight }) => (
+  <div className="pointer-events-none absolute right-0 z-10 flex justify-end" style={{ bottom: jillHeight * 0.94, width: Math.max(jillWidth * 1.6, 260) }} aria-live="polite">
     <AnimatePresence mode="wait">
       {line && (
         <motion.div
@@ -103,92 +98,68 @@ const Transmission = ({ line }) => (
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.25 }}
-          className="font-pixel max-w-[min(26rem,62%)] rounded-lg border border-[#7fd8ff]/40 bg-[#06122a]/85 px-3 py-2 text-[11px] leading-relaxed text-[#cfefff] shadow-[0_0_24px_-6px_#7fd8ff] backdrop-blur sm:text-xs"
+          className="font-pixel relative origin-bottom-right rounded-lg border border-[#7fd8ff]/40 bg-[#06122a]/90 px-3 py-2 text-[11px] leading-relaxed text-[#cfefff] shadow-[0_0_24px_-6px_#7fd8ff] backdrop-blur sm:text-xs"
         >
           <span className="mb-0.5 block text-[10px] tracking-[0.25em] text-[#7fd8ff]">◆ JILL · S.T.A.R.S.</span>
           <motion.span initial={{ clipPath: "inset(0 100% 0 0)" }} animate={{ clipPath: "inset(0 0% 0 0)" }} transition={{ duration: 0.9, ease: "linear" }} className="block">
             {line.text}
           </motion.span>
+          <span className="absolute -bottom-[7px] size-3 rotate-45 border-r border-b border-[#7fd8ff]/40 bg-[#06122a]" style={{ right: jillWidth * 0.4 }} aria-hidden="true" />
         </motion.div>
       )}
     </AnimatePresence>
   </div>
 );
 
-// how tall the floor strip is and how much room the plates take above her head, in px
-const FLOOR = 30;
-const HUD_ROOM = { phone: 76, wide: 84 };
+// how much room under the floor the score takes and how much the bubble takes over her head, in px
+const SCORE_ROOM = 28;
+const BUBBLE_ROOM = { phone: 84, wide: 92 };
 
-// the fighter's plate on the left the way a fighting game names who's on screen, with her full health bar and, until
-// the first bug goes down, how to play
-const PlayerPlate = ({ showsHint }) => (
-  <div className="flex flex-col gap-1.5">
-    <p className="flex items-center gap-2 text-xs tracking-[0.2em] text-white sm:text-sm">
-      <span className="bg-sunset size-2 rotate-45" aria-hidden="true" />
-      JILL VALENTINE
-    </p>
-    <span className="bg-sunset block h-2 w-32 -skew-x-12 rounded-sm ring-1 ring-white/30 sm:h-2.5 sm:w-56" aria-hidden="true" />
-    {showsHint && <p className="text-[11px] text-white/60">Click her, or a bug.</p>}
-  </div>
+// the ground the buttons, the bugs and Jill all share: one thin line across the section, warming toward where she
+// stands, so she lives on the page instead of in a box
+const Ground = () => (
+  <span
+    className="pointer-events-none absolute inset-x-0 h-px"
+    style={{ bottom: SCORE_ROOM, background: "linear-gradient(90deg, transparent, var(--color-line-strong) 12%, var(--color-line-strong) 55%, var(--color-sunset-1) 88%, transparent)" }}
+    aria-hidden="true"
+  />
 );
 
-// the other side of the screen keeps the score, the way the opponent's plate would
-const ScorePlate = ({ count }) => (
-  <div className="flex flex-col items-end gap-1">
-    <p className="flex items-center gap-1.5 text-xs tracking-[0.2em] text-white/70 sm:text-sm">
-      <BugIcon />
-      BUGS
-    </p>
-    <motion.p key={count} initial={{ scale: 1.5 }} animate={{ scale: 1 }} className="origin-right text-2xl leading-none text-[#ffd84a] tabular-nums sm:text-3xl" aria-hidden="true">
+// the score, quiet under the ground line, with how to play until the first bug goes down
+const Score = ({ count, isStill }) => (
+  <div className="font-pixel pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-3 text-[10px] tracking-[0.18em] text-faint uppercase sm:text-[11px]" style={{ height: SCORE_ROOM - 6 }}>
+    <BugIcon />
+    <motion.span key={count} initial={{ scale: 1.4 }} animate={{ scale: 1 }} className="origin-left text-sunset-1 tabular-nums" aria-hidden="true">
       ×{String(count).padStart(2, "0")}
-    </motion.p>
+    </motion.span>
+    {!isStill && count === 0 && <span className="normal-case tracking-normal">Click Jill, or a bug.</span>}
     <span className="sr-only" aria-live="polite">
       {squashLine(count)}
     </span>
   </div>
 );
 
-// no bugs ever crawl in for anyone who asked for less movement, so the hint only shows when there's a fight to have
-const Hud = ({ count, isStill }) => (
-  <div className="font-pixel pointer-events-none absolute inset-x-4 top-4 z-10 flex items-start justify-between sm:inset-x-6 sm:top-5">
-    <PlayerPlate showsHint={!isStill && count === 0} />
-    <ScorePlate count={count} />
-  </div>
-);
-
-// the arena itself, always at night whatever the theme so the fight reads the same: a dusk sky, a few stars, the
-// glow of the sunset low on the horizon and a tiled floor
-const Arena = () => (
-  <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-    <div className="absolute inset-0 bg-[linear-gradient(to_bottom,#070a1c_0%,#121433_55%,#2a1838_88%)]" />
-    <div className="absolute inset-0 bg-[radial-gradient(1px_1px_at_12%_22%,#fff8,transparent),radial-gradient(1px_1px_at_34%_12%,#fff6,transparent),radial-gradient(1.5px_1.5px_at_58%_28%,#fff9,transparent),radial-gradient(1px_1px_at_76%_16%,#fff6,transparent),radial-gradient(1px_1px_at_90%_34%,#fff7,transparent)]" />
-    <div className="absolute inset-x-0 opacity-50" style={{ bottom: FLOOR, height: "45%", background: "radial-gradient(ellipse at 50% 100%, var(--color-sunset-2), transparent 70%)" }} />
-    <div
-      className="absolute inset-x-0 bottom-0 border-t-2 border-[#ffb36b]/50 bg-[#1a1026] bg-[repeating-linear-gradient(90deg,transparent_0_46px,#ffffff10_46px_48px)]"
-      style={{ height: FLOOR }}
-    />
-  </div>
-);
-
-// the light she stands in: a warm pool centered on her that fades out before its own edges, and her shadow under her feet
+// the warm light she stands in, fading out well before its edges, and her shadow on the ground
 const Spotlight = ({ jillWidth }) => (
   <div className="pointer-events-none absolute inset-0" aria-hidden="true">
     <span
-      className="absolute bottom-0 h-full opacity-45"
+      className="absolute bottom-0 h-[80%] opacity-25 dark:opacity-35"
       style={{ width: jillWidth * 2, right: -jillWidth / 2, background: "radial-gradient(ellipse 50% 100% at 50% 100%, var(--color-sunset-1), transparent)" }}
     />
-    <span className="absolute right-0 -bottom-1 h-3 rounded-[50%] bg-black/60 blur-sm" style={{ width: jillWidth * 0.6, marginRight: jillWidth * 0.2 }} />
+    <span className="absolute right-0 -bottom-1 h-3 rounded-[50%] bg-black/25 blur-sm dark:bg-black/60" style={{ width: jillWidth * 0.6, marginRight: jillWidth * 0.2 }} />
   </div>
 );
 
 /**
- * Jill's arena under the email buttons, drawn twice her size on anything wider than a phone: she stands at the far
- * end, reacts to the cue the buttons send, and bugs crawl in now and then for her to take out with a punch, a kick and
- * a roundhouse. Once the page is read to the end she takes her beret off and the bugs that are left run.
- * @param {{ cue: { name: string, key: number } | null, isMissionComplete: boolean }} props cue is the latest reaction
- *   asked for by the buttons
+ * Jill on the contact section's own ground, drawn twice her size on anything wider than a phone: she stands at the far
+ * right, answers every action the section sends her, and bugs crawl in along the ground now and then for her to take
+ * out with a punch, a kick and a roundhouse. Once the email is on its way, or enough bugs are down, she takes her beret
+ * off, the bugs that are left run and she stands down.
+ * @param {{ cue: { name: string, detail?: string, key: number } | null, hasSent: boolean, className?: string }} props
+ *   cue is the latest action she should answer (see cueFor), hasSent whether the email is on its way, which completes
+ *   her mission the same as squashing enough bugs
  */
-const BugHunt = ({ cue, isMissionComplete }) => {
+const BugHunt = ({ cue, hasSent, className = "" }) => {
   const prefersReducedMotion = useReducedMotion();
   const [jill, send] = useReducer(jillStep, prefersReducedMotion, jillStart);
   const { bugs, spawn, arrive, rush, hit, squash, scatter, remove } = useBugs();
@@ -199,18 +170,19 @@ const BugHunt = ({ cue, isMissionComplete }) => {
   const scale = isWide ? 2 : 1;
   const jillWidth = JILL.cell.width * scale;
   const stopX = bugStop(width, jillWidth, BUG_SIZE.width * scale, scale);
-  const line = useLine(jill.pose, jill.take);
+  const line = useLine(jill.said, jill.take);
 
-  const hasMissionEnded = useMissionEnd(isMissionComplete, jill.hasArrived, () => {
+  // the cue goes first, so the copy that completes the mission still gets its happy before the beret comes off
+  useEffect(() => {
+    if (cue) send({ type: "cue", name: cue.name, detail: cue.detail });
+  }, [cue]);
+
+  const hasMissionEnded = useMissionEnd(isMissionComplete(hasSent, squashed), jill.hasArrived, () => {
     send({ type: "missionComplete" });
     scatter();
   });
 
   useSpawner(jill.hasArrived && !hasMissionEnded && !prefersReducedMotion, spawn);
-
-  useEffect(() => {
-    if (cue) send({ type: "cue", name: cue.name });
-  }, [cue]);
 
   const fight = (clickedId = null) => {
     if (!jill.hasArrived || isAttacking(jill.pose)) return;
@@ -235,21 +207,21 @@ const BugHunt = ({ cue, isMissionComplete }) => {
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-3xl ring-1 ring-white/10"
-      style={{ height: JILL.cell.height * scale + FLOOR + (isWide ? HUD_ROOM.wide : HUD_ROOM.phone) }}
+      className={`pointer-events-none relative w-full ${className}`}
+      style={{ height: JILL.cell.height * scale + SCORE_ROOM + (isWide ? BUBBLE_ROOM.wide : BUBBLE_ROOM.phone) }}
     >
-      <Arena />
-      <Transmission line={line} />
-      <Hud count={squashed} isStill={prefersReducedMotion} />
-      {/* the lane the fight happens in: her feet and the bugs rest just inside the top edge of the floor */}
-      <div ref={cornerRef} className="absolute inset-x-3 top-0 sm:inset-x-8" style={{ bottom: FLOOR - 6 }}>
+      <Ground />
+      <Score count={squashed} isStill={prefersReducedMotion} />
+      {/* the lane the fight happens in: her feet and the bugs rest right on the ground line */}
+      <div ref={cornerRef} className="absolute inset-x-0 top-0" style={{ bottom: SCORE_ROOM - FEET_BELOW_CELL * scale }}>
         <Spotlight jillWidth={jillWidth} />
+        <Transmission line={line} jillWidth={jillWidth} jillHeight={JILL.cell.height * scale} />
         <AnimatePresence>
           {bugs.map((bug) => (
             <Bug key={bug.id} bug={bug} stopX={stopX} scale={scale} onPick={fight} onArrive={arrive} onGone={remove} />
           ))}
         </AnimatePresence>
-        <div className="absolute right-0 bottom-0">
+        <div className="pointer-events-auto absolute right-0 bottom-0">
           <Jill state={jill} scale={scale} onArrive={() => send({ type: "arrive" })} onEnded={finishMove} onFight={() => fight()} />
         </div>
       </div>

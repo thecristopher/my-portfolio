@@ -26,6 +26,8 @@ export const BEATS = {
   pull: [0.3, 0.45],
   land: [0.34, 0.45],
   flights: [0.45, 0.62],
+  // PSL's offices fly out while the light spreads, since that's the chapter that reaches the rest of the world
+  offices: [0.64, 0.84],
   light: [0.64, 0.88],
 };
 
@@ -41,24 +43,47 @@ export const LOUPE = {
   road: "M66 28C58 40 48 52 44 62S39 72 38 78",
 };
 
+// spreads a set of routes over a beat, each starting a slot after the last, so they fly out one by one
+const routesOver = (places, [from, until]) => places.map((place, index) => ({ ...place, at: from + index * ((until - from) / (places.length + 1)) }));
+
 // the countries Grupo Tress' payroll runs in, each at its geographic center
-export const COUNTRIES = [
-  { name: "Mexico", ...projectOnMap({ lat: 23.6, lon: -102.5 }, WORLD) },
-  { name: "the U.S.", ...projectOnMap({ lat: 39.8, lon: -98.6 }, WORLD) },
-  { name: "Canada", ...projectOnMap({ lat: 56.1, lon: -106.3 }, WORLD) },
-];
+export const COUNTRIES = routesOver(
+  [
+    { name: "Mexico", ...projectOnMap({ lat: 23.6, lon: -102.5 }, WORLD) },
+    { name: "the U.S.", ...projectOnMap({ lat: 39.8, lon: -98.6 }, WORLD) },
+    { name: "Canada", ...projectOnMap({ lat: 56.1, lon: -106.3 }, WORLD) },
+  ],
+  BEATS.flights,
+);
+
+// PSL Group's offices, nearest first. India goes by its geographic center, the rest by their city
+export const OFFICES = routesOver(
+  [
+    { name: "Querétaro", ...projectOnMap({ lat: 20.59, lon: -100.39 }, WORLD) },
+    { name: "New York", ...projectOnMap({ lat: 40.71, lon: -74.01 }, WORLD) },
+    { name: "Montreal", ...projectOnMap({ lat: 45.5, lon: -73.57 }, WORLD) },
+    { name: "London", ...projectOnMap({ lat: 51.51, lon: -0.13 }, WORLD) },
+    { name: "India", ...projectOnMap({ lat: 22.4, lon: 79.1 }, WORLD) },
+    { name: "Kuala Lumpur", ...projectOnMap({ lat: 3.14, lon: 101.69 }, WORLD) },
+  ],
+  BEATS.offices,
+);
 
 // the three chapters of the story. each place comes from that company's own description in the work history
 export const STOPS = [
   { id: "home", company: "Systems Communications", place: "Rosarito and the border", beat: [0, 0.45] },
   { id: "countries", company: "Grupo Tress Internacional", place: "Mexico, the U.S. and Canada", beat: [0.45, 0.64] },
-  { id: "world", company: "PSL Group", place: "Read all over the world", beat: [0.64, 1] },
+  { id: "world", company: "PSL Group", place: "Montreal, New York, London, Kuala Lumpur, Querétaro and India", beat: [0.64, 1] },
 ];
 
-// the lights you can open a card from. the worldwide one sits out in the open ocean, since its readers are everywhere
-// rather than in one place
+// a route takes this long to draw before its stop lights up at the end of it
+export const ROUTE_DRAW = 0.08;
+
+// the lights you can open a card from, each one showing up as its route lands
+const lightsFor = (places, stop) => places.map((place) => ({ key: place.name, stop, label: place.name, x: place.x, y: place.y, appearsAt: place.at + ROUTE_DRAW }));
+
 export const LIGHTS = [
   { key: "home", stop: "home", label: "Rosarito", x: HOME.x, y: HOME.y, appearsAt: 0.48 },
-  ...COUNTRIES.map((country, index) => ({ key: country.name, stop: "countries", label: country.name, x: country.x, y: country.y, appearsAt: 0.53 + index * 0.04 })),
-  { key: "world", stop: "world", label: "Worldwide", x: MAP.width * 0.12, y: MAP.height * 0.8, appearsAt: 0.76 },
+  ...lightsFor(COUNTRIES, "countries"),
+  ...lightsFor(OFFICES, "world"),
 ];

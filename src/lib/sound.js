@@ -53,6 +53,23 @@ export const noteFrequency = (semitonesFromA4) => 440 * 2 ** (semitonesFromA4 / 
 // each noise is [start in seconds, length in seconds, { filter, frequency, volume }], filtered static
 // for the things a plain tone can't do: typewriter keys, punches landing, a card whooshing past
 export const UI_SOUNDS = {
+  // a chest opening in the overworld: a quick rising arpeggio, then a bright chord held with a little sparkle on top,
+  // the 8 bit way an adventure says you found something
+  itemGet: {
+    wave: "square",
+    volume: 0.045,
+    notes: [
+      [3, 0, 0.12],
+      [7, 0.1, 0.12],
+      [10, 0.2, 0.12],
+      [15, 0.3, 0.7, { volume: 0.05 }],
+      [10, 0.3, 0.7, { wave: "triangle", volume: 0.08 }],
+      [3, 0.3, 0.7, { wave: "triangle", volume: 0.08 }],
+      [27, 0.42, 0.08, { wave: "sine", volume: 0.03 }],
+      [31, 0.5, 0.08, { wave: "sine", volume: 0.03 }],
+      [34, 0.58, 0.14, { wave: "sine", volume: 0.03 }],
+    ],
+  },
   // Scott Pilgrim's combo, one sound per hit. the jab is a short meaty thud
   punch: {
     wave: "square",

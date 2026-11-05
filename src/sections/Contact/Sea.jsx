@@ -8,6 +8,7 @@ const SPLASH_SIZE = 150;
 const DRIP = { everyMs: 900, size: 38 };
 const MAX_RIPPLES = 40;
 const REFLECTION_MAX = 416;
+const NO_CALM = { current: null };
 
 // the theme's own sunset color, read again every so often so a theme switch reaches the canvas too
 const readSunColor = (canvas) => getComputedStyle(canvas).getPropertyValue("--color-sunset-1").trim() || "#ff9a3d";
@@ -61,8 +62,15 @@ const drawRings = (context, rings, color) => {
   }
 };
 
+// whether the cursor is over an element, like the pier, that the water shouldn't ripple under
+const isOver = (element, event) => {
+  if (!element) return false;
+  const box = element.getBoundingClientRect();
+  return event.clientX >= box.left && event.clientX <= box.right && event.clientY >= box.top && event.clientY <= box.bottom;
+};
+
 // the ripples the cursor leaves, a bigger splash on a click, and a slow drip so the sea is never perfectly still
-const useRipples = (canvasRef) => {
+const useRipples = (canvasRef, calmRef) => {
   const ripples = useRef([]);
 
   useEffect(() => {
@@ -75,7 +83,7 @@ const useRipples = (canvasRef) => {
       if (!bounds) return null;
       const point = { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
       const isInside = point.x >= 0 && point.y >= 0 && point.x <= bounds.width && point.y <= bounds.height;
-      return isInside ? point : null;
+      return isInside && !isOver(calmRef.current, event) ? point : null;
     };
     const move = (event) => {
       const point = onSea(event);
@@ -98,19 +106,20 @@ const useRipples = (canvasRef) => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerdown", splash);
     };
-  }, [canvasRef]);
+  }, [canvasRef, calmRef]);
 
   return ripples;
 };
 
 /**
  * The sea under the sunset, drawn live: the sun's reflection breaking apart wherever the cursor stirs the water, the
- * ripples spreading out flat the way they look from the beach, and a splash on a click.
- * @param {{ progress: import("framer-motion").MotionValue<number> }} props how far the sunset has gone, dims the reflection
+ * ripples spreading out flat the way they look from the beach, and a splash on a click. Nothing ripples over the pier.
+ * @param {{ progress: import("framer-motion").MotionValue<number>, calmRef?: import("react").RefObject<Element> }} props
+ *   progress is how far the sunset has gone and dims the reflection, calmRef is the pier the ripples stay off
  */
-const Sea = ({ progress }) => {
+const Sea = ({ progress, calmRef = NO_CALM }) => {
   const canvasRef = useRef(null);
-  const ripples = useRipples(canvasRef);
+  const ripples = useRipples(canvasRef, calmRef);
 
   useEffect(() => {
     const canvas = canvasRef.current;

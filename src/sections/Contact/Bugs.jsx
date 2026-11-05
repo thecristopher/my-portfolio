@@ -96,7 +96,7 @@ export const Bug = ({ bug, stopX, scale = 1, onPick, onArrive, onGone }) => {
       aria-label="Squash this bug"
       initial={{ x: -BUG_SIZE.width * scale, y: 0 }}
       animate={controls}
-      className="absolute bottom-0 left-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      className="pointer-events-auto absolute bottom-0 left-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-accent"
     >
       <BugArt isSquashed={bug.status === "squashed"} isMoving={bug.status === "crawling" || bug.status === "rushing"} scale={scale} />
       <AnimatePresence>{bug.hits > 0 && <Spark key={bug.hits} scale={scale} />}</AnimatePresence>

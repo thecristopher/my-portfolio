@@ -1,10 +1,21 @@
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useMotionValueEvent } from "framer-motion";
 import { useWalk } from "../../../hooks/useWalk";
-import { openedChests, stopAt } from "./actions";
+import { playSound } from "../../../lib/sound";
+import { isNewChest, openedChests, stopAt } from "./actions";
 
 const read = (progress, count) => ({ ...stopAt(progress, count), opened: openedChests(progress, count) });
 const isSame = (a, b) => a.index === b.index && a.isAt === b.isAt && a.opened === b.opened;
+
+// the fanfare for every chest he opens on the way forward. the ones already open when the page loads, or opened
+// again on the way back, stay quiet
+const useChestFanfare = (opened) => {
+  const last = useRef(opened);
+  useEffect(() => {
+    if (isNewChest(last.current, opened)) playSound("itemGet");
+    last.current = Math.max(last.current, opened);
+  }, [opened]);
+};
 
 /**
  * Where Link is in the overworld as the scroll moves: the nearest stop, whether he's standing at it, how many chests
@@ -20,6 +31,7 @@ export const useOverworld = (progress, count) => {
     const next = read(value, count);
     setStop((current) => (isSame(current, next) ? current : next));
   });
+  useChestFanfare(stop.opened);
   return { ...stop, ...walk };
 };
 

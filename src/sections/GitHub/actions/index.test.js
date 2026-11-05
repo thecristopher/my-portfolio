@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAIN_PROJECT, bufferLength, bufferText, cartridgeTurn, deckKeys, deckPolygon, editorBuffer, keysFor, onDeck, lastPushed, litKeys, luaKey, typeBuffer, whichKeys } from ".";
+import { MAIN_PROJECT, bufferLength, deviceFor, bufferText, cartridgeTurn, deckKeys, deckPolygon, editorBuffer, keysFor, onDeck, lastPushed, litKeys, luaKey, typeBuffer, whichKeys } from ".";
 
 describe("lastPushed", () => {
   const now = new Date("2026-11-04T12:00:00Z").getTime();
@@ -203,3 +203,17 @@ describe("deckKeys", () => {
   });
 });
 
+
+describe("deviceFor", () => {
+  it("puts the ultrawide on Claire's desktop", () => {
+    expect(deviceFor(true, true)).toBe("monitor");
+  });
+
+  it("opens the laptop on Malenia's tablet", () => {
+    expect(deviceFor(false, true)).toBe("laptop");
+  });
+
+  it("hands Inde the iPhone on her phone", () => {
+    expect(deviceFor(false, false)).toBe("phone");
+  });
+});

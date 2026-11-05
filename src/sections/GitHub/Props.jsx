@@ -1,45 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
 
-const WARM = "#ffcf8a";
-
-/**
- * A desk lamp standing on the desk beside the laptop: a round base, two arm segments with their joints reaching above
- * the lid, and a cone shade tipped down toward the keyboard, its bulb and the beam it throws as bright as `light` says.
- * @param {{ light: import("framer-motion").MotionValue<number> | number, className?: string }} props light from 0 (off) to 1
- */
-export const Lamp = ({ light, className = "" }) => (
-  <svg viewBox="0 0 230 520" className={`overflow-visible ${className}`} aria-hidden="true">
-    <defs>
-      <linearGradient id="lamp-beam" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor={WARM} stopOpacity="0.32" />
-        <stop offset="100%" stopColor={WARM} stopOpacity="0" />
-      </linearGradient>
-    </defs>
-    {/* the base, seen a little from above: its shadow, its side and its top */}
-    <ellipse cx="62" cy="514" rx="58" ry="7" fill="#000" opacity="0.5" />
-    <path d="M12 500 L112 500 L112 508 Q62 518 12 508 Z" fill="#1c1c20" />
-    <ellipse cx="62" cy="500" rx="50" ry="10" fill="#3a3a41" />
-    <ellipse cx="62" cy="498" rx="42" ry="7" fill="#46464e" />
-    {/* the two arms and the joints between them */}
-    <path d="M62 494 L30 262" stroke="#2e2e34" strokeWidth="9" strokeLinecap="round" />
-    <path d="M30 262 L141 62" stroke="#2e2e34" strokeWidth="8" strokeLinecap="round" />
-    <path d="M55 460 L34 280" stroke="#5a5a62" strokeWidth="2" strokeLinecap="round" opacity="0.5" />
-    <circle cx="62" cy="492" r="8" fill="#4a4a52" />
-    <circle cx="30" cy="262" r="9" fill="#4a4a52" />
-    <circle cx="141" cy="62" r="8" fill="#4a4a52" />
-    {/* the shade hangs from the top joint and points down and to the right, at the keyboard */}
-    <g transform="translate(141 62) rotate(-30)">
-      <motion.path d="M-36 62 L36 62 L170 330 L-120 330 Z" fill="url(#lamp-beam)" style={{ opacity: light }} />
-      <path d="M-10 -4 L10 -4 L38 60 L-38 60 Z" fill="#2c2c32" />
-      <path d="M-10 -4 L10 -4 L15 8 L-15 8 Z" fill="#45454c" />
-      <path d="M-26 34 L-33 52" stroke="#ffffff" strokeOpacity="0.12" strokeWidth="3" strokeLinecap="round" />
-      <ellipse cx="0" cy="60" rx="38" ry="9" fill="#1a1a1e" />
-      <motion.ellipse cx="0" cy="60" rx="34" ry="7.5" fill={WARM} style={{ opacity: light }} />
-      <motion.circle cx="0" cy="55" r="12" fill="#fff4dc" style={{ opacity: light }} />
-    </g>
-  </svg>
-);
-
 const STEAM = ["M22 2 C14 -10 30 -18 22 -32 C16 -42 26 -48 22 -58", "M40 2 C48 -10 32 -20 42 -34 C48 -44 38 -50 42 -62", "M31 0 C25 -12 39 -20 31 -34"];
 
 // one wisp of steam curling up off the coffee and fading as it goes

@@ -3,6 +3,7 @@ import {
   aliveCount,
   bugMotion,
   bugStop,
+  cueFor,
   dripPoint,
   hitFor,
   isFarEnough,
@@ -10,7 +11,7 @@ import {
   jillStep,
   lineFor,
   lampWindows,
-  missionDelay,
+  isMissionComplete,
   nextBugWait,
   pickTarget,
   reflectionShift,
@@ -187,6 +188,47 @@ describe("jillStep", () => {
   });
 });
 
+describe("cueFor", () => {
+  it("given Claire copying the address with the button, expect Jill happy and saying it's copied", () => {
+    expect(cueFor("copy")).toEqual({ pose: "happy", line: expect.stringContaining("copied") });
+  });
+
+  it("given Inde copying the address by hand, expect a different line than the button gets", () => {
+    expect(cueFor("handCopy").line).not.toBe(cueFor("copy").line);
+  });
+
+  it("given Malenia hovering GitHub, expect a herb for the road that names GitHub", () => {
+    expect(cueFor("social", "GitHub")).toEqual({ pose: "herb", line: expect.stringContaining("GitHub") });
+  });
+
+  it("given Claire opening her mail app, expect Jill happy before the email is even written", () => {
+    expect(cueFor("send").pose).toBe("happy");
+  });
+
+  it("given a plain move name, expect it played as that move with its own line", () => {
+    expect(cueFor("radio")).toEqual({ pose: "radio", line: lineFor("radio") });
+  });
+});
+
+describe("jillStep lines", () => {
+  const standing = jillStep(jillStep(jillStep(jillStart(), { type: "arrive" }), { type: "ended" }), { type: "ended" });
+
+  it("given Inde hovering LinkedIn, expect Jill to open the herb with a line about LinkedIn", () => {
+    const state = jillStep(standing, { type: "cue", name: "social", detail: "LinkedIn" });
+    expect(state.pose).toBe("herb");
+    expect(state.said).toContain("LinkedIn");
+  });
+
+  it("given Claire's combo, expect the punch thrown in silence", () => {
+    expect(jillStep(standing, { type: "combo" }).said).toBeNull();
+  });
+
+  it("given the dash done, expect her to point at the address and say so", () => {
+    const pointing = jillStep(jillStep(jillStart(), { type: "arrive" }), { type: "ended" });
+    expect(pointing.said).toBe(lineFor("point"));
+  });
+});
+
 describe("lineFor", () => {
   it("given Jill pointing, expect her to tell Claire where the address is", () => {
     expect(lineFor("point")).toContain("address");
@@ -201,13 +243,40 @@ describe("lineFor", () => {
   });
 });
 
-describe("missionDelay", () => {
-  it("given Jill on stage for a while already, expect Claire's mission to end right away", () => {
-    expect(missionDelay(1000, 20000, 10000)).toBe(0);
+describe("isMissionComplete", () => {
+  it("given Claire copied the address, expect the mission complete right away", () => {
+    expect(isMissionComplete(true, 0)).toBe(true);
   });
 
-  it("given Jill only just arrived, expect Inde to see her fight out the rest of her time first", () => {
-    expect(missionDelay(1000, 4000, 10000)).toBe(7000);
+  it("given Inde squashed three bugs without writing yet, expect it complete too", () => {
+    expect(isMissionComplete(false, 3)).toBe(true);
+  });
+
+  it("given Malenia only squashed two and sent nothing, expect Jill still on duty", () => {
+    expect(isMissionComplete(false, 2)).toBe(false);
+  });
+});
+
+describe("jillStep after the mission", () => {
+  const standing = jillStep(jillStep(jillStep(jillStart(), { type: "arrive" }), { type: "ended" }), { type: "ended" });
+
+  it("given Claire's copy just made her happy, expect the beret to wait for the happy to finish", () => {
+    const happy = jillStep(standing, { type: "cue", name: "copy" });
+    const done = jillStep(happy, { type: "missionComplete" });
+    expect(done.pose).toBe("happy");
+    expect(jillStep(done, { type: "ended" }).pose).toBe("beret");
+  });
+
+  it("given the beret queued, expect Inde hovering a social not to wipe it out", () => {
+    const pointing = jillStep(standing, { type: "cue", name: "address" });
+    const queued = jillStep(pointing, { type: "missionComplete" });
+    expect(jillStep(queued, { type: "cue", name: "social", detail: "GitHub" })).toBe(queued);
+  });
+
+  it("given her hair down, expect Malenia's cues and combos to leave her standing down", () => {
+    const hairDown = jillStep(jillStep(standing, { type: "missionComplete" }), { type: "ended" });
+    expect(jillStep(hairDown, { type: "cue", name: "radio" })).toBe(hairDown);
+    expect(jillStep(hairDown, { type: "combo" })).toBe(hairDown);
   });
 });
 
