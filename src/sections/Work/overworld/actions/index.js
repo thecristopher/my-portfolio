@@ -204,3 +204,11 @@ export const cloudsAlong = (width, seed) => {
  * @returns {string}
  */
 export const rectPath = (x, y, width, height) => `M${x} ${y}h${width}v${height}h${-width}z`;
+
+/**
+ * Whether a chest just got opened for the first time this visit, so the fanfare plays once per chest.
+ * @param {number} mostOpened the most chests that were ever open so far
+ * @param {number} opened how many are open now
+ * @returns {boolean}
+ */
+export const isNewChest = (mostOpened, opened) => opened > mostOpened;

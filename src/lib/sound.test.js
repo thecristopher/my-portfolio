@@ -13,7 +13,7 @@ describe("noteFrequency", () => {
 
 describe("UI_SOUNDS", () => {
   it("gives every hit of the avatar's combo its own sound, from the first jab to the shoryuken", () => {
-    expect(Object.keys(UI_SOUNDS)).toEqual(expect.arrayContaining(["punch", "kick", "shoryuken"]));
+    expect(Object.keys(UI_SOUNDS)).toEqual(expect.arrayContaining(["punch", "kick", "shoryuken", "itemGet"]));
   });
 });
 

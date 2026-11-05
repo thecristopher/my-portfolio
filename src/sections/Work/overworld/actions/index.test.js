@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  isNewChest,
   cloudsAlong,
   dialogLine,
   dwellProgress,
@@ -177,5 +178,19 @@ describe("dwellProgress", () => {
 
   it("given a single title, expect the raw scroll back, kept between 0 and 1", () => {
     expect(dwellProgress(1.4, 1)).toBe(1);
+  });
+});
+
+describe("isNewChest", () => {
+  it("given Link opens the chest where Claire hid her love note, expect the fanfare", () => {
+    expect(isNewChest(1, 2)).toBe(true);
+  });
+
+  it("given Inde scrolls back past a chest already opened, expect silence", () => {
+    expect(isNewChest(3, 2)).toBe(false);
+  });
+
+  it("given Malenia's chest was already open, expect it not to play twice", () => {
+    expect(isNewChest(2, 2)).toBe(false);
   });
 });

@@ -94,7 +94,6 @@ const Light = ({ light, progress, isOpen, onOpen, onClose, onToggle }) => {
       className="group absolute z-10 grid size-8 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full outline-none"
     >
       <span className={`size-3 rounded-full ring-2 transition-transform duration-300 group-hover:scale-150 group-focus-visible:scale-150 ${isOpen ? "scale-150 bg-[var(--color-sunset-1)] ring-white/70" : "bg-white/80 ring-[var(--color-sunset-1)]"}`} />
-      {light.key === "world" && <span className="absolute left-full ml-1 rounded-full bg-ink/80 px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap ring-1 ring-line">Worldwide</span>}
     </motion.button>
   );
 };

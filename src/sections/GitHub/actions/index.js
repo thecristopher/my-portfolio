@@ -244,3 +244,15 @@ export const deckKeys = (rows, area, deck) => {
     return keys;
   });
 };
+
+/**
+ * Which device the desk shows for the screen it's read on.
+ * @param {boolean} isWide at least as wide as a desktop
+ * @param {boolean} isMedium at least as wide as a tablet
+ * @returns {"monitor" | "laptop" | "phone"} an ultrawide on a desktop, a laptop on a tablet, an iPhone on a phone
+ */
+export const deviceFor = (isWide, isMedium) => {
+  if (isWide) return "monitor";
+  if (isMedium) return "laptop";
+  return "phone";
+};

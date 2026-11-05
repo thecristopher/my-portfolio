@@ -86,23 +86,24 @@ const WhichKey = () => (
 /**
  * The editor on the laptop screen: it shows the config's features typed out as a Lua table up to the latest
  * keystroke, the statusline flips from insert to normal, and which-key opens above it with a key for each feature.
- * @param {{ typed: number }} props keystrokes typed so far, shared with the keyboard
+ * @param {{ typed: number, isFixed?: boolean }} props keystrokes typed so far, shared with the keyboard. isFixed fills
+ *   a screen of fixed height instead of growing with the buffer, scrolling the older lines off the top like a terminal
  */
-const Editor = ({ typed }) => {
+const Editor = ({ typed, isFixed = false }) => {
   const isDone = typed >= BUFFER_TOTAL;
   const isWhichKeyOpen = useWhichKey(isDone);
   const lines = typeBuffer(BUFFER, typed);
   const cursorLine = lines.at(-1) ?? [];
 
   return (
-    <div className="flex min-h-[17rem] flex-col overflow-hidden rounded-xl bg-black/25 font-mono text-[11px] leading-relaxed ring-1 ring-white/10 sm:text-xs" aria-hidden="true">
+    <div className={`flex ${isFixed ? "h-full min-h-0" : "min-h-[17rem]"} flex-col overflow-hidden rounded-xl bg-black/25 font-mono text-[11px] leading-relaxed ring-1 ring-white/10 sm:text-xs`} aria-hidden="true">
       <div className="flex items-center gap-1.5 border-b border-white/5 px-3 py-2">
         <span className="size-2 rounded-full bg-white/15" />
         <span className="size-2 rounded-full bg-white/15" />
         <span className="size-2 rounded-full bg-white/15" />
         <span className="ml-2 text-[10px] text-stage-fg/40">~/.config/nvim</span>
       </div>
-      <div className="flex-1 p-3">
+      <div className={`flex-1 p-3 ${isFixed ? "flex min-h-0 flex-col justify-end overflow-hidden" : ""}`}>
         <Buffer lines={lines} />
       </div>
       <AnimatePresence>{isWhichKeyOpen && <WhichKey />}</AnimatePresence>

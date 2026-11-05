@@ -1,14 +1,17 @@
 import { useRef, useState } from "react";
-import { motion, useInView, useMotionTemplate, useReducedMotion, useScroll } from "framer-motion";
+import { motion, useMotionTemplate, useReducedMotion, useScroll } from "framer-motion";
 import { ArrowUpRight, Check, Copy } from "lucide-react";
 import Magnetic from "../../components/Magnetic";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
 import BugHunt from "./BugHunt";
 import Bottle from "./Bottle";
 import Sea from "./Sea";
-import { Moon, Pier, Stars } from "./Dusk";
+import { Moon, Stars } from "./Dusk";
+import Pier, { PIER_LAMPS } from "../../components/Pier";
+import { useStep } from "../../hooks/useStep";
 import { useScrollRange } from "../../hooks/useScrollRange";
 import { useGetContactQuery } from "../../api/contactApi";
+import { lampWindows } from "./actions";
 import { socialIconMap } from "../../lib/socialIconMap";
 import { easeOutExpo } from "../../lib/motion";
 import { echo } from "../../lib/echo";
@@ -74,6 +77,9 @@ const StillReflection = () => (
   />
 );
 
+// when each pier lamp turns on as the light goes, the one nearest the shore first
+const LAMP_ON = lampWindows(PIER_LAMPS, [0.45, 0.85]).map(([start]) => start);
+
 // the sun going down into the sea off Rosarito: it sinks past the horizon as you scroll, its reflection breaking up
 // wherever the cursor stirs the water, while the stars come out, the moon climbs on the other side and the lamps on the
 // pier turn on
@@ -82,6 +88,10 @@ const Sunset = ({ progress, isStill }) => {
   const sunY = useScrollRange(progress, [0, 0.95], ["-30%", "90%"]);
   const sky = useScrollRange(progress, [0, 0.9], [0.15, 0.6]);
   const still = { y: "30%" };
+  const step = useStep(progress);
+  const lit = LAMP_ON.map((at) => isStill || step >= at);
+  // the pier stands still in the water, so the sea keeps its ripples off it
+  const pierRef = useRef(null);
   return (
     <div className="pointer-events-none absolute inset-0" aria-hidden="true">
       <motion.div className="bg-sunset absolute inset-x-0 top-0 blur-3xl" style={{ height: HORIZON, opacity: isStill ? 0.35 : sky, maskImage: "linear-gradient(to bottom, transparent, black)" }} />
@@ -93,11 +103,12 @@ const Sunset = ({ progress, isStill }) => {
           style={{ ...(isStill ? still : { y: sunY }), background: "radial-gradient(circle at 50% 40%, #fff4d1 0%, var(--color-sunset-1) 45%, var(--color-sunset-2) 100%)", boxShadow: "0 0 120px 30px color-mix(in oklab, var(--color-sunset-1) 45%, transparent)" }}
         />
       </div>
-      <div className="absolute inset-x-0 bottom-0 bg-[color-mix(in_oklab,var(--color-sunset-3)_10%,var(--color-ink))]" style={{ top: HORIZON }}>
-        {isStill ? <StillReflection /> : <Sea progress={progress} />}
+      <div className="sea absolute inset-x-0 bottom-0" style={{ top: HORIZON }}>
+        {isStill ? <StillReflection /> : <Sea progress={progress} calmRef={pierRef} />}
       </div>
       <span className="absolute inset-x-0 h-px bg-[color-mix(in_oklab,var(--color-sunset-1)_60%,transparent)]" style={{ top: HORIZON }} />
-      <Pier progress={progress} isStill={isStill} horizon={HORIZON} />
+      {/* the same pier the page opened with at dawn, seen from the other side of the beach */}
+      <Pier lit={lit} horizon={HORIZON} side="left" svgRef={pierRef} className="[--pier:min(86vw,32rem)] sm:[--pier:min(52vw,44rem)]" />
     </div>
   );
 };
@@ -142,55 +153,19 @@ const rise = (delay) => ({
   transition: { duration: 1, delay, ease: easeOutExpo },
 });
 
-// the address itself, huge, with the ways to send it right under it and Jill's stage below, reacting to both
-const Email = ({ contact, onCopy, cue, cueJill, isMissionComplete }) => {
-  // a copied address is on its way: Jill celebrates and a bottle sets out to sea
-  const sendOff = () => {
-    cueJill("happy");
-    onCopy();
-  };
-
-  return (
-    <motion.div {...rise(0)} className="flex flex-col gap-5">
-      <p className="text-sm font-semibold text-muted">Write me at</p>
-      <a
-        href={contact.mailto}
-        onPointerEnter={() => cueJill("point")}
-        className="group flex w-fit items-center gap-3 text-[clamp(1.5rem,5vw,3.75rem)] font-semibold tracking-[-0.035em] transition-colors hover:text-accent"
-      >
-        <EmailAddress email={contact.email} />
-        <ArrowUpRight className="size-[0.8em] shrink-0 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
-      </a>
-      <div className="flex flex-wrap items-center gap-3">
-        <Magnetic>
-          <a
-            href={contact.mailto}
-            onPointerEnter={() => cueJill("radio")}
-            onFocus={() => cueJill("radio")}
-            className="bg-sunset inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-base font-semibold text-white shadow-lg transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
-          >
-            Email me
-            <ArrowUpRight size={17} />
-          </a>
-        </Magnetic>
-        <CopyEmailButton email={contact.email} onCopied={sendOff} />
-      </div>
-      <BugHunt cue={cue} isMissionComplete={isMissionComplete} />
-    </motion.div>
-  );
-};
-
-const Socials = ({ socials, onHover }) => (
+const Socials = ({ socials, cueJill }) => (
   <ul className="flex flex-wrap gap-3">
     {socials.map((social, index) => {
       const Icon = socialIconMap[social.name];
+      const offerHerb = () => cueJill("social", social.name);
       return (
         <motion.li key={social.id} {...rise(0.1 + index * 0.06)}>
           <a
             href={social.url}
             target="_blank"
             rel="noreferrer"
-            onPointerEnter={onHover}
+            onPointerEnter={offerHerb}
+            onFocus={offerHerb}
             className="card group inline-flex items-center gap-2.5 rounded-full px-5 py-3 font-medium transition-transform duration-300 hover:-translate-y-0.5"
           >
             {Icon && <Icon size={16} aria-hidden="true" />}
@@ -203,20 +178,72 @@ const Socials = ({ socials, onHover }) => (
   </ul>
 );
 
+// the address itself, huge, then the ground Jill stands on: the ways to send it and the socials on the left of it, her
+// on the right answering each one. below lg she gets the ground to herself under them
+const Email = ({ contact, onCopy, cue, cueJill, hasSent }) => {
+  // a copied address is on its way: Jill celebrates and a bottle sets out to sea
+  const sendOff = () => {
+    cueJill("copy");
+    onCopy();
+  };
+  const pointAtAddress = () => cueJill("address");
+  const callItIn = () => cueJill("compose");
+
+  return (
+    <motion.div {...rise(0)} className="flex flex-col gap-5">
+      <p className="text-sm font-semibold text-muted">Write me at</p>
+      <a
+        href={contact.mailto}
+        onPointerEnter={pointAtAddress}
+        onFocus={pointAtAddress}
+        onClick={() => cueJill("send")}
+        className="group flex w-fit items-center gap-3 text-[clamp(1.5rem,5vw,3.75rem)] font-semibold tracking-[-0.035em] transition-colors hover:text-accent"
+      >
+        <EmailAddress email={contact.email} />
+        <ArrowUpRight className="size-[0.8em] shrink-0 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
+      </a>
+      <div className="grid gap-10 pt-3 lg:gap-0">
+        <div className="relative z-10 flex flex-col gap-8 self-start lg:col-start-1 lg:row-start-1 lg:max-w-[58%]">
+          <div className="flex flex-wrap items-center gap-3">
+            <Magnetic>
+              <a
+                href={contact.mailto}
+                onPointerEnter={callItIn}
+                onFocus={callItIn}
+                onClick={() => cueJill("send")}
+                className="bg-sunset inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-base font-semibold text-white shadow-lg transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
+              >
+                Email me
+                <ArrowUpRight size={17} />
+              </a>
+            </Magnetic>
+            <CopyEmailButton email={contact.email} onCopied={sendOff} />
+          </div>
+          <Socials socials={contact.socials} cueJill={cueJill} />
+        </div>
+        <BugHunt cue={cue} hasSent={hasSent} className="lg:col-start-1 lg:row-start-1" />
+      </div>
+    </motion.div>
+  );
+};
+
 /** The closing line, filling with the sunset as you reach it, every way to reach me, and a bottle for every copy. */
 const Contact = () => {
   const { data: contact, isLoading, isError } = useGetContactQuery();
   const [bottles, setBottles] = useState(0);
   // the cue Jill reacts to next, from the address, the buttons or the socials
   const [cue, setCue] = useState(null);
-  const cueJill = (name) => setCue((last) => ({ name, key: (last?.key ?? 0) + 1 }));
-  // the last line counts as reached as soon as it's clearly on screen, while Jill's stage right above it is still in
-  // view, so her mission complete is something the visitor actually sees
-  const lastLine = useRef(null);
-  const isMissionComplete = useInView(lastLine, { once: true, margin: "0px 0px -10% 0px" });
+  const cueJill = (name, detail) => setCue((last) => ({ name, detail, key: (last?.key ?? 0) + 1 }));
+  // copying the address or opening it in a mail app puts the email on its way, which is Jill's mission complete
+  const [hasSent, setHasSent] = useState(false);
+  const cueAndSend = (name, detail) => {
+    cueJill(name, detail);
+    if (name === "copy" || name === "handCopy" || name === "send") setHasSent(true);
+  };
 
   return (
-    <section id="contact" className="relative pb-24 sm:pb-32">
+    // copying the address by hand, instead of with the button, gets its own nod from her
+    <section id="contact" onCopy={() => cueAndSend("handCopy")} className="relative pb-24 sm:pb-32">
       <SunsetScene />
       <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 pt-20 sm:px-6">
         <motion.p {...rise(0.1)} className="max-w-2xl text-2xl leading-snug font-medium text-pretty sm:text-3xl">
@@ -225,11 +252,9 @@ const Contact = () => {
 
         {isLoading && <SkeletonLines lines={2} />}
         {isError && !contact && <LoadError what="the contact details" />}
-        {contact && <Email contact={contact} onCopy={() => setBottles((count) => count + 1)} cue={cue} cueJill={cueJill} isMissionComplete={isMissionComplete} />}
-        {/* a social link is another way in, so she offers a herb for the road */}
-        {contact && <Socials socials={contact.socials} onHover={() => cueJill("herb")} />}
+        {contact && <Email contact={contact} onCopy={() => setBottles((count) => count + 1)} cue={cue} cueJill={cueAndSend} hasSent={hasSent} />}
 
-        <p ref={lastLine} className="text-sm text-faint">
+        <p className="text-sm text-faint">
           Thanks for scrolling all the way down.
         </p>
       </div>
