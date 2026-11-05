@@ -213,3 +213,54 @@ export const diveCamera = (offset, zoom) => ({ x: -offset.x * zoom, y: -offset.y
  * @returns {string} like "Level 4 of 5, main stack"
  */
 export const levelLine = (level, isMain) => `Level ${level} of ${MAX_LEVEL}${isMain ? ", main stack" : ""}`;
+
+/**
+ * What a category card prints on its face: how many tools it holds and how deep they go on average.
+ * @param {{ tools: { level: number }[] }} group one category from groupByCategory
+ * @returns {{ count: number, average: number, mastered: number }} average rounded to one decimal, mastered counts the level 5 tools
+ */
+export const categoryStats = ({ tools = [] } = {}) => {
+  if (tools.length === 0) return { count: 0, average: 0, mastered: 0 };
+  const total = tools.reduce((sum, tool) => sum + tool.level, 0);
+  return {
+    count: tools.length,
+    average: Math.round((total / tools.length) * 10) / 10,
+    mastered: tools.filter((tool) => tool.level >= MAX_LEVEL).length,
+  };
+};
+
+const FOIL_FALLBACK = ["var(--color-sunset-1)", "var(--color-sunset-2)", "var(--color-sunset-3)"];
+const FOIL_SIZE = 3;
+
+/**
+ * The colors a category card's foil shimmers in: the brand colors of its tools, each once, topped up with the sunset
+ * when the category has fewer than three.
+ * @param {{ name: string }[]} tools the category's tools, deepest first
+ * @param {(name: string) => string | null} colorOf a tool's brand color, or null when it has none
+ * @returns {string[]} exactly three css colors
+ */
+export const foilColors = (tools = [], colorOf = () => null) => {
+  const brands = [...new Set(tools.map((tool) => colorOf(tool.name)).filter(Boolean))];
+  return [...brands, ...FOIL_FALLBACK].slice(0, FOIL_SIZE);
+};
+
+/**
+ * The anchor of a job's chapter in the work history, so a skill card can send you to that exact job.
+ * @param {string} company the job's title, like "Hisense"
+ * @param {(text: string) => string} slug turns a name into an id piece
+ * @returns {string} the element id, like "work-hisense"
+ */
+export const jobAnchor = (company, slug) => `work-${slug(company)}`;
+
+const RARITY = [
+  { from: 4.8, name: "Legendary" },
+  { from: 4.4, name: "Epic" },
+  { from: 4, name: "Rare" },
+];
+
+/**
+ * The rarity a category card is printed in, from how deep its tools go on average, like a foil card in a booster pack.
+ * @param {number} average the category's average level
+ * @returns {string} Legendary, Epic, Rare or Common
+ */
+export const rarityOf = (average) => RARITY.find((tier) => average >= tier.from)?.name ?? "Common";

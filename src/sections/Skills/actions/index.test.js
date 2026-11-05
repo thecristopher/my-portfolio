@@ -2,17 +2,21 @@ import { describe, expect, it } from "vitest";
 import {
   METER_SIZE,
   arcPath,
+  categoryStats,
   cometPass,
   cometWait,
   coreRadiusIn,
   diveCamera,
+  foilColors,
   groupByCategory,
+  jobAnchor,
   jobsLine,
   jobsWith,
   levelArcs,
   levelDots,
   levelLine,
   orbitLayout,
+  rarityOf,
   pointerTilt,
   starField,
   trailGeometry,
@@ -248,5 +252,66 @@ describe("levelLine", () => {
 
   it("given a side tool, expect only the level for Malenia", () => {
     expect(levelLine(3, false)).toBe("Level 3 of 5");
+  });
+});
+
+describe("categoryStats", () => {
+  const languages = { tools: [{ level: 5 }, { level: 5 }, { level: 4 }] };
+
+  it("counts the tools on Malenia's language card", () => {
+    expect(categoryStats(languages).count).toBe(3);
+  });
+
+  it("averages how deep Claire went, to one decimal", () => {
+    expect(categoryStats(languages).average).toBe(4.7);
+  });
+
+  it("counts only the level five tools as mastered", () => {
+    expect(categoryStats(languages).mastered).toBe(2);
+  });
+
+  it("reads an empty category as zeros instead of dividing by nothing", () => {
+    expect(categoryStats({ tools: [] })).toEqual({ count: 0, average: 0, mastered: 0 });
+  });
+});
+
+describe("foilColors", () => {
+  const colors = { React: "#61dafb", "Next.js": "#ffffff", Vue: "#61dafb" };
+  const colorOf = (name) => colors[name] ?? null;
+
+  it("shimmers in the brand colors of Inde's favorite tools", () => {
+    expect(foilColors([{ name: "React" }, { name: "Next.js" }, { name: "Svelte" }], colorOf).slice(0, 2)).toEqual(["#61dafb", "#ffffff"]);
+  });
+
+  it("never repeats a color two tools share", () => {
+    expect(foilColors([{ name: "React" }, { name: "Vue" }], colorOf)[1]).toBe("var(--color-sunset-1)");
+  });
+
+  it("always gives back three colors, even for a card with no brands", () => {
+    expect(foilColors([{ name: "Blood Magic" }], colorOf)).toHaveLength(3);
+  });
+});
+
+describe("jobAnchor", () => {
+  it("points the Hisense chip at the Hisense chapter", () => {
+    expect(jobAnchor("Hisense", (text) => text.toLowerCase())).toBe("work-hisense");
+  });
+});
+
+describe("rarityOf", () => {
+  it("prints Malenia's maxed out card as Legendary", () => {
+    expect(rarityOf(5)).toBe("Legendary");
+  });
+
+  it("prints a card that averages 4.5 as Epic", () => {
+    expect(rarityOf(4.5)).toBe("Epic");
+  });
+
+  it("prints Claire's 4.2 card as Rare", () => {
+    expect(rarityOf(4.2)).toBe("Rare");
+  });
+
+  it("leaves anything under four as Common", () => {
+    expect(rarityOf(3.9)).toBe("Common");
   });
 });
