@@ -256,8 +256,8 @@
         "Now run engineering for FirstWord, DGPL, MEC, AMI and the rest of PSL's product line",
         "Plan the roadmap, run the 1:1s and still ship code most weeks"
       ],
-      "location": null,
-      "work_mode": null,
+      "location": "Rosarito, Mexico",
+      "work_mode": "Remote",
       "start": null,
       "end": null,
       "note": null,
@@ -286,7 +286,7 @@
         "Worked on the +orden console and Interis Works, the payroll products Tress customers use every pay period",
         "Moved across C# and Node.js services, PostgreSQL and deployments on both AWS and Azure"
       ],
-      "location": null,
+      "location": "Tijuana, Mexico",
       "work_mode": null,
       "start": null,
       "end": null,
@@ -305,9 +305,11 @@
       ],
       "roles": [],
       "highlights": [
+        "Led several C# and ASP.NET MVC projects for the corporate office and the plant floor",
+        "Connected the plant's internal systems so managers could follow manufacturing performance live",
         "Worked on the corporate website between plant projects"
       ],
-      "location": null,
+      "location": "Rosarito, Mexico",
       "work_mode": null,
       "start": null,
       "end": null,
@@ -330,9 +332,11 @@
       "roles": [],
       "highlights": [
         "One of the lead developers of Umbrella's admin app, an Azure client for the insurer and the insured alike",
-        "Rebuilt the school insurance workflows from the ground up"
+        "Rebuilt the school insurance workflows from the ground up",
+        "Kept extending the core features as more customers came on, so the platform grew with them",
+        "Fixed UX problems and tightened the business rules along the way"
       ],
-      "location": null,
+      "location": "Tijuana, Mexico",
       "work_mode": null,
       "start": null,
       "end": null,
@@ -356,7 +360,7 @@
         "Maintained the app CBP used to control customs access and inspect trailers and commercial trucks",
         "Learned PHP and C# on a system the border couldn't afford to have down"
       ],
-      "location": null,
+      "location": "Tijuana, Mexico",
       "work_mode": null,
       "start": null,
       "end": null,
@@ -502,7 +506,7 @@
       "approach": [
         "Designed automated processes that talk directly to the plant's robotics",
         "Added material access and personnel control to the same system",
-        "Built a Jira style ticketing app so the IT team could stop living in email"
+        "Built a Jira style ticketing app from scratch, and it became how the whole office asked IT for help"
       ],
       "outcome": "Plant productivity went up 100%.",
       "technologies": [
