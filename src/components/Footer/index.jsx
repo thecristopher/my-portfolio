@@ -52,11 +52,12 @@ const SpriteCredits = () => (
     </p>
     <p className="text-sm leading-relaxed text-[#d9d3f0]">
       Link is from The Legend of Zelda: A Link to the Past, © Nintendo, sprites ripped by Mister Man. Jill Valentine is from Marvel vs. Capcom, ©
-      Capcom. Both sheets come from{" "}
+      Capcom. Samus Aran is from Metroid, © Nintendo. The Metroid larva is from Super Metroid, ©
+      Nintendo, ripped by Barack Obama. All four sheets come from{" "}
       <a href="https://www.spriters-resource.com" target="_blank" rel="noreferrer" className={LINK_CLASS}>
         The Spriters Resource
       </a>
-      . A fan tribute, not affiliated with or endorsed by either company.
+      . A fan tribute, not affiliated with or endorsed by Nintendo or Capcom.
     </p>
   </div>
 );

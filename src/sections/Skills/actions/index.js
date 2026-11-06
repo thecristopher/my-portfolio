@@ -264,3 +264,6 @@ const RARITY = [
  * @returns {string} Legendary, Epic, Rare or Common
  */
 export const rarityOf = (average) => RARITY.find((tier) => average >= tier.from)?.name ?? "Common";
+
+export * from "./hunter";
+export * from "./hunt";
