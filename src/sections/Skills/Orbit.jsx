@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import TechIcon from "../../components/TechIcon";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useScrollRange } from "../../hooks/useScrollRange";
 import { countUsing, usesTech } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 import { pointOnCircle } from "../../lib/geometry";
+import Hunter from "./Hunter";
+import Metroid from "./Metroid";
+import { useHunt } from "./useHunt";
 import LevelMeter from "./LevelMeter";
 import Planet from "./Planet";
 import Starfield from "./Starfield";
@@ -34,8 +38,8 @@ const Satellite = ({ tool, counterTurn, isPicked, onFocus, onDive }) => {
     <motion.button
       type="button"
       onClick={(event) => onDive(tool, event.currentTarget)}
-      onPointerEnter={() => onFocus(tool)}
-      onFocus={() => onFocus(tool)}
+      onPointerEnter={(event) => onFocus(tool, event.currentTarget)}
+      onFocus={(event) => onFocus(tool, event.currentTarget)}
       aria-label={`${tool.name}, level ${tool.level} of ${MAX_LEVEL}. Open it`}
       style={{ left: `${spot.x}%`, top: `${spot.y}%`, rotate: counterTurn }}
       className={`card absolute grid size-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full transition-[scale,box-shadow] duration-300 hover:z-10 hover:scale-125 focus-visible:scale-125 sm:size-12 ${isPicked ? "ring-2 ring-accent" : ""}`}
@@ -74,11 +78,12 @@ const Beam = ({ ringIndex, angle }) => {
   );
 };
 
-const Ring = ({ ring, progress, pickedTech, focusedName, onFocus, onDive }) => {
+const Ring = ({ ring, progress, pickedTech, focusedName, hideout, isDefeated, onPeek, onFocus, onDive }) => {
   const direction = ring.ring % 2 === 0 ? 1 : -1;
   const turn = useScrollRange(progress, [0, 1], [-40 * direction, 50 * direction]);
   const counterTurn = useTransform(turn, (degrees) => -degrees);
   const focusedTool = ring.tools.find((tool) => tool.name === focusedName);
+  const hidingSpot = ring.tools.find((tool) => tool.name === hideout);
   return (
     <motion.div
       className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-line-strong"
@@ -86,6 +91,11 @@ const Ring = ({ ring, progress, pickedTech, focusedName, onFocus, onDive }) => {
     >
       <Trails tools={ring.tools} turn={turn} strokeWidth={TRAIL_WIDTH / (parseFloat(RING_SIZES[ring.ring]) / 100)} />
       {focusedTool && <Beam key={focusedTool.name} ringIndex={ring.ring} angle={focusedTool.angle} />}
+      {/* drawn before the tools so the larva hides behind its tool and only peeks out */}
+      {/* custom reaches the larva as it leaves, so it knows whether it was hit or defeated */}
+      <AnimatePresence custom={{ isDefeated }}>
+        {hidingSpot && <Metroid key={hidingSpot.name} angle={hidingSpot.angle} counterTurn={counterTurn} onPeek={onPeek} />}
+      </AnimatePresence>
       {ring.tools.map((tool) => (
         <Satellite key={tool.name} tool={tool} counterTurn={counterTurn} isPicked={pickedTech === tool.name} onFocus={onFocus} onDive={onDive} />
       ))}
@@ -228,10 +238,21 @@ const cameraFor = (dive) => {
 const Orbit = ({ tools, projects, pickedTech, onPick }) => {
   const ref = useRef(null);
   const [focused, setFocused] = useState(null);
+  // the satellite Samus has in her sights, and the larva while it peeks out
+  const [target, setTarget] = useState(null);
+  const [sighting, setSighting] = useState(null);
+  const hunterScale = useMediaQuery("(min-width: 640px)") ? 2 : 1;
   const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const { rotateX, rotateY, follow, settle } = useTilt(scrollYProgress, prefersReducedMotion);
   const { dive, open, close, leave } = useDive(ref);
+  const rings = orbitLayout(tools);
+  const { hunt, land } = useHunt(tools.map((tool) => tool.name));
+
+  const focus = (tool, satellite) => {
+    setFocused(tool);
+    setTarget(tool ? { name: tool.name, element: satellite } : null);
+  };
 
   const seeJobs = () => {
     const name = dive.tool.name;
@@ -249,7 +270,7 @@ const Orbit = ({ tools, projects, pickedTech, onPick }) => {
       transition={{ duration: 1.4, ease: easeOutExpo }}
       onPointerMove={follow}
       onPointerLeave={() => {
-        setFocused(null);
+        focus(null, null);
         settle();
       }}
       // an open planet rises over the grid below it, which otherwise sits above the orbit to keep the stars off the cards
@@ -264,12 +285,34 @@ const Orbit = ({ tools, projects, pickedTech, onPick }) => {
             aria-hidden="true"
           />
           <Comet />
-          {orbitLayout(tools).map((ring) => (
-            <Ring key={ring.ring} ring={ring} progress={scrollYProgress} pickedTech={pickedTech} focusedName={focused?.name} onFocus={setFocused} onDive={open} />
+          {rings.map((ring) => (
+            <Ring
+              key={ring.ring}
+              ring={ring}
+              progress={scrollYProgress}
+              pickedTech={pickedTech}
+              focusedName={focused?.name}
+              hideout={hunt.hideout}
+              isDefeated={hunt.isDefeated}
+              onPeek={setSighting}
+              onFocus={focus}
+              onDive={open}
+            />
           ))}
           <Core focused={focused} total={tools.length} projects={projects} />
         </motion.div>
       </motion.div>
+      {!dive && (
+        <Hunter
+          progress={scrollYProgress}
+          target={target}
+          sighting={sighting}
+          orbitRef={ref}
+          scale={hunterScale}
+          isDefeated={hunt.isDefeated}
+          onLand={land}
+        />
+      )}
       <AnimatePresence>
         {dive && (
           <Planet

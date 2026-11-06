@@ -43,7 +43,7 @@ const Skills = () => {
       </div>
 
       {tools.length > 0 && (
-        <div className="px-4 pt-6 pb-14 sm:px-6 sm:pt-10 sm:pb-20">
+        <div className="px-4 pt-6 pb-24 sm:px-6 sm:pt-10 sm:pb-44">
           <Orbit tools={tools} projects={projects} pickedTech={pickedTech} onPick={(tool) => showJobsUsing(tool, projects)} />
         </div>
       )}
