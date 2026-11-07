@@ -3,7 +3,8 @@ import {
   aimPoseFor,
   boardingShift,
   endingCues,
-  endingPose,
+  endingLook,
+  firePoseFor,
   endingStage,
   endingStart,
   facingToward,
@@ -21,8 +22,8 @@ const clairesBox = { left: 100, top: 400, width: 84, height: 99 };
 const TRACK = 600;
 
 describe("strideFor", () => {
-  it("given a short stroll to Inde's bench, expect a walk", () => {
-    expect(strideFor(100, 200, TRACK)).toMatchObject({ gait: "walk", facing: "right" });
+  it("given a short way to Inde's bench, expect a roll in the morph ball", () => {
+    expect(strideFor(100, 200, TRACK)).toMatchObject({ gait: "roll", facing: "right" });
   });
 
   it("given the far end of the track, expect a run", () => {
@@ -33,7 +34,7 @@ describe("strideFor", () => {
     expect(strideFor(100, 150, TRACK, true).gait).toBe("run");
   });
 
-  it("given Malenia's pace, expect a longer trip walking than running the same way", () => {
+  it("given Malenia's pace, expect a longer trip rolling than running the same way", () => {
     expect(strideFor(0, 200, TRACK).seconds).toBeGreaterThan(strideFor(0, 200, TRACK, true).seconds);
   });
 });
@@ -107,8 +108,8 @@ describe("hunterPose", () => {
     expect(hunterPose({ ...strolling, sightingPose: "aimUp" })).toBe("aimUp");
   });
 
-  it("given a stroll to Claire's spot, expect a walk", () => {
-    expect(hunterPose({ ...strolling, gait: "walk" })).toBe("walk");
+  it("given a short way to Claire's spot, expect the morph ball", () => {
+    expect(hunterPose({ ...strolling, gait: "roll" })).toBe("morph");
   });
 
   it("given nothing going on, expect her standing", () => {
@@ -116,49 +117,63 @@ describe("hunterPose", () => {
   });
 });
 
+describe("firePoseFor", () => {
+  it("given her aiming level, expect the level shot", () => {
+    expect(firePoseFor("aim")).toBe("fire");
+  });
+
+  it("given her aiming up at Inde's larva, expect the shot straight up", () => {
+    expect(firePoseFor("aimUp")).toBe("fireUp");
+  });
+});
+
 describe("endingStage", () => {
-  it("given the moment the ending starts, expect her victory", () => {
-    expect(endingStage(0)).toBe("victory");
+  it("given the moment the ending starts, expect her triumph", () => {
+    expect(endingStage(0)).toBe("triumph");
   });
 
-  it("given two seconds in, expect the ship landing", () => {
-    expect(endingStage(2000)).toBe("landing");
+  it("given two seconds in, expect her thanking the visitor", () => {
+    expect(endingStage(2000)).toBe("congrats");
   });
 
-  it("given the ship down, expect her flipping aboard", () => {
-    expect(endingStage(3600)).toBe("boarding");
+  it("given five seconds in, expect the ship landing", () => {
+    expect(endingStage(5000)).toBe("landing");
   });
 
   it("given Claire and Inde watching the ship fly off, expect departing", () => {
-    expect(endingStage(5000)).toBe("departing");
+    expect(endingStage(7000)).toBe("departing");
   });
 
   it("given the ship far away, expect nothing left but the orbit", () => {
-    expect(endingStage(9000)).toBe("gone");
+    expect(endingStage(10000)).toBe("gone");
   });
 
   it("given every cue, expect each one to start a different stage, ending with gone", () => {
-    expect(endingCues().map(endingStage)).toEqual(["victory", "landing", "boarding", "departing", "gone"]);
+    expect(endingCues().map(endingStage)).toEqual(["triumph", "congrats", "landing", "boarding", "departing", "gone"]);
   });
 });
 
 describe("endingStart", () => {
-  it("given the victory, expect it to start at once", () => {
-    expect(endingStart("victory")).toBe(0);
+  it("given the triumph, expect it to start at once", () => {
+    expect(endingStart("triumph")).toBe(0);
   });
 
   it("given Inde waving the ship off, expect it to start once she's aboard", () => {
-    expect(endingStart("departing")).toBe(4000);
+    expect(endingStart("departing")).toBe(6500);
   });
 });
 
-describe("endingPose", () => {
-  it("given the ship landing, expect her still spinning the pistol in victory", () => {
-    expect(endingPose("landing")).toBe("victory");
+describe("endingLook", () => {
+  it("given the triumph, expect the Power Suit facing you", () => {
+    expect(endingLook("triumph")).toEqual({ suit: "power", pose: "forward" });
   });
 
-  it("given the boarding, expect her flip", () => {
-    expect(endingPose("boarding")).toBe("flip");
+  it("given her thanks, expect Malenia's favorite pose, the Zero Suit spinning the pistol", () => {
+    expect(endingLook("congrats")).toEqual({ suit: "zero", pose: "victory" });
+  });
+
+  it("given the boarding, expect the Zero Suit's flip", () => {
+    expect(endingLook("boarding")).toEqual({ suit: "zero", pose: "flip" });
   });
 });
 

@@ -1,30 +1,30 @@
-// how fast she walks and runs, in screen px per second
-const WALK_SPEED = 70;
+// how fast she rolls in the morph ball and runs, in screen px per second
+const ROLL_SPEED = 120;
 const RUN_SPEED = 260;
-// past this share of the track a stroll turns into a run
+// past this share of the track a roll turns into a run
 const RUN_FROM = 0.4;
 // how far a stroll goes at the least, as a share of the track, so she never shuffles in place
 const SHORTEST_STROLL = 0.2;
 // how long she stands between strolls, in ms
 const REST = { least: 1800, spread: 2600 };
 
-// how steep a line has to climb before she raises the Paralyzer to the diagonal, and then straight up, in degrees
+// how steep a line has to climb before she raises the arm cannon to the diagonal, and then straight up, in degrees
 const DIAGONAL_FROM = 22.5;
 const UP_FROM = 67.5;
 
 /**
- * How she gets from one spot on her track to another: walking a short way, running a long one or after the larva,
- * how long it takes and which way she faces.
+ * How she gets from one spot on her track to another: rolling a short way in the morph ball, running a long one or
+ * after the larva, how long it takes and which way she faces.
  * @param {number} from where she stands, px from the track's left end
  * @param {number} to where she's going
  * @param {number} track how long the track is, px
  * @param {boolean} isChasing whether she's going after the larva, which is always a run
- * @returns {{ gait: "walk" | "run", seconds: number, facing: "left" | "right" }}
+ * @returns {{ gait: "roll" | "run", seconds: number, facing: "left" | "right" }}
  */
 export const strideFor = (from, to, track, isChasing = false) => {
   const distance = Math.abs(to - from);
-  const gait = isChasing || distance > track * RUN_FROM ? "run" : "walk";
-  const speed = gait === "run" ? RUN_SPEED : WALK_SPEED;
+  const gait = isChasing || distance > track * RUN_FROM ? "run" : "roll";
+  const speed = gait === "run" ? RUN_SPEED : ROLL_SPEED;
   return { gait, seconds: distance / speed, facing: to < from ? "left" : "right" };
 };
 
@@ -60,7 +60,7 @@ export const restFor = (random = Math.random) => Math.round(REST.least + random(
 export const spotUnder = (x, trackLeft, width, track) => Math.min(track, Math.max(0, x - trackLeft - width / 2));
 
 /**
- * How high she raises the Paralyzer to point at something: level, diagonal or straight up, whichever is closest.
+ * How high she raises the arm cannon to point at something: level, diagonal or straight up, whichever is closest.
  * @param {{ x: number, y: number }} from where she points from
  * @param {{ x: number, y: number }} to what she points at, screen y growing downward
  * @returns {"aim" | "aimDiagonal" | "aimUp"}
@@ -72,29 +72,45 @@ export const aimPoseFor = (from, to) => {
   return "aim";
 };
 
+// the firing pose for each way she can aim, the same aim with the cannon's flash
+const FIRING = { aim: "fire", aimDiagonal: "fireDiagonal", aimUp: "fireUp" };
+
 /**
- * The animation Samus plays while she hunts. Aiming at a picked tool beats everything, then walking or running, then
- * pointing at the larva when it peeks out, and otherwise she stands.
- * @param {{ targetPose: string | null, sightingPose: string | null, gait: "walk" | "run" | null }} state
+ * The pose she fires from: the same aim, with the flash of the shot leaving the cannon.
+ * @param {"aim" | "aimDiagonal" | "aimUp"} aim how she's aiming
+ * @returns {"fire" | "fireDiagonal" | "fireUp"}
+ */
+export const firePoseFor = (aim) => FIRING[aim];
+
+/**
+ * The animation Samus plays while she hunts. Aiming at a picked tool beats everything, then rolling in the morph ball
+ * or running, then pointing at the larva when it peeks out, and otherwise she stands.
+ * @param {{ targetPose: string | null, sightingPose: string | null, gait: "roll" | "run" | null }} state
  *   targetPose is how she aims at the picked tool, sightingPose how she points at the peeking larva, gait how she's
  *   moving, null when she isn't
- * @returns {string} the animation's name on the Zero Suit's sheet
+ * @returns {string} the animation's name on the Power Suit's sheet
  */
-export const hunterPose = ({ targetPose, sightingPose, gait }) => targetPose ?? gait ?? sightingPose ?? "idle";
+export const hunterPose = ({ targetPose, sightingPose, gait }) => {
+  if (targetPose) return targetPose;
+  if (gait) return gait === "roll" ? "morph" : "run";
+  return sightingPose ?? "idle";
+};
 
 // the ending after the larva is defeated, each stage with the moment it ends, in ms after it starts
 const ENDING = [
-  { stage: "victory", until: 1800 },
-  { stage: "landing", until: 3400 },
-  { stage: "boarding", until: 4000 },
-  { stage: "departing", until: 6400 },
+  { stage: "triumph", until: 1200 },
+  { stage: "congrats", until: 4400 },
+  { stage: "landing", until: 5900 },
+  { stage: "boarding", until: 6500 },
+  { stage: "departing", until: 8900 },
 ];
 
 /**
- * Where the ending is a while after it starts: her victory spin, the ship landing beside her, her flip aboard, the
- * ship flying off into the orbit, and then nothing left but the orbit.
+ * Where the ending is a while after it starts: the Power Suit facing you in triumph, the suit coming off and Samus in the
+ * Zero Suit thanking the visitor, the ship landing beside her, her flip aboard, the ship flying off into the orbit,
+ * and then nothing left but the orbit.
  * @param {number} elapsed ms since the ending started
- * @returns {"victory" | "landing" | "boarding" | "departing" | "gone"}
+ * @returns {"triumph" | "congrats" | "landing" | "boarding" | "departing" | "gone"}
  */
 export const endingStage = (elapsed) => ENDING.find((part) => elapsed < part.until)?.stage ?? "gone";
 
@@ -112,12 +128,18 @@ export const endingCues = () => [0, ...ENDING.map((part) => part.until)];
 export const endingStart = (stage) => endingCues().find((at) => endingStage(at) === stage) ?? 0;
 
 /**
- * Her animation in a stage of the ending: the victory spin until the ship is down, then the flip aboard, which she
- * keeps out of sight while the ship flies her away.
+ * How she looks in a stage of the ending: the Power Suit facing you for the triumph, then the Zero Suit,
+ * spinning her pistol while she thanks the visitor, watching the ship land, and flipping aboard, which she keeps out
+ * of sight while the ship flies her away.
  * @param {ReturnType<typeof endingStage>} stage
- * @returns {"victory" | "flip"}
+ * @returns {{ suit: "power" | "zero", pose: string }}
  */
-export const endingPose = (stage) => (stage === "victory" || stage === "landing" ? "victory" : "flip");
+export const endingLook = (stage) => {
+  if (stage === "triumph") return { suit: "power", pose: "forward" };
+  if (stage === "congrats") return { suit: "zero", pose: "victory" };
+  if (stage === "landing") return { suit: "zero", pose: "idle" };
+  return { suit: "zero", pose: "flip" };
+};
 
 /**
  * Which way she turns to face a point on the screen.

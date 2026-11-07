@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
+import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
 import Sprite from "../../components/Sprite";
-import { GUNSHIP, ZERO_SUIT } from "../../lib/sprites/samus";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
+import { GUNSHIP, SAMUS, ZERO_SUIT } from "../../lib/sprites/samus";
 import {
   aimPoseFor,
   boardingShift,
   endingCues,
-  endingPose,
+  endingLook,
   endingStage,
   facingToward,
   hunterPose,
@@ -19,10 +20,12 @@ import {
 } from "./actions";
 
 const PIXEL = { fontFamily: '"Pixelify Sans", ui-monospace, monospace' };
-const WIDTH = ZERO_SUIT.cell.width;
-// the gunship is drawn twice its pixel size, so it's bigger than her, and tucks in this far behind her
-const SHIP_SCALE = 2;
-const SHIP_TUCK = 14;
+// how the Zero Suit is drawn: shrunk or grown, smoothly, to stand as tall as the Power Suit she stepped out of
+const OUT_OF_SUIT = SAMUS.cell.height / ZERO_SUIT.cell.height;
+// how far the gunship tucks in behind her, in its own pixels
+const SHIP_TUCK = 7;
+// what she says once the larva is down, to whoever helped her find it
+const THANKS = "You found it! Thanks for the help, hunter.";
 // how small the ship gets as it flies off into the middle of the orbit
 const SHIP_FAR = 0.1;
 
@@ -31,30 +34,30 @@ const centerOf = (element) => {
   return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
 };
 
-// how she points at a spot on the screen: which way she faces and how high she raises the Paralyzer
+// how she points at a spot on the screen: which way she faces and how high she raises the arm cannon
 const sightOn = (box, spot) => {
   const chest = { x: box.left + box.width / 2, y: box.top + box.height * 0.4 };
   return { facing: facingToward(box, spot.x), pose: aimPoseFor(chest, spot) };
 };
 
 // how long her track is: the orbit's width, less her own, kept up to date as the window resizes
-const useTrack = (orbitRef) => {
+const useTrack = (orbitRef, width) => {
   const [track, setTrack] = useState(0);
 
   useEffect(() => {
     const orbit = orbitRef.current;
     if (!orbit) return undefined;
-    const measure = () => setTrack(Math.max(0, orbit.offsetWidth - WIDTH));
+    const measure = () => setTrack(Math.max(0, orbit.offsetWidth - width));
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(orbit);
     return () => observer.disconnect();
-  }, [orbitRef]);
+  }, [orbitRef, width]);
 
   return track;
 };
 
-// her legs: walks or runs her to a spot along the track at her own pace, and says how she's moving and which way she
+// her legs: rolls or runs her to a spot along the track at her own pace, and says how she's moving and which way she
 // faces. a new trip or a halt cuts the one underway short
 const useLegs = (x, track) => {
   const [stride, setStride] = useState({ gait: null, facing: "right" });
@@ -94,7 +97,7 @@ const modeFor = ({ isEnding, isHidden, target, sighting }) => {
 
 // her mind: strolls from spot to spot with a rest between, runs to stand right under the larva when it peeks, and
 // stops for a picked tool. anyone who asked for less movement gets her standing in the middle
-const useBrain = ({ mode, sighting, legs, x, track, orbitRef, isStill }) => {
+const useBrain = ({ mode, sighting, legs, x, track, width, orbitRef, isStill }) => {
   const { goTo, halt, settle } = legs;
   const hasArrived = useRef(false);
 
@@ -110,7 +113,7 @@ const useBrain = ({ mode, sighting, legs, x, track, orbitRef, isStill }) => {
     }
     if (mode === "chasing") {
       const larva = centerOf(sighting);
-      goTo(spotUnder(larva.x, orbitRef.current.getBoundingClientRect().left, WIDTH, track), true);
+      goTo(spotUnder(larva.x, orbitRef.current.getBoundingClientRect().left, width, track), true);
       return undefined;
     }
     let isCancelled = false;
@@ -126,7 +129,7 @@ const useBrain = ({ mode, sighting, legs, x, track, orbitRef, isStill }) => {
       isCancelled = true;
       clearTimeout(timer);
     };
-  }, [mode, sighting, track, isStill, x, orbitRef, goTo, halt, settle]);
+  }, [mode, sighting, track, width, isStill, x, orbitRef, goTo, halt, settle]);
 };
 
 // how she aims at the picked tool or points at the peeking larva, measured again whenever she stops moving
@@ -170,6 +173,20 @@ const Alert = () => (
   </motion.span>
 );
 
+// her thanks to the visitor, in a speech bubble over her head while she spins her pistol
+const Thanks = () => (
+  <motion.p
+    className="absolute bottom-full left-1/2 mb-3 w-max max-w-[14rem] -translate-x-1/2 rounded-2xl bg-[#0b1430] px-4 py-2.5 text-center text-sm leading-snug text-white shadow-xl after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-8 after:border-transparent after:border-t-[#0b1430] after:content-['']"
+    style={PIXEL}
+    initial={{ opacity: 0, y: 10, scale: 0.8 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    exit={{ opacity: 0, y: -6 }}
+    transition={{ type: "spring", stiffness: 380, damping: 18 }}
+  >
+    {THANKS}
+  </motion.p>
+);
+
 // where the ship goes: down out of the sky to land, then up off the ground and away into the middle of the orbit,
 // shrinking into the distance
 const shipMotion = (stage, flight, isStill) => {
@@ -182,16 +199,16 @@ const shipMotion = (stage, flight, isStill) => {
 };
 
 // her gunship: lands beside her, waits while she flips aboard, then flies off into the middle of the orbit
-const Gunship = ({ side, stage, flight, isStill, shipRef }) => {
-  const tuck = `calc(100% - ${SHIP_TUCK}px)`;
+const Gunship = ({ side, stage, flight, scale, isStill, shipRef }) => {
+  const tuck = `calc(100% - ${SHIP_TUCK * scale}px)`;
   const { animate: to, transition } = shipMotion(stage, flight, isStill);
   return (
     <motion.img
       ref={shipRef}
       src={GUNSHIP.src}
       alt=""
-      width={GUNSHIP.width * SHIP_SCALE}
-      height={GUNSHIP.height * SHIP_SCALE}
+      width={GUNSHIP.width * scale}
+      height={GUNSHIP.height * scale}
       className="absolute bottom-0 max-w-none [image-rendering:pixelated]"
       style={side === "left" ? { right: tuck } : { left: tuck }}
       initial={isStill ? { opacity: 0 } : { y: -500, opacity: 0 }}
@@ -202,12 +219,20 @@ const Gunship = ({ side, stage, flight, isStill, shipRef }) => {
 };
 
 // her flip from her spot up and into the ship, and out of sight while the ship flies her away
-const flipMotion = (stage, side, isStill) => {
+const flipMotion = (stage, side, scale, isStill) => {
   if (stage === "departing") return { opacity: 0 };
   if (stage !== "boarding" || isStill) return { x: 0, y: 0, opacity: 1 };
-  const shift = boardingShift(side, WIDTH, GUNSHIP.width * SHIP_SCALE, SHIP_TUCK);
-  return { x: [0, shift / 2, shift], y: [0, -60, -10], opacity: [1, 1, 0], transition: { duration: 0.6, ease: "easeOut" } };
+  const shift = boardingShift(side, ZERO_SUIT.cell.width * scale * OUT_OF_SUIT, GUNSHIP.width * scale, SHIP_TUCK * scale);
+  return { x: [0, shift / 2, shift], y: [0, -30 * scale, -5 * scale], opacity: [1, 1, 0], transition: { duration: 0.6, ease: "easeOut" } };
 };
+
+// the Power Suit at whole multiples so her pixels stay sharp, the Zero Suit's finer art drawn smoothly at her height
+const SuitSprite = ({ suit, pose, scale, isFlipped }) =>
+  suit === "zero" ? (
+    <Sprite key={`zero-${pose}`} sheet={ZERO_SUIT} animation={pose} scale={scale * OUT_OF_SUIT} isFlipped={isFlipped} isSmooth />
+  ) : (
+    <Sprite key={pose} sheet={SAMUS} animation={pose} scale={scale} isFlipped={isFlipped} />
+  );
 
 const facingFor = ({ aim, legs, sight }) => {
   if (aim) return aim.facing;
@@ -216,11 +241,11 @@ const facingFor = ({ aim, legs, sight }) => {
 };
 
 /**
- * Samus in the Zero Suit, on her own patrol under the orbit: strolling and resting, running to stand right under the
- * Metroid larva with a "!" whenever it peeks out and pointing her Paralyzer at it, and aiming at whichever tool is
- * hovered or focused. Opening a tool is her shot, played out in the card. Once the larva is defeated and the card
- * closes, she spins her pistol in victory, her gunship lands beside her, and she flips aboard and flies off into the
- * middle of the orbit.
+ * Samus in the Power Suit, on her own patrol under the orbit: rolling short ways in the morph ball and running long
+ * ones, running to stand right under the Metroid larva with a "!" whenever it peeks out and pointing her arm cannon at
+ * it, and aiming at whichever tool is hovered or focused. Opening a tool is her shot, played out in the card. Once the
+ * larva is defeated and the card closes, she turns to face you, steps out of the suit and thanks you in the Zero Suit,
+ * her gunship lands beside her, and she flips aboard and flies off into the middle of the orbit.
  * @param {{ target: { name: string, element: HTMLElement } | null, sighting: HTMLElement | null,
  *   orbitRef: { current: HTMLElement | null }, isHidden: boolean, isEnding: boolean }} props
  *   target is the tool in her sights, sighting the larva while it peeks out, orbitRef the orbit she patrols under and
@@ -230,17 +255,21 @@ const Hunter = ({ target, sighting, orbitRef, isHidden, isEnding }) => {
   const isStill = useReducedMotion();
   const spriteRef = useRef(null);
   const shipRef = useRef(null);
+  const scale = useMediaQuery("(min-width: 640px)") ? 3 : 2;
+  const width = SAMUS.cell.width * scale;
   const x = useMotionValue(0);
-  const track = useTrack(orbitRef);
+  const track = useTrack(orbitRef, width);
   const legs = useLegs(x, track);
   const stage = useEndingStage(isEnding);
   const mode = modeFor({ isEnding, isHidden, target, sighting });
-  useBrain({ mode, sighting, legs, x, track, orbitRef, isStill });
+  useBrain({ mode, sighting, legs, x, track, width, orbitRef, isStill });
   const aim = useSight(mode === "aiming" ? target.element : null, spriteRef, legs.gait);
   const sight = useSight(mode === "chasing" ? sighting : null, spriteRef, legs.gait);
   const [shipSide, setShipSide] = useState("left");
   const [shipFlight, setShipFlight] = useState(null);
-  const pose = stage ? endingPose(stage) : hunterPose({ targetPose: aim?.pose ?? null, sightingPose: sight?.pose ?? null, gait: legs.gait });
+  const ending = stage ? endingLook(stage) : null;
+  const suit = ending?.suit ?? "power";
+  const pose = ending?.pose ?? hunterPose({ targetPose: aim?.pose ?? null, sightingPose: sight?.pose ?? null, gait: legs.gait });
   const facing = stage ? "right" : facingFor({ aim, legs, sight });
 
   useEffect(() => {
@@ -254,10 +283,19 @@ const Hunter = ({ target, sighting, orbitRef, isHidden, isEnding }) => {
   return (
     <motion.div style={{ x }} className={`pointer-events-none absolute top-full left-0 transition-opacity ${isHidden ? "opacity-0" : ""}`} aria-hidden="true">
       <div ref={spriteRef} className="relative">
-        {hasShip && <Gunship side={shipSide} stage={stage} flight={shipFlight} isStill={isStill} shipRef={shipRef} />}
+        {hasShip && <Gunship side={shipSide} stage={stage} flight={shipFlight} scale={scale} isStill={isStill} shipRef={shipRef} />}
         {mode === "chasing" && <Alert />}
-        <motion.div animate={flipMotion(stage, shipSide, isStill)}>
-          <Sprite key={pose} sheet={ZERO_SUIT} animation={pose} isFlipped={facing === "left"} />
+        <AnimatePresence>{stage === "congrats" && <Thanks />}</AnimatePresence>
+        {/* stepping out of the suit flashes white, the way she does touching a power up */}
+        <motion.div
+          key={suit}
+          initial={isStill || !stage ? false : { filter: "brightness(4)" }}
+          animate={{ filter: "brightness(1)" }}
+          transition={{ duration: 0.7 }}
+        >
+          <motion.div animate={flipMotion(stage, shipSide, scale, isStill)}>
+            <SuitSprite suit={suit} pose={pose} scale={scale} isFlipped={facing === "left"} />
+          </motion.div>
         </motion.div>
       </div>
     </motion.div>

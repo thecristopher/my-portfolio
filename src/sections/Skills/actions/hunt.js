@@ -50,14 +50,14 @@ export const huntLine = (state) => (state.isDefeated ? "Metroid defeated. Missio
 const ENCOUNTER = [
   { stage: "arriving", until: 1150 },
   { stage: "aiming", until: 1500 },
-  { stage: "firing", until: 1750 },
-  { stage: "hurt", until: 2750 },
-  { stage: "leaving", until: 3450 },
+  { stage: "firing", until: 1850 },
+  { stage: "hurt", until: 2850 },
+  { stage: "leaving", until: 3550 },
 ];
 
 /**
- * Where the fight in an opened card is a while after it opens: the card arriving, Samus taking aim, the Paralyzer
- * beam, the larva hurt with its hull flickering, the larva fleeing or burning away, and then just the result.
+ * Where the fight in an opened card is a while after it opens: the card arriving, Samus taking aim, her arm cannon's
+ * shot, the larva hurt with its hull flickering, the larva fleeing or burning away, and then just the result.
  * @param {number} elapsed ms since the card opened
  * @returns {"arriving" | "aiming" | "firing" | "hurt" | "leaving" | "done"}
  */
@@ -70,7 +70,7 @@ export const encounterStage = (elapsed) => ENCOUNTER.find((part) => elapsed < pa
 export const encounterCues = () => [0, ...ENCOUNTER.map((part) => part.until)];
 
 /**
- * The result the card shows once the beam lands.
+ * The result the card shows once the shot lands.
  * @param {{ hits: number, isDefeated: boolean }} encounter the hunt right after this hit
  * @returns {string}
  */
