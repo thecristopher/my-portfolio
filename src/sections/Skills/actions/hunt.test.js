@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { HITS_TO_DEFEAT, huntLine, huntStart, huntStep, pickHideout } from ".";
+import {
+  HITS_TO_DEFEAT,
+  encounterCues,
+  encounterLine,
+  encounterStage,
+  energyLeft,
+  huntLine,
+  huntStart,
+  huntStep,
+  pickHideout,
+} from ".";
 
 // the outer ring on the night Claire and Inde hunt the larva together
 const RING = ["Docker", "Terraform", "Azure"];
@@ -29,11 +39,11 @@ describe("huntStart", () => {
 describe("huntStep", () => {
   const hiding = { hideout: "Docker", hits: 0, isDefeated: false };
 
-  it("given a shot on the wrong tool, expect the hunt unchanged", () => {
+  it("given the wrong tool opened, expect the hunt unchanged", () => {
     expect(huntStep(hiding, "Azure", RING, first)).toBe(hiding);
   });
 
-  it("given Claire's shot on its hideout, expect a hit and the larva behind another tool", () => {
+  it("given Claire opening its hideout, expect a hit and the larva behind another tool", () => {
     expect(huntStep(hiding, "Docker", RING, first)).toEqual({ hideout: "Terraform", hits: 1, isDefeated: false });
   });
 
@@ -42,22 +52,60 @@ describe("huntStep", () => {
     expect(huntStep(worn, "Docker", RING, first)).toEqual({ hideout: null, hits: HITS_TO_DEFEAT, isDefeated: true });
   });
 
-  it("given a shot after it's defeated, expect the hunt over and unchanged", () => {
+  it("given a tool opened after it's defeated, expect the hunt over and unchanged", () => {
     const defeated = { hideout: null, hits: HITS_TO_DEFEAT, isDefeated: true };
     expect(huntStep(defeated, "Docker", RING, first)).toBe(defeated);
   });
 });
 
 describe("huntLine", () => {
-  it("given the first hit, expect the count and where it went", () => {
-    expect(huntLine({ hideout: "Terraform", hits: 1, isDefeated: false })).toBe("Metroid hit, 1 of 3. It fled behind another tool.");
-  });
-
-  it("given a hit between the first and the last, expect silence so the messages don't pile up", () => {
-    expect(huntLine({ hideout: "Azure", hits: 2, isDefeated: false })).toBeNull();
+  it("given a hit, expect silence, the card already shows it", () => {
+    expect(huntLine({ hideout: "Terraform", hits: 1, isDefeated: false })).toBeNull();
   });
 
   it("given the defeat Malenia waited for, expect the mission complete", () => {
     expect(huntLine({ hideout: null, hits: 3, isDefeated: true })).toBe("Metroid defeated. Mission complete, Samus is heading home.");
+  });
+});
+
+describe("encounterStage", () => {
+  it("given the card still flying in, expect the fight to wait", () => {
+    expect(encounterStage(500)).toBe("arriving");
+  });
+
+  it("given the card in place, expect Samus taking aim", () => {
+    expect(encounterStage(1300)).toBe("aiming");
+  });
+
+  it("given the beam out, expect the larva hurt", () => {
+    expect(encounterStage(2000)).toBe("hurt");
+  });
+
+  it("given Inde still looking at the card later, expect just the result", () => {
+    expect(encounterStage(5000)).toBe("done");
+  });
+
+  it("given every cue, expect each part in order", () => {
+    expect(encounterCues().map(encounterStage)).toEqual(["arriving", "aiming", "firing", "hurt", "leaving", "done"]);
+  });
+});
+
+describe("encounterLine", () => {
+  it("given the second hit, expect the count", () => {
+    expect(encounterLine({ hits: 2, isDefeated: false })).toBe("Hit 2 of 3");
+  });
+
+  it("given the last hit, expect the win", () => {
+    expect(encounterLine({ hits: 3, isDefeated: true })).toBe("Metroid defeated");
+  });
+});
+
+describe("energyLeft", () => {
+  it("given one hit taken, expect two bars of energy left", () => {
+    expect(energyLeft(1)).toEqual([false, true, true]);
+  });
+
+  it("given every hit taken, expect none left", () => {
+    expect(energyLeft(3)).toEqual([false, false, false]);
   });
 });

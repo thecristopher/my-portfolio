@@ -23,10 +23,10 @@ export const pickHideout = (names, fleeing, random = Math.random) => {
 export const huntStart = (names, random = Math.random) => ({ hideout: pickHideout(names, null, random), hits: 0, isDefeated: false });
 
 /**
- * The hunt after one of her shots lands. A shot on the larva's tool hits it, and it flees behind another tool until
- * the last hit defeats it. A shot anywhere else changes nothing.
+ * The hunt after a tool is opened, which is Samus shooting at it. Opening the larva's tool hits it, and it flees
+ * behind another tool until the last hit defeats it. Opening any other tool changes nothing.
  * @param {ReturnType<typeof huntStart>} state the hunt now
- * @param {string} name the tool the shot landed on
+ * @param {string} name the tool that was opened
  * @param {string[]} names the tools it can flee to
  * @param {() => number} random a number from 0 up to 1
  * @returns {ReturnType<typeof huntStart>} the hunt next
@@ -39,13 +39,46 @@ export const huntStep = (state, name, names, random = Math.random) => {
 };
 
 /**
- * What the statusline says after a hit: the first one, so the visitor knows there's a hunt on, and the last one. The
- * hits between speak for themselves when the larva flees, and saying them too would pile the messages up.
- * @param {ReturnType<typeof huntStart>} state the hunt right after the hit
- * @returns {string | null} null for a hit that goes without a word
+ * What the statusline says when the hunt is won. Every hit before that plays out in the opened card itself.
+ * @param {ReturnType<typeof huntStart>} state the hunt
+ * @returns {string | null} null until the larva is defeated
  */
-export const huntLine = (state) => {
-  if (state.isDefeated) return "Metroid defeated. Mission complete, Samus is heading home.";
-  if (state.hits === 1) return `Metroid hit, 1 of ${HITS_TO_DEFEAT}. It fled behind another tool.`;
-  return null;
-};
+export const huntLine = (state) => (state.isDefeated ? "Metroid defeated. Mission complete, Samus is heading home." : null);
+
+// what plays in an opened card that hid the larva, each part with the moment it ends, in ms after the card opens. the
+// card takes a moment to fly in, so nothing starts before it's there
+const ENCOUNTER = [
+  { stage: "arriving", until: 1150 },
+  { stage: "aiming", until: 1500 },
+  { stage: "firing", until: 1750 },
+  { stage: "hurt", until: 2750 },
+  { stage: "leaving", until: 3450 },
+];
+
+/**
+ * Where the fight in an opened card is a while after it opens: the card arriving, Samus taking aim, the Paralyzer
+ * beam, the larva hurt with its hull flickering, the larva fleeing or burning away, and then just the result.
+ * @param {number} elapsed ms since the card opened
+ * @returns {"arriving" | "aiming" | "firing" | "hurt" | "leaving" | "done"}
+ */
+export const encounterStage = (elapsed) => ENCOUNTER.find((part) => elapsed < part.until)?.stage ?? "done";
+
+/**
+ * When each part of the fight in a card starts, so a timer can wake for every one.
+ * @returns {number[]} ms after the card opens
+ */
+export const encounterCues = () => [0, ...ENCOUNTER.map((part) => part.until)];
+
+/**
+ * The result the card shows once the beam lands.
+ * @param {{ hits: number, isDefeated: boolean }} encounter the hunt right after this hit
+ * @returns {string}
+ */
+export const encounterLine = ({ hits, isDefeated }) => (isDefeated ? "Metroid defeated" : `Hit ${hits} of ${HITS_TO_DEFEAT}`);
+
+/**
+ * The larva's energy after a hit, one entry per hit it can take, true while that one is left.
+ * @param {number} hits how many hits it has taken
+ * @returns {boolean[]}
+ */
+export const energyLeft = (hits) => Array.from({ length: HITS_TO_DEFEAT }, (_, index) => index >= hits);

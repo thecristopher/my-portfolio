@@ -8,9 +8,9 @@ const CENTER = { x: 50, y: 50 };
 // how far it slips out from behind its tool when it peeks, in px, and how far a page held still leaves it showing
 const PEEK = 22;
 const STILL_PEEK = 12;
-// how long it hides between peeks and how long each peek lasts
+// how long it hides between peeks and how long each peek lasts, long enough for Samus to run under it
 const HIDES_FOR_MS = 3600;
-const PEEKS_FOR_MS = 1100;
+const PEEKS_FOR_MS = 2000;
 
 // out for a moment, back in for a while, over and over. a page held still never peeks, it just sits half out
 const usePeek = (isStill) => {
