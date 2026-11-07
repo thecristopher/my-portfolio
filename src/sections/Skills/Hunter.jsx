@@ -1,30 +1,28 @@
-import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion, useTransform } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
 import Sprite from "../../components/Sprite";
-import { useWalk } from "../../hooks/useWalk";
-import { GUNSHIP, SAMUS, SAMUS_SHOT, ZERO_SUIT } from "../../lib/sprites/samus";
+import { GUNSHIP, ZERO_SUIT } from "../../lib/sprites/samus";
 import {
   aimPoseFor,
   boardingShift,
   endingCues,
-  endingLook,
+  endingPose,
   endingStage,
   facingToward,
   hunterPose,
-  muzzleOffset,
+  restFor,
   shipSideFor,
-  shotFlight,
-  trackSpot,
+  spotUnder,
+  strideFor,
+  travel,
+  wanderGoal,
 } from "./actions";
 
-// how long she stands after the scroll rests before curling into a ball, long enough to look both ways first. it's
-// shorter than the larva hides between peeks, so after pointing at one she curls up before the next
-const CURL_AFTER_MS = 3000;
-// how often she turns while she stands looking for the larva
-const SCAN_EVERY_MS = 1200;
-const SHEETS = { power: SAMUS, zero: ZERO_SUIT };
-// how far the gunship tucks in behind her, in sprite px
-const SHIP_TUCK = 10;
+const PIXEL = { fontFamily: '"Pixelify Sans", ui-monospace, monospace' };
+const WIDTH = ZERO_SUIT.cell.width;
+// the gunship is drawn twice its pixel size, so it's bigger than her, and tucks in this far behind her
+const SHIP_SCALE = 2;
+const SHIP_TUCK = 14;
 // how small the ship gets as it flies off into the middle of the orbit
 const SHIP_FAR = 0.1;
 
@@ -33,266 +31,235 @@ const centerOf = (element) => {
   return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
 };
 
-// how she points at a spot on the screen: which way she faces and how high she raises the cannon, measured from her chest
+// how she points at a spot on the screen: which way she faces and how high she raises the Paralyzer
 const sightOn = (box, spot) => {
-  const chest = { x: box.left + box.width / 2, y: box.top + box.height * 0.45 };
+  const chest = { x: box.left + box.width / 2, y: box.top + box.height * 0.4 };
   return { facing: facingToward(box, spot.x), pose: aimPoseFor(chest, spot) };
 };
 
-// true once she has rested long enough to curl up. running, aiming at a tool or pointing at the larva starts the rest
-// over, so she never drops into the ball mid point
-const useCurl = (isBusy, isPointing) => {
-  const [isCurled, setIsCurled] = useState(false);
-  // curled up she's resting, so a peek then doesn't wake her
-  const isAwake = isBusy || (isPointing && !isCurled);
+// how long her track is: the orbit's width, less her own, kept up to date as the window resizes
+const useTrack = (orbitRef) => {
+  const [track, setTrack] = useState(0);
 
   useEffect(() => {
-    if (isAwake) {
-      setIsCurled(false);
+    const orbit = orbitRef.current;
+    if (!orbit) return undefined;
+    const measure = () => setTrack(Math.max(0, orbit.offsetWidth - WIDTH));
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(orbit);
+    return () => observer.disconnect();
+  }, [orbitRef]);
+
+  return track;
+};
+
+// her legs: walks or runs her to a spot along the track at her own pace, and says how she's moving and which way she
+// faces. a new trip or a halt cuts the one underway short
+const useLegs = (x, track) => {
+  const [stride, setStride] = useState({ gait: null, facing: "right" });
+  const trip = useRef(null);
+
+  const halt = useCallback(() => {
+    trip.current?.stop();
+    trip.current = null;
+    setStride((current) => ({ ...current, gait: null }));
+  }, []);
+
+  const goTo = useCallback(
+    (goal, isChasing = false) => {
+      trip.current?.stop();
+      const { gait, seconds, facing } = strideFor(x.get(), goal, track, isChasing);
+      setStride({ gait, facing });
+      trip.current = animate(x, goal, { duration: seconds, ease: "linear" });
+      return trip.current.then(() => setStride((current) => ({ ...current, gait: null })));
+    },
+    [x, track],
+  );
+
+  // the trip underway, or one already done, so a new plan can wait for her to arrive first
+  const settle = useCallback(() => trip.current ?? Promise.resolve(), []);
+
+  return { ...stride, goTo, halt, settle };
+};
+
+// what she's up to: playing out her ending, out of sight while a card is open, aiming at a picked tool, running after
+// the peeking larva, or strolling around
+const modeFor = ({ isEnding, isHidden, target, sighting }) => {
+  if (isEnding) return "ending";
+  if (isHidden) return "hidden";
+  if (target) return "aiming";
+  return sighting ? "chasing" : "wandering";
+};
+
+// her mind: strolls from spot to spot with a rest between, runs to stand right under the larva when it peeks, and
+// stops for a picked tool. anyone who asked for less movement gets her standing in the middle
+const useBrain = ({ mode, sighting, legs, x, track, orbitRef, isStill }) => {
+  const { goTo, halt, settle } = legs;
+  const hasArrived = useRef(false);
+
+  useEffect(() => {
+    if (!track) return undefined;
+    // she starts in the middle of the track, once
+    if (!hasArrived.current || isStill) x.set(track / 2);
+    hasArrived.current = true;
+    if (isStill) return undefined;
+    if (mode !== "wandering" && mode !== "chasing") {
+      halt();
       return undefined;
     }
-    const timer = setTimeout(() => setIsCurled(true), CURL_AFTER_MS);
-    return () => clearTimeout(timer);
-  }, [isAwake]);
-
-  return isCurled;
+    if (mode === "chasing") {
+      const larva = centerOf(sighting);
+      goTo(spotUnder(larva.x, orbitRef.current.getBoundingClientRect().left, WIDTH, track), true);
+      return undefined;
+    }
+    let isCancelled = false;
+    let timer = null;
+    const stroll = () => {
+      timer = setTimeout(() => {
+        if (!isCancelled) goTo(wanderGoal(x.get(), track)).then(() => !isCancelled && stroll());
+      }, restFor());
+    };
+    // a chase underway runs to its end before she starts strolling again
+    settle().then(() => !isCancelled && stroll());
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
+  }, [mode, sighting, track, isStill, x, orbitRef, goTo, halt, settle]);
 };
 
-// while she stands hunting she looks one way, then the other, until she curls up or starts moving
-const useScan = (isScanning) => {
-  const [isLookingBack, setIsLookingBack] = useState(false);
-
-  useEffect(() => {
-    setIsLookingBack(false);
-    if (!isScanning) return undefined;
-    const timer = setInterval(() => setIsLookingBack((current) => !current), SCAN_EVERY_MS);
-    return () => clearInterval(timer);
-  }, [isScanning]);
-
-  return isLookingBack;
-};
-
-// how she points at the larva while it peeks out, null when it's hiding
-const useSighting = (sighting, spriteRef) => {
+// how she aims at the picked tool or points at the peeking larva, measured again whenever she stops moving
+const useSight = (thing, spriteRef, gait) => {
   const [look, setLook] = useState(null);
 
   useEffect(() => {
-    if (!sighting || !spriteRef.current) {
+    if (!thing || !spriteRef.current) {
       setLook(null);
       return;
     }
-    setLook(sightOn(spriteRef.current.getBoundingClientRect(), centerOf(sighting)));
-  }, [sighting, spriteRef]);
+    setLook(sightOn(spriteRef.current.getBoundingClientRect(), centerOf(thing)));
+  }, [thing, spriteRef, gait]);
 
   return look;
 };
 
-// the ending's stage, null while the hunt is on, moving through every stage on its own timer once the larva is defeated
-const useEnding = (isDefeated) => {
+// the ending's stage, null until it starts, then moving through every stage on its own timer
+const useEndingStage = (isEnding) => {
   const [stage, setStage] = useState(null);
 
   useEffect(() => {
-    if (!isDefeated) return undefined;
+    if (!isEnding) return undefined;
     const timers = endingCues().map((at) => setTimeout(() => setStage(endingStage(at)), at));
     return () => timers.forEach(clearTimeout);
-  }, [isDefeated]);
+  }, [isEnding]);
 
   return stage;
 };
 
-// turns her toward the tool in her sights and fires a shot at it, one per tool, telling onLand which tool it hit.
-// anyone who asked for less movement gets her aiming, and the shot lands at once
-const useAim = (target, spriteRef, scale, isStill, onLand) => {
-  const [aim, setAim] = useState({ facing: "right", pose: "aim", flight: null, impact: null });
-  const landed = useRef(onLand);
-  landed.current = onLand;
-
-  useEffect(() => {
-    if (!target || !spriteRef.current) return;
-    const box = spriteRef.current.getBoundingClientRect();
-    const spot = centerOf(target.element);
-    const { facing, pose } = sightOn(box, spot);
-    if (isStill) {
-      setAim({ facing, pose, flight: null, impact: null });
-      landed.current(target.name);
-      return;
-    }
-    const from = muzzleOffset(box, SAMUS.muzzles[pose], scale, facing);
-    const to = { x: spot.x - box.left, y: spot.y - box.top };
-    setAim({ facing, pose, flight: { from, to, name: target.name, key: Date.now(), ...shotFlight(from, to) }, impact: null });
-  }, [target, spriteRef, scale, isStill]);
-
-  const land = () => {
-    const { flight } = aim;
-    if (!flight) return;
-    setAim((current) => ({ ...current, flight: null, impact: { ...flight.to, key: flight.key } }));
-    landed.current(flight.name);
-  };
-  const fade = () => setAim((current) => ({ ...current, impact: null }));
-  return { ...aim, land, fade };
-};
-
-// the charge shot, centered on the cannon's end and flying along its own angle until it hits
-const Shot = ({ flight, scale, onLand }) => {
-  const width = SAMUS_SHOT.width * scale;
-  const height = SAMUS_SHOT.height * scale;
-  return (
-    <motion.img
-      src={SAMUS_SHOT.src}
-      alt=""
-      width={width}
-      height={height}
-      className="absolute max-w-none [image-rendering:pixelated]"
-      style={{ left: flight.from.x - width / 2, top: flight.from.y - height / 2, rotate: flight.angle }}
-      initial={{ x: 0, y: 0 }}
-      animate={{ x: flight.dx, y: flight.dy }}
-      transition={{ duration: flight.seconds, ease: "linear" }}
-      onAnimationComplete={onLand}
-    />
-  );
-};
-
-// the flash where a shot lands, a burst of the shot's own orange
-const Impact = ({ impact, onFade }) => (
+// a "!" over her head the moment she spots the larva
+const Alert = () => (
   <motion.span
-    className="absolute size-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,#fff6c8_0%,#ffb03a_35%,transparent_70%)]"
-    style={{ left: impact.x, top: impact.y }}
-    initial={{ scale: 0.2, opacity: 1 }}
-    animate={{ scale: 1.8, opacity: 0 }}
-    transition={{ duration: 0.35, ease: "easeOut" }}
-    onAnimationComplete={onFade}
-  />
+    className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 text-2xl leading-none font-bold text-[#ff4d6d] drop-shadow-[0_2px_0_#0b1430]"
+    style={PIXEL}
+    initial={{ opacity: 0, y: 6, scale: 0.5 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    transition={{ type: "spring", stiffness: 500, damping: 14 }}
+  >
+    !
+  </motion.span>
 );
 
-// where the ship goes in each stage: down out of the sky to land, then up off the ground and away into the middle of
-// the orbit, shrinking into the distance
-const shipMotion = (stage, flight, scale, isStill) => {
+// where the ship goes: down out of the sky to land, then up off the ground and away into the middle of the orbit,
+// shrinking into the distance
+const shipMotion = (stage, flight, isStill) => {
   if (stage !== "departing") return { animate: { x: 0, y: 0, scale: 1, opacity: 1 }, transition: { duration: isStill ? 0.3 : 1.4, ease: [0.16, 1, 0.3, 1] } };
   if (isStill || !flight) return { animate: { opacity: 0 }, transition: { duration: 0.6 } };
   return {
-    animate: { x: [0, 0, flight.dx], y: [0, -30 * scale, flight.dy], scale: [1, 1, SHIP_FAR], opacity: [1, 1, 1, 0] },
+    animate: { x: [0, 0, flight.dx], y: [0, -40, flight.dy], scale: [1, 1, SHIP_FAR], opacity: [1, 1, 1, 0] },
     transition: { duration: 2.4, times: [0, 0.25, 1], ease: "easeInOut", opacity: { duration: 2.4, times: [0, 0.3, 0.85, 1] } },
   };
 };
 
-// her gunship: lands beside her, waits while she leaps aboard, then flies off into the middle of the orbit
-const Gunship = ({ scale, side, stage, flight, isStill, shipRef }) => {
-  const tuck = `calc(100% - ${SHIP_TUCK * scale}px)`;
-  const { animate, transition } = shipMotion(stage, flight, scale, isStill);
+// her gunship: lands beside her, waits while she flips aboard, then flies off into the middle of the orbit
+const Gunship = ({ side, stage, flight, isStill, shipRef }) => {
+  const tuck = `calc(100% - ${SHIP_TUCK}px)`;
+  const { animate: to, transition } = shipMotion(stage, flight, isStill);
   return (
     <motion.img
       ref={shipRef}
       src={GUNSHIP.src}
       alt=""
-      width={GUNSHIP.width * scale}
-      height={GUNSHIP.height * scale}
+      width={GUNSHIP.width * SHIP_SCALE}
+      height={GUNSHIP.height * SHIP_SCALE}
       className="absolute bottom-0 max-w-none [image-rendering:pixelated]"
       style={side === "left" ? { right: tuck } : { left: tuck }}
-      initial={isStill ? { opacity: 0 } : { y: -320 * scale, opacity: 0 }}
-      animate={animate}
+      initial={isStill ? { opacity: 0 } : { y: -500, opacity: 0 }}
+      animate={to}
       transition={transition}
     />
   );
 };
 
-// the Zero Suit as she leaps up and into the ship, and out of sight while the ship flies her away. her box stays where
-// it was, so the ship beside it doesn't move
-const leapMotion = (stage, side, scale, isStill) => {
+// her flip from her spot up and into the ship, and out of sight while the ship flies her away
+const flipMotion = (stage, side, isStill) => {
   if (stage === "departing") return { opacity: 0 };
   if (stage !== "boarding" || isStill) return { x: 0, y: 0, opacity: 1 };
-  const shift = boardingShift(side, ZERO_SUIT.cell.width * scale, GUNSHIP.width * scale, SHIP_TUCK * scale);
-  return { x: [0, shift / 2, shift], y: [0, -34 * scale, -8 * scale], opacity: [1, 1, 0], transition: { duration: 0.6, ease: "easeOut" } };
+  const shift = boardingShift(side, WIDTH, GUNSHIP.width * SHIP_SCALE, SHIP_TUCK);
+  return { x: [0, shift / 2, shift], y: [0, -60, -10], opacity: [1, 1, 0], transition: { duration: 0.6, ease: "easeOut" } };
 };
 
-const facingFor = ({ target, aim, walk, isRunning, isCurled, sightingLook, isLookingBack }) => {
-  if (target) return aim.facing;
-  if (isRunning || isCurled) return walk.facing;
-  if (sightingLook) return sightingLook.facing;
-  if (!isLookingBack) return walk.facing;
-  return walk.facing === "left" ? "right" : "left";
-};
-
-// where she stands along the track. once the ending starts she stays where the larva fell, so scrolling doesn't slide
-// her or the ship around
-const useTrack = (progress, width, isStill, isFrozen) => {
-  const tracked = useTransform(progress, (at) => {
-    const spot = isStill ? 0.5 : trackSpot(at);
-    return `calc(${spot * 100}% - ${spot * width}px)`;
-  });
-  const [frozen, setFrozen] = useState(null);
-
-  useEffect(() => {
-    setFrozen(isFrozen ? tracked.get() : null);
-  }, [isFrozen, tracked]);
-
-  return frozen ?? tracked;
+const facingFor = ({ aim, legs, sight }) => {
+  if (aim) return aim.facing;
+  if (legs.gait) return legs.facing;
+  return sight?.facing ?? legs.facing;
 };
 
 /**
- * Samus under the orbit, hunting the Metroid larva hiding in it: running along as the section scrolls, looking both
- * ways when the scroll rests and curling into the morph ball after a while, pointing the cannon at the larva whenever
- * it peeks out, and firing a charge shot at whichever tool is hovered or focused. The third hit defeats the larva, and
- * she raises the cannon in triumph, steps out of the suit, leaps aboard her gunship and flies off into the orbit.
- * @param {{ progress: import("framer-motion").MotionValue<number>, target: { name: string, element: HTMLElement } | null,
- *   sighting: HTMLElement | null, orbitRef: { current: HTMLElement | null }, scale: number, isDefeated: boolean,
- *   onLand: (name: string) => void }} props
- *   target is the tool in her sights, sighting the larva while it peeks out, orbitRef the orbit the ship flies into,
- *   onLand fires with the tool each shot lands on
+ * Samus in the Zero Suit, on her own patrol under the orbit: strolling and resting, running to stand right under the
+ * Metroid larva with a "!" whenever it peeks out and pointing her Paralyzer at it, and aiming at whichever tool is
+ * hovered or focused. Opening a tool is her shot, played out in the card. Once the larva is defeated and the card
+ * closes, she spins her pistol in victory, her gunship lands beside her, and she flips aboard and flies off into the
+ * middle of the orbit.
+ * @param {{ target: { name: string, element: HTMLElement } | null, sighting: HTMLElement | null,
+ *   orbitRef: { current: HTMLElement | null }, isHidden: boolean, isEnding: boolean }} props
+ *   target is the tool in her sights, sighting the larva while it peeks out, orbitRef the orbit she patrols under and
+ *   the ship flies into, isHidden whether a card is open over her
  */
-const Hunter = ({ progress, target, sighting, orbitRef, scale, isDefeated, onLand }) => {
+const Hunter = ({ target, sighting, orbitRef, isHidden, isEnding }) => {
   const isStill = useReducedMotion();
   const spriteRef = useRef(null);
   const shipRef = useRef(null);
-  const stage = useEnding(isDefeated);
-  const isEnding = Boolean(stage);
-  const walk = useWalk(progress);
-  const isRunning = walk.isWalking && !isStill && !isEnding;
-  const aimTarget = isEnding ? null : target;
-  // a page held still never curls her up, she'd just sit there as a ball
-  const sightingLook = useSighting(isEnding ? null : sighting, spriteRef);
-  const isCurled = useCurl(isRunning || Boolean(aimTarget) || isStill || isEnding, Boolean(sightingLook));
-  const isLookingBack = useScan(!isEnding && !isRunning && !isCurled && !aimTarget && !sightingLook && !isStill);
-  const aim = useAim(aimTarget, spriteRef, scale, isStill, onLand);
+  const x = useMotionValue(0);
+  const track = useTrack(orbitRef);
+  const legs = useLegs(x, track);
+  const stage = useEndingStage(isEnding);
+  const mode = modeFor({ isEnding, isHidden, target, sighting });
+  useBrain({ mode, sighting, legs, x, track, orbitRef, isStill });
+  const aim = useSight(mode === "aiming" ? target.element : null, spriteRef, legs.gait);
+  const sight = useSight(mode === "chasing" ? sighting : null, spriteRef, legs.gait);
   const [shipSide, setShipSide] = useState("left");
   const [shipFlight, setShipFlight] = useState(null);
-  // aboard the ship she keeps her last look, hidden, so her box keeps its size and the ship beside it stays put
-  const ending = endingLook(stage === "departing" ? "boarding" : stage);
-  const suit = ending?.suit ?? "power";
-  const sheet = SHEETS[suit];
-  const left = useTrack(progress, sheet.cell.width * scale, isStill, isEnding);
-  const pose = ending?.pose ?? hunterPose({ targetPose: aimTarget ? aim.pose : null, sightingPose: sightingLook?.pose ?? null, isRunning, isCurled });
-  const facing = facingFor({ target: aimTarget, aim, walk, isRunning, isCurled, sightingLook, isLookingBack });
-  const hasShip = stage === "landing" || stage === "boarding" || stage === "departing";
+  const pose = stage ? endingPose(stage) : hunterPose({ targetPose: aim?.pose ?? null, sightingPose: sight?.pose ?? null, gait: legs.gait });
+  const facing = stage ? "right" : facingFor({ aim, legs, sight });
 
   useEffect(() => {
-    if (stage === "landing" && spriteRef.current) setShipSide(shipSideFor(spriteRef.current.getBoundingClientRect(), window.innerWidth));
-    if (stage === "departing" && shipRef.current && orbitRef.current) setShipFlight(shotFlight(centerOf(shipRef.current), centerOf(orbitRef.current)));
-  }, [stage, orbitRef]);
+    if (stage === "landing") setShipSide(shipSideFor(x.get(), track));
+    if (stage === "departing" && shipRef.current && orbitRef.current) setShipFlight(travel(centerOf(shipRef.current), centerOf(orbitRef.current)));
+  }, [stage, x, track, orbitRef]);
 
   if (stage === "gone") return null;
+  const hasShip = stage === "landing" || stage === "boarding" || stage === "departing";
 
   return (
-    <motion.div style={{ left }} className="pointer-events-none absolute top-full" aria-hidden="true">
+    <motion.div style={{ x }} className={`pointer-events-none absolute top-full left-0 transition-opacity ${isHidden ? "opacity-0" : ""}`} aria-hidden="true">
       <div ref={spriteRef} className="relative">
-        {hasShip && <Gunship scale={scale} side={shipSide} stage={stage} flight={shipFlight} isStill={isStill} shipRef={shipRef} />}
-        {ending && (
-          // the triumph and the suit coming off both flash white, the way she does when she touches a power up
-          <motion.div
-            key={suit}
-            className="relative"
-            initial={isStill ? false : { filter: "brightness(4)" }}
-            animate={isStill ? undefined : { filter: ["brightness(4)", "brightness(1)", "brightness(2.2)", "brightness(1)"] }}
-            transition={{ duration: 1, times: [0, 0.4, 0.6, 1] }}
-          >
-            <motion.div animate={leapMotion(stage, shipSide, scale, isStill)}>
-              <Sprite key={pose} sheet={sheet} animation={pose} scale={scale} isFlipped={facing === "left"} />
-            </motion.div>
-          </motion.div>
-        )}
-        {!ending && <Sprite key={pose} sheet={sheet} animation={pose} scale={scale} isFlipped={facing === "left"} />}
+        {hasShip && <Gunship side={shipSide} stage={stage} flight={shipFlight} isStill={isStill} shipRef={shipRef} />}
+        {mode === "chasing" && <Alert />}
+        <motion.div animate={flipMotion(stage, shipSide, isStill)}>
+          <Sprite key={pose} sheet={ZERO_SUIT} animation={pose} isFlipped={facing === "left"} />
+        </motion.div>
       </div>
-      <AnimatePresence>{aim.flight && <Shot key={aim.flight.key} flight={aim.flight} scale={scale} onLand={aim.land} />}</AnimatePresence>
-      {aim.impact && <Impact key={aim.impact.key} impact={aim.impact} onFade={aim.fade} />}
     </motion.div>
   );
 };

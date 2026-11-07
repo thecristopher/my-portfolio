@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import TechIcon from "../../components/TechIcon";
-import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useScrollRange } from "../../hooks/useScrollRange";
 import { countUsing, usesTech } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
 import { pointOnCircle } from "../../lib/geometry";
 import Hunter from "./Hunter";
 import Metroid from "./Metroid";
-import { useHunt } from "./useHunt";
+import { useHunt, useWinLine } from "./useHunt";
 import LevelMeter from "./LevelMeter";
 import Planet from "./Planet";
 import Starfield from "./Starfield";
@@ -192,17 +191,18 @@ const useTilt = (progress, isStill) => {
 };
 
 // opening a tool: remembers which satellite it came from and where it sat, so the camera can fly there and focus can
-// land back on it once the camera flies out
+// land back on it once the camera flies out. it carries the fight with the larva too, when the larva hid there
 const useDive = (orbitRef) => {
   const [dive, setDive] = useState(null);
   const returnTo = useRef(null);
 
-  const open = (tool, satellite) => {
+  const open = (tool, satellite, encounter = null) => {
     const orbit = orbitRef.current.getBoundingClientRect();
     const spot = satellite.getBoundingClientRect();
     returnTo.current = satellite;
     setDive({
       tool,
+      encounter,
       offset: { x: spot.left + spot.width / 2 - (orbit.left + orbit.width / 2), y: spot.top + spot.height / 2 - (orbit.top + orbit.height / 2) },
     });
   };
@@ -219,6 +219,17 @@ const useDive = (orbitRef) => {
   }, [dive]);
 
   return { dive, open, close, leave };
+};
+
+// true from the moment a condition first holds, and for good after
+const useLatch = (condition) => {
+  const [isOn, setIsOn] = useState(false);
+
+  useEffect(() => {
+    if (condition) setIsOn(true);
+  }, [condition]);
+
+  return isOn;
 };
 
 const AT_REST = { x: 0, y: 0, scale: 1, opacity: 1, filter: "blur(0px)" };
@@ -241,13 +252,18 @@ const Orbit = ({ tools, projects, pickedTech, onPick }) => {
   // the satellite Samus has in her sights, and the larva while it peeks out
   const [target, setTarget] = useState(null);
   const [sighting, setSighting] = useState(null);
-  const hunterScale = useMediaQuery("(min-width: 640px)") ? 2 : 1;
   const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const { rotateX, rotateY, follow, settle } = useTilt(scrollYProgress, prefersReducedMotion);
   const { dive, open, close, leave } = useDive(ref);
   const rings = orbitLayout(tools);
-  const { hunt, land } = useHunt(tools.map((tool) => tool.name));
+  const { hunt, strike } = useHunt(tools.map((tool) => tool.name));
+  // her ending waits for the card that defeated the larva to close, so it plays out where it can be seen
+  const isEnding = useLatch(hunt.isDefeated && !dive);
+  useWinLine(hunt, isEnding);
+
+  // opening a tool is Samus shooting at it, so the card knows whether the larva was there and how it fared
+  const openTool = (tool, satellite) => open(tool, satellite, strike(tool.name));
 
   const focus = (tool, satellite) => {
     setFocused(tool);
@@ -296,23 +312,13 @@ const Orbit = ({ tools, projects, pickedTech, onPick }) => {
               isDefeated={hunt.isDefeated}
               onPeek={setSighting}
               onFocus={focus}
-              onDive={open}
+              onDive={openTool}
             />
           ))}
           <Core focused={focused} total={tools.length} projects={projects} />
         </motion.div>
       </motion.div>
-      {!dive && (
-        <Hunter
-          progress={scrollYProgress}
-          target={target}
-          sighting={sighting}
-          orbitRef={ref}
-          scale={hunterScale}
-          isDefeated={hunt.isDefeated}
-          onLand={land}
-        />
-      )}
+      <Hunter target={target} sighting={sighting} orbitRef={ref} isHidden={Boolean(dive)} isEnding={isEnding} />
       <AnimatePresence>
         {dive && (
           <Planet
@@ -321,6 +327,7 @@ const Orbit = ({ tools, projects, pickedTech, onPick }) => {
             origin={dive.offset}
             jobs={jobsWith(projects, usesTech, dive.tool.name)}
             total={projects.length}
+            encounter={dive.encounter}
             onClose={close}
             onSeeJobs={seeJobs}
           />

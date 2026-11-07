@@ -4,6 +4,7 @@ import { ArrowRight, X } from "lucide-react";
 import TechIcon from "../../components/TechIcon";
 import { brandColorFor } from "../../actions";
 import { easeOutExpo } from "../../lib/motion";
+import Encounter from "./Encounter";
 import LevelMeter from "./LevelMeter";
 import { jobsLine, levelLine } from "./actions";
 
@@ -46,11 +47,11 @@ const PlanetRing = ({ half, isStill }) => (
 );
 
 // the tool as a planet in its brand color, with the satellite's chip at its heart
-const Sphere = ({ tool }) => {
+const Sphere = ({ tool, ref }) => {
   const prefersReducedMotion = useReducedMotion();
   const color = brandColorFor(tool.name) ?? "var(--color-sunset-2)";
   return (
-    <div className="relative grid size-20 shrink-0 place-items-center sm:size-40">
+    <div ref={ref} className="relative grid size-20 shrink-0 place-items-center sm:size-40">
       <PlanetRing half="back" isStill={prefersReducedMotion} />
       <span
         className="absolute inset-0 rounded-full"
@@ -93,12 +94,15 @@ const Details = ({ tool, jobs, total }) => (
 
 /**
  * A tool opened up as a planet once the camera has dived into it: its level, the jobs that shipped with it and the way
- * to go see them. Grows out of the satellite it came from, and shrinks back into it on the way out.
- * @param {{ tool: object, origin: { x: number, y: number }, jobs: string[], total: number, onClose: () => void, onSeeJobs: () => void }} props
- *   origin is where the satellite sat, in px from the orbit's center
+ * to go see them. Grows out of the satellite it came from, and shrinks back into it on the way out. When the Metroid
+ * larva was hiding behind the tool, Samus's fight with it plays out around the card.
+ * @param {{ tool: object, origin: { x: number, y: number }, jobs: string[], total: number, encounter: object | null, onClose: () => void, onSeeJobs: () => void }} props
+ *   origin is where the satellite sat, in px from the orbit's center, encounter how the larva fared, null when it
+ *   wasn't there
  */
-const Planet = ({ tool, origin, jobs, total, onClose, onSeeJobs }) => {
+const Planet = ({ tool, origin, jobs, total, encounter, onClose, onSeeJobs }) => {
   const dialog = useRef(null);
+  const sphere = useRef(null);
   useEscape(onClose);
   useEffect(() => dialog.current?.focus(), []);
   const fromSatellite = { x: origin.x, y: origin.y, scale: 0.08, opacity: 0 };
@@ -127,7 +131,7 @@ const Planet = ({ tool, origin, jobs, total, onClose, onSeeJobs }) => {
         >
           <X size={16} aria-hidden="true" />
         </button>
-        <Sphere tool={tool} />
+        <Sphere tool={tool} ref={sphere} />
         <div className="flex min-w-0 flex-col items-start gap-4 sm:gap-5">
           <Details tool={tool} jobs={jobs} total={total} />
           <button
@@ -140,6 +144,7 @@ const Planet = ({ tool, origin, jobs, total, onClose, onSeeJobs }) => {
             <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </button>
         </div>
+        {encounter && <Encounter encounter={encounter} cardRef={dialog} sphereRef={sphere} />}
       </motion.div>
     </div>
   );
