@@ -265,5 +265,6 @@ const RARITY = [
  */
 export const rarityOf = (average) => RARITY.find((tier) => average >= tier.from)?.name ?? "Common";
 
+export * from "./body";
 export * from "./hunter";
 export * from "./hunt";

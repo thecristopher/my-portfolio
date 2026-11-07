@@ -12,8 +12,9 @@ const STILL_PEEK = 12;
 const HIDES_FOR_MS = 3600;
 const PEEKS_FOR_MS = 2000;
 
-// out for a moment, back in for a while, over and over. a page held still never peeks, it just sits half out
-const usePeek = (isStill) => {
+// out for a moment, back in for a while, over and over. a shot that lands sends it straight back in, and it waits the
+// whole while before peeking again. a page held still never peeks, it just sits half out
+const usePeek = (isStill, spooked) => {
   const [isPeeking, setIsPeeking] = useState(false);
 
   useEffect(() => {
@@ -27,12 +28,16 @@ const usePeek = (isStill) => {
       setIsPeeking(true);
       timer = setTimeout(hide, PEEKS_FOR_MS);
     };
-    timer = setTimeout(peek, HIDES_FOR_MS);
+    hide();
     return () => clearTimeout(timer);
-  }, [isStill]);
+  }, [isStill, spooked]);
 
   return isPeeking;
 };
+
+// floating while it's out, the way a larva drifts, and a flash of white the moment a shot hits it
+const FLOAT = { y: [0, -3, 0, 2, 0], transition: { duration: 1.6, repeat: Infinity, ease: "easeInOut" } };
+const flinchFor = (isFlinching) => (isFlinching ? { filter: ["brightness(3)", "brightness(1)"], transition: { duration: 0.4 } } : {});
 
 const BURN = { scale: [1, 1.6, 0], opacity: [1, 1, 0], filter: ["brightness(1)", "brightness(4)", "brightness(4)"], transition: { duration: 0.7, times: [0, 0.45, 1] } };
 
@@ -45,16 +50,19 @@ const exitsFor = (flee) => ({
 
 /**
  * The Metroid larva hiding behind a tool on its ring, turning with it. Now and then it slips out a little, away from
- * the core, and ducks back. Hit, it flashes and darts off before showing up behind another tool, and the last hit
- * burns it away for good.
- * @param {{ angle: number, counterTurn: import("framer-motion").MotionValue<number>, onPeek: (larva: HTMLElement | null) => void }} props
- *   angle is where its tool sits on the ring, counterTurn keeps it upright while the ring turns, onPeek gets the larva
- *   each time it slips out and null when it ducks back or leaves
+ * the core, floating while it's out, and ducks back. A shot from below makes it flinch and hide. Hit in a card, it
+ * flashes and darts off before showing up behind another tool, and the last hit burns it away for good.
+ * @param {{ angle: number, counterTurn: import("framer-motion").MotionValue<number>, spooked: number,
+ *   onPeek: (larva: HTMLElement | null) => void }} props
+ *   angle is where its tool sits on the ring, counterTurn keeps it upright while the ring turns, spooked counts the
+ *   shots that reached it, onPeek gets the larva each time it slips out and null when it ducks back or leaves
  */
-const Metroid = ({ angle, counterTurn, onPeek }) => {
+const Metroid = ({ angle, counterTurn, spooked, onPeek }) => {
   const prefersReducedMotion = useReducedMotion();
   const larva = useRef(null);
-  const isPeeking = usePeek(prefersReducedMotion);
+  const isPeeking = usePeek(prefersReducedMotion, spooked);
+  // shots from before it hid here belong to another hideout, so it only flinches at new ones
+  const spookedOnArrival = useRef(spooked);
   const peeked = useRef(onPeek);
   peeked.current = onPeek;
   const spot = pointOnCircle(angle, 50, CENTER);
@@ -85,8 +93,10 @@ const Metroid = ({ angle, counterTurn, onPeek }) => {
         animate={isOut ? { x: peek.x, y: peek.y } : { x: 0, y: 0 }}
         transition={{ duration: 0.35, ease: "easeInOut" }}
       >
-        <motion.span className="block" style={{ rotate: counterTurn }}>
-          <Sprite sheet={METROID} animation="pulse" />
+        <motion.span className="block" style={{ rotate: counterTurn }} animate={isPeeking ? FLOAT : { y: 0 }}>
+          <motion.span key={spooked} className="block" animate={flinchFor(spooked !== spookedOnArrival.current)}>
+            <Sprite sheet={METROID} animation="pulse" />
+          </motion.span>
         </motion.span>
       </motion.span>
     </motion.span>

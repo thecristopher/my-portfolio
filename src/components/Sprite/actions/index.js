@@ -37,3 +37,14 @@ export const frameWindow = (sheet, animationName, frame, scale = 1) => {
  * @returns {number} milliseconds
  */
 export const playLength = ({ frames, fps }) => Math.round((frames / fps) * 1000);
+
+/**
+ * The frame an animation played by distance shows after traveling so far, one frame every stride px, looping.
+ * @param {number} distance how far the character has traveled, in sprite px, either way
+ * @param {{ frames: number, stride: number }} animation
+ * @returns {number} 0 based
+ */
+export const frameAtDistance = (distance, { frames, stride }) => {
+  const step = Math.floor(Math.abs(distance) / stride);
+  return step % frames;
+};

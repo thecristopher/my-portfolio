@@ -1,32 +1,48 @@
-// how fast she rolls in the morph ball and runs, in screen px per second
-const ROLL_SPEED = 120;
-const RUN_SPEED = 260;
 // past this share of the track a roll turns into a run
 const RUN_FROM = 0.4;
 // how far a stroll goes at the least, as a share of the track, so she never shuffles in place
 const SHORTEST_STROLL = 0.2;
 // how long she stands between strolls, in ms
 const REST = { least: 1800, spread: 2600 };
+// how often a long run gets a somersault thrown in, and how far into it, as a share of the way
+const FLIP_ODDS = 0.45;
+const FLIP_AT = { least: 0.25, spread: 0.3 };
 
 // how steep a line has to climb before she raises the arm cannon to the diagonal, and then straight up, in degrees
 const DIAGONAL_FROM = 22.5;
 const UP_FROM = 67.5;
 
 /**
- * How she gets from one spot on her track to another: rolling a short way in the morph ball, running a long one or
- * after the larva, how long it takes and which way she faces.
+ * How she gets somewhere on her track: rolling a short way in the morph ball, running a long one or after the larva.
  * @param {number} from where she stands, px from the track's left end
  * @param {number} to where she's going
  * @param {number} track how long the track is, px
  * @param {boolean} isChasing whether she's going after the larva, which is always a run
- * @returns {{ gait: "roll" | "run", seconds: number, facing: "left" | "right" }}
+ * @returns {"roll" | "run"}
  */
-export const strideFor = (from, to, track, isChasing = false) => {
-  const distance = Math.abs(to - from);
-  const gait = isChasing || distance > track * RUN_FROM ? "run" : "roll";
-  const speed = gait === "run" ? RUN_SPEED : ROLL_SPEED;
-  return { gait, seconds: distance / speed, facing: to < from ? "left" : "right" };
+export const gaitFor = (from, to, track, isChasing = false) => (isChasing || Math.abs(to - from) > track * RUN_FROM ? "run" : "roll");
+
+/**
+ * Where on a run she throws in a somersault, if she does at all: only on runs, and only some of them.
+ * @param {number} from where the run starts, px from the track's left end
+ * @param {number} to where it ends
+ * @param {"roll" | "run"} gait
+ * @param {() => number} random a number from 0 up to 1
+ * @returns {number | null} px from the track's left end where she leaps, null when she just runs
+ */
+export const flipSpotFor = (from, to, gait, random = Math.random) => {
+  if (gait !== "run" || random() >= FLIP_ODDS) return null;
+  return from + (to - from) * (FLIP_AT.least + random() * FLIP_AT.spread);
 };
+
+/**
+ * Whether she has just reached the spot where she leaps, coming from either side.
+ * @param {number} before where she was a step ago
+ * @param {number} after where she is now
+ * @param {number | null} spot where she leaps, null when she doesn't
+ * @returns {boolean}
+ */
+export const hasPassed = (before, after, spot) => spot !== null && (before - spot) * (after - spot) <= 0 && before !== after;
 
 /**
  * Where she strolls to next when there's nothing to chase: anywhere on the track, but never a step away.
@@ -72,45 +88,56 @@ export const aimPoseFor = (from, to) => {
   return "aim";
 };
 
-// the firing pose for each way she can aim, the same aim with the cannon's flash
-const FIRING = { aim: "fire", aimDiagonal: "fireDiagonal", aimUp: "fireUp" };
+/**
+ * Which side of her a point on the screen is.
+ * @param {number} at her horizontal center on screen
+ * @param {number} x the point's horizontal position on screen
+ * @returns {"left" | "right"}
+ */
+export const sideOf = (at, x) => (x < at ? "left" : "right");
 
 /**
- * The pose she fires from: the same aim, with the flash of the shot leaving the cannon.
- * @param {"aim" | "aimDiagonal" | "aimUp"} aim how she's aiming
- * @returns {"fire" | "fireDiagonal" | "fireUp"}
+ * How far and along which angle something travels from one point to another.
+ * @param {{ x: number, y: number }} from where it leaves
+ * @param {{ x: number, y: number }} to where it arrives
+ * @returns {{ dx: number, dy: number, angle: number, length: number }} angle in degrees, 0 pointing right
  */
-export const firePoseFor = (aim) => FIRING[aim];
-
-/**
- * The animation Samus plays while she hunts. Aiming at a picked tool beats everything, then rolling in the morph ball
- * or running, then pointing at the larva when it peeks out, and otherwise she stands.
- * @param {{ targetPose: string | null, sightingPose: string | null, gait: "roll" | "run" | null }} state
- *   targetPose is how she aims at the picked tool, sightingPose how she points at the peeking larva, gait how she's
- *   moving, null when she isn't
- * @returns {string} the animation's name on the Power Suit's sheet
- */
-export const hunterPose = ({ targetPose, sightingPose, gait }) => {
-  if (targetPose) return targetPose;
-  if (gait) return gait === "roll" ? "morph" : "run";
-  return sightingPose ?? "idle";
+export const travel = (from, to) => {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  return { dx, dy, angle: (Math.atan2(dy, dx) * 180) / Math.PI, length: Math.hypot(dx, dy) };
 };
+
+/**
+ * Where a point is once a sprite drawn facing right is mirrored to face left around its anchor.
+ * @param {{ x: number, y: number }} point in sprite px from the cell's top left
+ * @param {{ x: number }} anchor the cell's anchor, which stays put
+ * @param {"left" | "right"} facing
+ * @returns {{ x: number, y: number }} in sprite px from the anchor, y still from the cell's top
+ */
+export const fromAnchor = (point, anchor, facing) => ({ x: (point.x - anchor.x) * (facing === "left" ? -1 : 1), y: point.y });
+
+/**
+ * Which side of her the gunship lands on: whichever side of the track has more room.
+ * @param {number} at where she stands, px from the track's left end
+ * @param {number} track how long the track is, px
+ * @returns {"left" | "right"}
+ */
+export const shipSideFor = (at, track) => (at < track / 2 ? "right" : "left");
 
 // the ending after the larva is defeated, each stage with the moment it ends, in ms after it starts
 const ENDING = [
-  { stage: "triumph", until: 1200 },
-  { stage: "congrats", until: 4400 },
-  { stage: "landing", until: 5900 },
-  { stage: "boarding", until: 6500 },
-  { stage: "departing", until: 8900 },
+  { stage: "triumph", until: 3600 },
+  { stage: "landing", until: 5100 },
+  { stage: "boarding", until: 6000 },
+  { stage: "departing", until: 8400 },
 ];
 
 /**
- * Where the ending is a while after it starts: the Power Suit facing you in triumph, the suit coming off and Samus in the
- * Zero Suit thanking the visitor, the ship landing beside her, her flip aboard, the ship flying off into the orbit,
- * and then nothing left but the orbit.
+ * Where the ending is a while after it starts: Samus facing you to thank the visitor, the gunship landing beside her,
+ * her space jump up into it, the ship flying off into the orbit, and then nothing left but the orbit.
  * @param {number} elapsed ms since the ending started
- * @returns {"triumph" | "congrats" | "landing" | "boarding" | "departing" | "gone"}
+ * @returns {"triumph" | "landing" | "boarding" | "departing" | "gone"}
  */
 export const endingStage = (elapsed) => ENDING.find((part) => elapsed < part.until)?.stage ?? "gone";
 
@@ -128,56 +155,25 @@ export const endingCues = () => [0, ...ENDING.map((part) => part.until)];
 export const endingStart = (stage) => endingCues().find((at) => endingStage(at) === stage) ?? 0;
 
 /**
- * How she looks in a stage of the ending: the Power Suit facing you for the triumph, then the Zero Suit,
- * spinning her pistol while she thanks the visitor, watching the ship land, and flipping aboard, which she keeps out
- * of sight while the ship flies her away.
+ * How she looks in a stage of the ending: facing you for the thanks and while the ship lands, then spinning in a space
+ * jump up into it, after which she's aboard and out of sight.
  * @param {ReturnType<typeof endingStage>} stage
- * @returns {{ suit: "power" | "zero", pose: string }}
+ * @returns {string | null} the animation on the Power Suit's sheet, null once she's aboard
  */
-export const endingLook = (stage) => {
-  if (stage === "triumph") return { suit: "power", pose: "forward" };
-  if (stage === "congrats") return { suit: "zero", pose: "victory" };
-  if (stage === "landing") return { suit: "zero", pose: "idle" };
-  return { suit: "zero", pose: "flip" };
+export const endingPose = (stage) => {
+  if (stage === "triumph" || stage === "landing") return "forward";
+  if (stage === "boarding") return "spaceJump";
+  return null;
 };
 
 /**
- * Which way she turns to face a point on the screen.
- * @param {{ left: number, width: number }} box her sprite's box on screen
- * @param {number} x the point's horizontal position on screen
- * @returns {"left" | "right"}
- */
-export const facingToward = (box, x) => (x < box.left + box.width / 2 ? "left" : "right");
-
-/**
- * How far and along which angle something travels from one point to another.
- * @param {{ x: number, y: number }} from where it leaves
- * @param {{ x: number, y: number }} to where it arrives
- * @returns {{ dx: number, dy: number, angle: number, length: number }} angle in degrees, 0 pointing right
- */
-export const travel = (from, to) => {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  return { dx, dy, angle: (Math.atan2(dy, dx) * 180) / Math.PI, length: Math.hypot(dx, dy) };
-};
-
-/**
- * Which side of her the gunship lands on: whichever side of the track has more room.
- * @param {number} at where she stands, px from the track's left end
- * @param {number} track how long the track is, px
- * @returns {"left" | "right"}
- */
-export const shipSideFor = (at, track) => (at < track / 2 ? "right" : "left");
-
-/**
- * How far she moves sideways flipping from her spot into the middle of the landed gunship.
+ * Her space jump into the landed gunship: up over its hatch and down into it, sideways onto its middle.
  * @param {"left" | "right"} side which side of her the ship landed on
- * @param {number} width her sprite's width on screen
- * @param {number} shipWidth the ship's width on screen
- * @param {number} tuck how far the ship tucks in behind her, on screen
- * @returns {number} px, negative to the left
+ * @param {number} reach how far the ship's middle is from her, screen px
+ * @param {number} height how high she spins over the ship, screen px
+ * @returns {{ x: number[], y: number[] }} keyframes in screen px from her spot, y negative upward
  */
-export const boardingShift = (side, width, shipWidth, tuck) => {
-  const reach = shipWidth / 2 + width / 2 - tuck;
-  return side === "left" ? -reach : reach;
+export const boardingArc = (side, reach, height) => {
+  const toward = side === "left" ? -reach : reach;
+  return { x: [0, toward * 0.6, toward], y: [0, -height, -height * 0.35] };
 };

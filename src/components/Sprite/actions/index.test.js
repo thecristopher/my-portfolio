@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { frameWindow, nextFrame, playLength } from ".";
+import { frameAtDistance, frameWindow, nextFrame, playLength } from ".";
 
 const LOVE_NOTE = { frames: 4, loop: false, fps: 8 };
 const DANCE = { frames: 3, loop: true, fps: 10 };
@@ -42,5 +42,25 @@ describe("frameWindow", () => {
 describe("playLength", () => {
   it("given four frames at eight per second, expect Claire's note to land in half a second", () => {
     expect(playLength(LOVE_NOTE)).toBe(500);
+  });
+});
+
+describe("frameAtDistance", () => {
+  const STROLL = { frames: 4, stride: 5 };
+
+  it("given Claire standing at the start of her walk to Inde, expect the first frame", () => {
+    expect(frameAtDistance(0, STROLL)).toBe(0);
+  });
+
+  it("given Malenia a little past two strides along, expect the third frame", () => {
+    expect(frameAtDistance(11, STROLL)).toBe(2);
+  });
+
+  it("given Inde walking far enough to finish the loop, expect the frames starting over", () => {
+    expect(frameAtDistance(21, STROLL)).toBe(0);
+  });
+
+  it("given a walk back the other way, expect the same frames as walking forward", () => {
+    expect(frameAtDistance(-11, STROLL)).toBe(2);
   });
 });

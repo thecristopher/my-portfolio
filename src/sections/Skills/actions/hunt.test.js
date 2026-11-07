@@ -5,6 +5,7 @@ import {
   encounterLine,
   encounterStage,
   energyLeft,
+  hasLanded,
   huntLine,
   huntStart,
   huntStep,
@@ -86,7 +87,26 @@ describe("encounterStage", () => {
   });
 
   it("given every cue, expect each part in order", () => {
-    expect(encounterCues().map(encounterStage)).toEqual(["arriving", "aiming", "firing", "hurt", "leaving", "done"]);
+    expect(encounterCues().map((at) => encounterStage(at))).toEqual(["arriving", "aiming", "firing", "hurt", "leaving", "done"]);
+  });
+
+  it("given the last hit on Malenia's watch, expect the screw attack tearing through it", () => {
+    expect(encounterStage(2000, true)).toBe("striking");
+  });
+
+  it("given every cue of the last hit, expect the leap, the strike and the fall before it burns away", () => {
+    const finisher = encounterCues(true).map((at) => encounterStage(at, true));
+    expect(finisher).toEqual(["arriving", "leaping", "striking", "falling", "leaving", "done"]);
+  });
+});
+
+describe("hasLanded", () => {
+  it("given Claire's beam still flying toward Inde's tool, expect no result yet", () => {
+    expect(hasLanded("firing")).toBe(false);
+  });
+
+  it("given the screw attack tearing through the larva, expect the result to show", () => {
+    expect(hasLanded("striking")).toBe(true);
   });
 });
 

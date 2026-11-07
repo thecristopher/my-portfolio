@@ -46,28 +46,48 @@ export const huntStep = (state, name, names, random = Math.random) => {
 export const huntLine = (state) => (state.isDefeated ? "Metroid defeated. Mission complete, Samus is heading home." : null);
 
 // what plays in an opened card that hid the larva, each part with the moment it ends, in ms after the card opens. the
-// card takes a moment to fly in, so nothing starts before it's there
-const ENCOUNTER = [
+// card takes a moment to fly in, so nothing starts before it's there. a hit is a beam from the arm cannon, the last hit
+// is her screw attack, spinning up through the larva
+const SHOT = [
   { stage: "arriving", until: 1150 },
   { stage: "aiming", until: 1500 },
-  { stage: "firing", until: 1850 },
-  { stage: "hurt", until: 2850 },
-  { stage: "leaving", until: 3550 },
+  { stage: "firing", until: 1800 },
+  { stage: "hurt", until: 2800 },
+  { stage: "leaving", until: 3500 },
+];
+const SCREW_ATTACK = [
+  { stage: "arriving", until: 1150 },
+  { stage: "leaping", until: 1600 },
+  { stage: "striking", until: 2300 },
+  { stage: "falling", until: 2800 },
+  { stage: "leaving", until: 3500 },
 ];
 
+const scriptFor = (isFinisher) => (isFinisher ? SCREW_ATTACK : SHOT);
+
 /**
- * Where the fight in an opened card is a while after it opens: the card arriving, Samus taking aim, her arm cannon's
- * shot, the larva hurt with its hull flickering, the larva fleeing or burning away, and then just the result.
+ * Where the fight in an opened card is a while after it opens. A hit: the card arriving, Samus taking aim, her beam
+ * flying, the larva hurt with its hull flickering, then fleeing. The last hit: the card arriving, her leap, the screw
+ * attack tearing through the larva, her fall back down, the larva burning away. Then just the result.
  * @param {number} elapsed ms since the card opened
- * @returns {"arriving" | "aiming" | "firing" | "hurt" | "leaving" | "done"}
+ * @param {boolean} isFinisher whether this is the hit that defeats it
+ * @returns {"arriving" | "aiming" | "firing" | "hurt" | "leaping" | "striking" | "falling" | "leaving" | "done"}
  */
-export const encounterStage = (elapsed) => ENCOUNTER.find((part) => elapsed < part.until)?.stage ?? "done";
+export const encounterStage = (elapsed, isFinisher = false) => scriptFor(isFinisher).find((part) => elapsed < part.until)?.stage ?? "done";
 
 /**
  * When each part of the fight in a card starts, so a timer can wake for every one.
+ * @param {boolean} isFinisher whether this is the hit that defeats it
  * @returns {number[]} ms after the card opens
  */
-export const encounterCues = () => [0, ...ENCOUNTER.map((part) => part.until)];
+export const encounterCues = (isFinisher = false) => [0, ...scriptFor(isFinisher).map((part) => part.until)];
+
+/**
+ * Whether the hit has landed by a stage of the fight, so the result can show.
+ * @param {ReturnType<typeof encounterStage>} stage
+ * @returns {boolean}
+ */
+export const hasLanded = (stage) => ["hurt", "striking", "falling", "leaving", "done"].includes(stage);
 
 /**
  * The result the card shows once the shot lands.

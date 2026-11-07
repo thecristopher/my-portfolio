@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
-import { frameWindow, nextFrame, playLength } from "./actions";
+import { frameAtDistance, frameWindow, nextFrame, playLength } from "./actions";
 
-// steps through an animation's frames. anyone who asked for less movement gets the first frame held still, and a one
-// shot still reports it finished after the time it would have taken, so whatever waits on it moves on
+// steps through an animation's frames on its own clock. anyone who asked for less movement gets the first frame held
+// still, and a one shot still reports it finished after the time it would have taken, so whatever waits on it moves on.
+// an animation played by distance has no clock, its frame comes from outside
 const useFrame = (animation, onEnd) => {
   const [frame, setFrame] = useState(0);
   const prefersReducedMotion = useReducedMotion();
@@ -12,6 +13,7 @@ const useFrame = (animation, onEnd) => {
 
   useEffect(() => {
     setFrame(0);
+    if (animation.stride) return undefined;
     if (prefersReducedMotion) {
       if (animation.loop) return undefined;
       const timer = setTimeout(() => ended.current?.(), playLength(animation));
@@ -34,12 +36,14 @@ const useFrame = (animation, onEnd) => {
 
 /**
  * One character from a sprite atlas playing one of its animations, pixels kept sharp at any scale.
- * @param {{ sheet: object, animation: string, scale?: number, isFlipped?: boolean, isSmooth?: boolean, onEnd?: () => void, className?: string }} props
+ * @param {{ sheet: object, animation: string, scale?: number, isFlipped?: boolean, isSmooth?: boolean, onEnd?: () => void, distance?: number, className?: string }} props
  *   isFlipped mirrors the sprite so it faces left, isSmooth blends pixels instead of keeping them sharp, which reads
- *   better when the sprite is drawn smaller than its real size, onEnd fires once a one shot animation reaches its last frame
+ *   better when the sprite is drawn smaller than its real size, onEnd fires once a one shot animation reaches its last
+ *   frame, distance is how far the character has traveled in sprite px, which picks the frame of an animation with a stride
  */
-const Sprite = ({ sheet, animation, scale = 1, isFlipped = false, isSmooth = false, onEnd, className = "" }) => {
-  const frame = useFrame(sheet.animations[animation], onEnd);
+const Sprite = ({ sheet, animation, scale = 1, isFlipped = false, isSmooth = false, onEnd, distance = 0, className = "" }) => {
+  const clockFrame = useFrame(sheet.animations[animation], onEnd);
+  const frame = sheet.animations[animation].stride ? frameAtDistance(distance, sheet.animations[animation]) : clockFrame;
   const { width, height, backgroundSize, backgroundPosition } = frameWindow(sheet, animation, frame, scale);
 
   return (

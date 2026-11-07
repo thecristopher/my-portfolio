@@ -77,7 +77,7 @@ const Beam = ({ ringIndex, angle }) => {
   );
 };
 
-const Ring = ({ ring, progress, pickedTech, focusedName, hideout, isDefeated, onPeek, onFocus, onDive }) => {
+const Ring = ({ ring, progress, pickedTech, focusedName, hideout, isDefeated, spooked, onPeek, onFocus, onDive }) => {
   const direction = ring.ring % 2 === 0 ? 1 : -1;
   const turn = useScrollRange(progress, [0, 1], [-40 * direction, 50 * direction]);
   const counterTurn = useTransform(turn, (degrees) => -degrees);
@@ -93,7 +93,7 @@ const Ring = ({ ring, progress, pickedTech, focusedName, hideout, isDefeated, on
       {/* drawn before the tools so the larva hides behind its tool and only peeks out */}
       {/* custom reaches the larva as it leaves, so it knows whether it was hit or defeated */}
       <AnimatePresence custom={{ isDefeated }}>
-        {hidingSpot && <Metroid key={hidingSpot.name} angle={hidingSpot.angle} counterTurn={counterTurn} onPeek={onPeek} />}
+        {hidingSpot && <Metroid key={hidingSpot.name} angle={hidingSpot.angle} counterTurn={counterTurn} spooked={spooked} onPeek={onPeek} />}
       </AnimatePresence>
       {ring.tools.map((tool) => (
         <Satellite key={tool.name} tool={tool} counterTurn={counterTurn} isPicked={pickedTech === tool.name} onFocus={onFocus} onDive={onDive} />
@@ -252,6 +252,8 @@ const Orbit = ({ tools, projects, pickedTech, onPick }) => {
   // the satellite Samus has in her sights, and the larva while it peeks out
   const [target, setTarget] = useState(null);
   const [sighting, setSighting] = useState(null);
+  // every shot of hers that reaches the peeking larva, each one sending it back into hiding
+  const [spooked, setSpooked] = useState(0);
   const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const { rotateX, rotateY, follow, settle } = useTilt(scrollYProgress, prefersReducedMotion);
@@ -310,6 +312,7 @@ const Orbit = ({ tools, projects, pickedTech, onPick }) => {
               focusedName={focused?.name}
               hideout={hunt.hideout}
               isDefeated={hunt.isDefeated}
+              spooked={spooked}
               onPeek={setSighting}
               onFocus={focus}
               onDive={openTool}
@@ -318,7 +321,14 @@ const Orbit = ({ tools, projects, pickedTech, onPick }) => {
           <Core focused={focused} total={tools.length} projects={projects} />
         </motion.div>
       </motion.div>
-      <Hunter target={target} sighting={sighting} orbitRef={ref} isHidden={Boolean(dive)} isEnding={isEnding} />
+      <Hunter
+        target={target}
+        sighting={sighting}
+        orbitRef={ref}
+        isHidden={Boolean(dive)}
+        isEnding={isEnding}
+        onShotLanded={() => setSpooked((count) => count + 1)}
+      />
       <AnimatePresence>
         {dive && (
           <Planet
