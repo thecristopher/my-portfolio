@@ -2,13 +2,17 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Sprite from "../../components/Sprite";
 import { METROID } from "../../lib/sprites/metroid";
-import { ZERO_SUIT } from "../../lib/sprites/samus";
-import { aimPoseFor, encounterCues, encounterLine, encounterStage, energyLeft, travel } from "./actions";
+import { SAMUS, SAMUS_SHOT } from "../../lib/sprites/samus";
+import { aimPoseFor, encounterCues, encounterLine, encounterStage, energyLeft, firePoseFor, travel } from "./actions";
 
 const PIXEL = { fontFamily: '"Pixelify Sans", ui-monospace, monospace' };
 // the larva drawn big enough to read clearly on the card
 const LARVA_SCALE = 2;
 const LARVA_SIZE = { width: METROID.cell.width * LARVA_SCALE, height: METROID.cell.height * LARVA_SCALE };
+// Samus under the card, at a whole multiple so her pixels stay sharp, and her shot twice as big again so it reads
+// clearly as it flies
+const SAMUS_SCALE = 2;
+const SHOT_SCALE = 4;
 
 // the fight's stage, moving through every part on its own timer from the moment the card opens
 const useStage = () => {
@@ -23,7 +27,7 @@ const useStage = () => {
 };
 
 // where everything stands on the card, measured from its layout so the card's own grow in doesn't skew it: the larva
-// on top of the planet, Samus under the card's corner, and the beam between her Paralyzer and the larva. it's
+// on top of the planet, Samus under the card's corner, and the shot's path from her arm cannon to the larva. it's
 // measured a frame after mounting, since the card hands over its ref only after its children have mounted
 const useStagePlan = (cardRef, sphereRef) => {
   const [plan, setPlan] = useState(null);
@@ -41,10 +45,10 @@ const planFor = (card, sphere) => {
   // on top of the planet and toward the card's edge, clear of the text beside it
   const larva = { x: sphere.offsetLeft + sphere.offsetWidth * 0.35, y: sphere.offsetTop + sphere.offsetHeight * 0.05 };
   const samus = { left: 0, top: card.offsetHeight };
-  const chest = { x: ZERO_SUIT.cell.width / 2, y: samus.top + ZERO_SUIT.cell.height * 0.4 };
+  const chest = { x: (SAMUS.cell.width * SAMUS_SCALE) / 2, y: samus.top + SAMUS.cell.height * SAMUS_SCALE * 0.4 };
   const pose = aimPoseFor(chest, larva);
-  const muzzle = { x: ZERO_SUIT.muzzles[pose].x, y: samus.top + ZERO_SUIT.muzzles[pose].y };
-  return { larva, samus, pose, muzzle, beam: travel(muzzle, larva) };
+  const muzzle = { x: SAMUS.muzzles[pose].x * SAMUS_SCALE, y: samus.top + SAMUS.muzzles[pose].y * SAMUS_SCALE };
+  return { larva, samus, pose, muzzle, path: travel(muzzle, larva) };
 };
 
 const larvaMotion = (stage, isDefeated, isStill) => {
@@ -70,18 +74,26 @@ const Larva = ({ at, stage, isDefeated, isStill }) => {
   );
 };
 
-// the Paralyzer's beam: a bolt of light that shoots out of the pistol and slams into the larva
-const Beam = ({ from, beam }) => (
-  <motion.span
-    className="absolute h-1.5 origin-left rounded-full bg-[linear-gradient(90deg,#d6fbff,#5ee7ff_40%,#ffffff)] shadow-[0_0_14px_4px_rgba(94,231,255,0.75)]"
-    style={{ left: from.x, top: from.y - 3, width: beam.length, rotate: beam.angle }}
-    initial={{ scaleX: 0, opacity: 1 }}
-    animate={{ scaleX: 1, opacity: [1, 1, 0] }}
-    transition={{ duration: 0.25, ease: "easeOut", opacity: { duration: 0.6, times: [0, 0.5, 1] } }}
-  />
-);
+// her shot, leaving the arm cannon along its own angle and slamming into the larva
+const Shot = ({ from, path }) => {
+  const width = SAMUS_SHOT.width * SHOT_SCALE;
+  const height = SAMUS_SHOT.height * SHOT_SCALE;
+  return (
+    <motion.img
+      src={SAMUS_SHOT.src}
+      alt=""
+      width={width}
+      height={height}
+      className="absolute max-w-none drop-shadow-[0_0_10px_#7dff9a] [image-rendering:pixelated]"
+      style={{ left: from.x - width / 2, top: from.y - height / 2, rotate: path.angle }}
+      initial={{ x: 0, y: 0, opacity: 1 }}
+      animate={{ x: path.dx, y: path.dy, opacity: [1, 1, 0] }}
+      transition={{ duration: 0.32, ease: "linear", opacity: { duration: 0.35, times: [0, 0.85, 1] } }}
+    />
+  );
+};
 
-// the flash where the beam lands
+// the flash where the shot lands
 const Burst = ({ at }) => (
   <motion.span
     className="absolute size-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,#ffffff_0%,#9cf3ff_35%,transparent_70%)]"
@@ -92,8 +104,10 @@ const Burst = ({ at }) => (
   />
 );
 
+// she takes aim, fires with the cannon flashing, holds her aim while the larva shakes, then lowers it
 const samusPose = (stage, pose) => {
-  if (stage === "aiming" || stage === "firing" || stage === "hurt") return pose;
+  if (stage === "firing") return firePoseFor(pose);
+  if (stage === "aiming" || stage === "hurt") return pose;
   return "idle";
 };
 
@@ -118,7 +132,7 @@ const Result = ({ encounter }) => (
 
 /**
  * The fight that plays in an opened card when the Metroid larva was hiding behind that tool: it clings to the top of
- * the planet, Samus steps up under the card and fires her Paralyzer, the larva shakes with its hull flickering
+ * the planet, Samus steps up under the card and fires her arm cannon, the larva shakes with its hull flickering
  * away, and then it flees, or burns away on the last hit, leaving the result over the card.
  * @param {{ encounter: { hits: number, isDefeated: boolean }, cardRef: { current: HTMLElement | null }, sphereRef: { current: HTMLElement | null } }} props
  *   encounter is the hunt right after this hit, cardRef the card and sphereRef its planet, to stage the fight around them
@@ -143,11 +157,11 @@ const Encounter = ({ encounter, cardRef, sphereRef }) => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
-            <Sprite sheet={ZERO_SUIT} animation={samusPose(stage, plan.pose)} />
+            <Sprite key={samusPose(stage, plan.pose)} sheet={SAMUS} animation={samusPose(stage, plan.pose)} scale={SAMUS_SCALE} />
           </motion.span>
         )}
       </AnimatePresence>
-      {stage === "firing" && <Beam from={plan.muzzle} beam={plan.beam} />}
+      {stage === "firing" && <Shot from={plan.muzzle} path={plan.path} />}
       {stage === "hurt" && <Burst at={plan.larva} />}
       {hasLanded && <Result encounter={encounter} />}
     </div>
