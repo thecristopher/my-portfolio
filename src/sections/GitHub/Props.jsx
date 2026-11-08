@@ -17,8 +17,9 @@ const Wisp = ({ d, delay, isStill }) => (
 );
 
 /**
- * A mug of coffee on the desk, sized like a real one next to a laptop (a little under half the lid's height), seen
- * from the same raised view, and still steaming, because nothing gets shipped at night without one.
+ * A mug of coffee on the desk, sized like a real one next to the keyboard and seen from the same raised view: its rim
+ * opens into an ellipse as wide as the keyboard's foreshortening, so you look down into the coffee, and it's still
+ * steaming, because nothing gets shipped at night without one.
  */
 export const Mug = ({ className = "" }) => {
   const isStill = useReducedMotion();
@@ -27,13 +28,19 @@ export const Mug = ({ className = "" }) => {
       {STEAM.map((d, index) => (
         <Wisp key={d} d={d} delay={index * 1.1} isStill={isStill} />
       ))}
-      <ellipse cx="34" cy="80" rx="36" ry="5" fill="#000" opacity="0.45" />
-      <path d="M62 14 C88 14 90 54 62 54" fill="none" stroke="#b9482f" strokeWidth="8" strokeLinecap="round" />
-      <path d="M4 4 L64 4 L62 72 Q61 78 54 78 L14 78 Q7 78 6 72 Z" fill="#d8623f" />
-      <path d="M4 4 L64 4 L64 12 L4 12 Z" fill="#e8805c" opacity="0.6" />
-      <ellipse cx="34" cy="4" rx="30" ry="6" fill="#ea8a65" />
-      <ellipse cx="34" cy="5" rx="26" ry="4.2" fill="#2b170c" />
-      <path d="M14 18 L15 66" stroke="#ffffff" strokeOpacity="0.2" strokeWidth="4" strokeLinecap="round" />
+      <ellipse cx="36" cy="80" rx="40" ry="9" fill="#000" opacity="0.45" />
+      {/* the handle, a loop seen from above and to the side, so its far half hides behind the body */}
+      <path d="M63 24 C90 22 92 58 64 62" fill="none" stroke="#b9482f" strokeWidth="9" strokeLinecap="round" />
+      <path d="M64 28 C82 28 84 54 64 57" fill="none" stroke="#000" strokeOpacity="0.25" strokeWidth="2" />
+      {/* the body, its bottom curving with the same foreshortening as the rim */}
+      <path d="M4 12 L68 12 L65 70 Q36 86 7 70 Z" fill="#d8623f" />
+      <path d="M4 12 L68 12 L67 22 Q36 34 5 22 Z" fill="#e8805c" opacity="0.5" />
+      <path d="M14 26 L16 68" stroke="#ffffff" strokeOpacity="0.18" strokeWidth="5" strokeLinecap="round" />
+      {/* the rim and the coffee inside it, a crema ring catching the screen's light */}
+      <ellipse cx="36" cy="12" rx="32" ry="11" fill="#ea8a65" />
+      <ellipse cx="36" cy="13" rx="27.5" ry="8.6" fill="#2b170c" />
+      <ellipse cx="36" cy="13" rx="27.5" ry="8.6" fill="none" stroke="#7a4a2a" strokeOpacity="0.7" strokeWidth="1.6" />
+      <ellipse cx="29" cy="11" rx="8" ry="2.2" fill="#f3efe6" opacity="0.12" />
     </svg>
   );
 };

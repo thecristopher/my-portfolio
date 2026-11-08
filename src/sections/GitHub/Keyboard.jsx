@@ -80,15 +80,22 @@ export const DeskKeyboard = ({ typed, className = "" }) => (
   </svg>
 );
 
-/** The mouse beside the keyboard, with its wheel and a faint glow underneath from the screen. */
+/**
+ * The mouse beside the keyboard, lying flat on the desk and foreshortened the same way the keyboard is: its back
+ * toward the screen, the split between the buttons and the wheel up front, the edge it sits on showing its height, and a
+ * faint glow on the desk from the screen.
+ */
 export const Mouse = ({ className = "" }) => (
-  <svg viewBox="0 0 60 100" className={`block overflow-visible ${className}`} aria-hidden="true">
-    <ellipse cx="30" cy="94" rx="34" ry="6" fill="var(--color-glow)" opacity="0.18" />
-    <ellipse cx="30" cy="95" rx="28" ry="4" fill="#000" opacity="0.5" />
-    <path d="M30 4 C52 4 58 26 58 50 C58 78 46 94 30 94 C14 94 2 78 2 50 C2 26 8 4 30 4 Z" fill="#2c2c31" />
-    <path d="M30 4 C48 4 55 20 57 38 L3 38 C5 20 12 4 30 4 Z" fill="#35353b" />
-    <line x1="30" y1="5" x2="30" y2="38" stroke="#000" strokeOpacity="0.5" strokeWidth="1.2" />
-    <rect x="27" y="14" width="6" height="14" rx="3" fill="#141417" />
-    <path d="M14 14 Q10 30 10 48" stroke="#ffffff" strokeOpacity="0.12" strokeWidth="3" strokeLinecap="round" fill="none" />
+  <svg viewBox="0 0 60 44" className={`block overflow-visible ${className}`} aria-hidden="true">
+    <ellipse cx="30" cy="38" rx="36" ry="6" fill="var(--color-glow)" opacity="0.16" />
+    <ellipse cx="30" cy="39" rx="29" ry="4" fill="#000" opacity="0.55" />
+    {/* the side of the shell, the part of its height the raised view still shows */}
+    <path d="M2 20 C2 30 14 37 30 37 C46 37 58 30 58 20 L58 24 C58 34 46 41 30 41 C14 41 2 34 2 24 Z" fill="#18181c" />
+    <path d="M30 2 C48 2 58 10 58 20 C58 30 46 37 30 37 C14 37 2 30 2 20 C2 10 12 2 30 2 Z" fill="#2c2c31" />
+    {/* the buttons, the half of the shell nearest the screen, split down the middle with the wheel between them */}
+    <path d="M30 2 C46 2 56 8 57.5 16 L2.5 16 C4 8 14 2 30 2 Z" fill="#35353b" />
+    <line x1="30" y1="2.5" x2="30" y2="16" stroke="#000" strokeOpacity="0.55" strokeWidth="1" />
+    <rect x="27.6" y="5.5" width="4.8" height="6" rx="2.2" fill="#141417" />
+    <path d="M10 10 Q6 18 9 26" stroke="#ffffff" strokeOpacity="0.12" strokeWidth="2.4" strokeLinecap="round" fill="none" />
   </svg>
 );

@@ -9,6 +9,7 @@ import Hunter from "./Hunter";
 import Metroid from "./Metroid";
 import { useHunt, useWinLine } from "./useHunt";
 import LevelMeter from "./LevelMeter";
+import MissionBrief from "./MissionBrief";
 import Planet from "./Planet";
 import Starfield from "./Starfield";
 import Trails from "./Trails";
@@ -30,8 +31,8 @@ const CENTER = { x: 50, y: 50 };
 const BEAM_WIDTH = 0.3;
 
 // one tool on its ring: its logo in a round chip that stays upright while the ring turns under it. the name shows in
-// the core, so the rings never crowd
-const Satellite = ({ tool, counterTurn, isPicked, onFocus, onDive }) => {
+// the core, so the rings never crowd. the one the larva hides behind glows faintly, a clue for a sharp eye
+const Satellite = ({ tool, counterTurn, isPicked, isHideout, onFocus, onDive }) => {
   const spot = pointOnCircle(tool.angle, 50, CENTER);
   return (
     <motion.button
@@ -43,6 +44,7 @@ const Satellite = ({ tool, counterTurn, isPicked, onFocus, onDive }) => {
       style={{ left: `${spot.x}%`, top: `${spot.y}%`, rotate: counterTurn }}
       className={`card absolute grid size-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full transition-[scale,box-shadow] duration-300 hover:z-10 hover:scale-125 focus-visible:scale-125 sm:size-12 ${isPicked ? "ring-2 ring-accent" : ""}`}
     >
+      {isHideout && <span className="pointer-events-none absolute -inset-1 animate-pulse rounded-full shadow-[0_0_14px_2px_#9be76a66]" aria-hidden="true" />}
       <TechIcon tech={tool.name} className="size-4 sm:size-6" fallback={<span className="text-xs font-semibold">{tool.name.slice(0, 2)}</span>} />
     </motion.button>
   );
@@ -77,7 +79,7 @@ const Beam = ({ ringIndex, angle }) => {
   );
 };
 
-const Ring = ({ ring, progress, pickedTech, focusedName, hideout, isDefeated, onPeek, onFocus, onDive }) => {
+const Ring = ({ ring, progress, pickedTech, focusedName, hideout, isDefeated, spooked, onPeek, onFocus, onDive }) => {
   const direction = ring.ring % 2 === 0 ? 1 : -1;
   const turn = useScrollRange(progress, [0, 1], [-40 * direction, 50 * direction]);
   const counterTurn = useTransform(turn, (degrees) => -degrees);
@@ -93,10 +95,27 @@ const Ring = ({ ring, progress, pickedTech, focusedName, hideout, isDefeated, on
       {/* drawn before the tools so the larva hides behind its tool and only peeks out */}
       {/* custom reaches the larva as it leaves, so it knows whether it was hit or defeated */}
       <AnimatePresence custom={{ isDefeated }}>
-        {hidingSpot && <Metroid key={hidingSpot.name} angle={hidingSpot.angle} counterTurn={counterTurn} onPeek={onPeek} />}
+        {hidingSpot && (
+          <Metroid
+            key={hidingSpot.name}
+            angle={hidingSpot.angle}
+            counterTurn={counterTurn}
+            spooked={spooked}
+            onPeek={onPeek}
+            onHit={(larva) => onDive(hidingSpot, larva)}
+          />
+        )}
       </AnimatePresence>
       {ring.tools.map((tool) => (
-        <Satellite key={tool.name} tool={tool} counterTurn={counterTurn} isPicked={pickedTech === tool.name} onFocus={onFocus} onDive={onDive} />
+        <Satellite
+          key={tool.name}
+          tool={tool}
+          counterTurn={counterTurn}
+          isPicked={pickedTech === tool.name}
+          isHideout={tool === hidingSpot}
+          onFocus={onFocus}
+          onDive={onDive}
+        />
       ))}
     </motion.div>
   );
@@ -252,6 +271,8 @@ const Orbit = ({ tools, projects, pickedTech, onPick }) => {
   // the satellite Samus has in her sights, and the larva while it peeks out
   const [target, setTarget] = useState(null);
   const [sighting, setSighting] = useState(null);
+  // every shot of hers that reaches the peeking larva, each one sending it back into hiding
+  const [spooked, setSpooked] = useState(0);
   const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const { rotateX, rotateY, follow, settle } = useTilt(scrollYProgress, prefersReducedMotion);
@@ -289,9 +310,12 @@ const Orbit = ({ tools, projects, pickedTech, onPick }) => {
         focus(null, null);
         settle();
       }}
-      // an open planet rises over the grid below it, which otherwise sits above the orbit to keep the stars off the cards
-      className={`relative mx-auto aspect-square w-full max-w-[44rem] ${dive ? "z-20" : ""}`}
+      // an open planet rises over the grid below it, which otherwise sits above the orbit to keep the stars off the cards.
+      // never taller than the screen leaves after the header, the briefing and Samus's floor, so on a short laptop the
+      // whole scene fits in view at once
+      className={`relative mx-auto aspect-square w-[min(100%,44rem,calc(100svh-16rem))] ${dive ? "z-20" : ""}`}
     >
+      <MissionBrief hunt={hunt} />
       <motion.div animate={cameraFor(dive)} inert={Boolean(dive)} className="absolute inset-0 [perspective:1400px]">
         <motion.div style={{ rotateX, rotateY }} className="absolute inset-0 [transform-style:preserve-3d]">
           <Starfield />
@@ -310,6 +334,7 @@ const Orbit = ({ tools, projects, pickedTech, onPick }) => {
               focusedName={focused?.name}
               hideout={hunt.hideout}
               isDefeated={hunt.isDefeated}
+              spooked={spooked}
               onPeek={setSighting}
               onFocus={focus}
               onDive={openTool}
@@ -318,7 +343,14 @@ const Orbit = ({ tools, projects, pickedTech, onPick }) => {
           <Core focused={focused} total={tools.length} projects={projects} />
         </motion.div>
       </motion.div>
-      <Hunter target={target} sighting={sighting} orbitRef={ref} isHidden={Boolean(dive)} isEnding={isEnding} />
+      <Hunter
+        target={target}
+        sighting={sighting}
+        orbitRef={ref}
+        isHidden={Boolean(dive)}
+        isEnding={isEnding}
+        onShotLanded={() => setSpooked((count) => count + 1)}
+      />
       <AnimatePresence>
         {dive && (
           <Planet

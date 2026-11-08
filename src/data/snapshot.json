@@ -30,7 +30,7 @@
     "name": "Cristopher Cervantes",
     "headline": "Engineering Manager & Tech Lead. Nine years of shipping software from a beach town in Baja to people all over the world.",
     "summary": "Engineering Manager and Tech Lead with 9+ years building production software. At PSL Group I grew from Senior Application Developer to running engineering for FirstWord, DGPL, MEC and AMI. Before that: payroll and attendance software for three countries, and factory software that doubled a plant's output.",
-    "description": "I'm 32 and I'm from Rosarito, Baja California, a beach town just south of Tijuana. My first production code ran at the border, and 9+ years later the things I build are used by people I'll never meet, in countries I've never been to.\n\nI didn't show up knowing much. I was an intern who could barely scratch out a few lines of code, and I got better one job at a time, until I was one of the people the team leaned on at every company I joined.\n\nThese days I'm half Engineering Manager, half Tech Lead. I set the priorities, run the 1:1s and plan the roadmap, and I still open pull requests and leave long comments on other people's. When I push back on a design I bring another way to do it, because a no on its own doesn't teach anybody anything.\n\nOff the clock I'm working out, with my family, or every now and then a few volumes deep into a manga or a video game. A few of those games left relics hidden around this page. Good luck.",
+    "description": "I'm 33 and I'm from Rosarito, Baja California, a beach town just south of Tijuana. My first production code ran at the border, and 9+ years later the things I build are used by people I'll never meet, in countries I've never been to.\n\nI didn't show up knowing much. I was an intern who could barely scratch out a few lines of code, and I got better one job at a time, until I was one of the people the team leaned on at every company I joined.\n\nThese days I'm half Engineering Manager, half Tech Lead. I set the priorities, run the 1:1s and plan the roadmap, and I still open pull requests and leave long comments on other people's. When I push back on a design I bring another way to do it, because a no on its own doesn't teach anybody anything.\n\nOff the clock I'm working out, with my family, or every now and then a few volumes deep into a manga or a video game. A few of those games left relics hidden around this page. Good luck.",
     "role": "Tech Lead & Engineering Manager",
     "years_of_experience": 9,
     "location": "Rosarito, Mexico",
@@ -340,7 +340,6 @@
       "work_mode": null,
       "start": null,
       "end": null,
-      "note": "Shoutout a Erika Soto, que le apostó a un junior y le enseñó el oficio. Gracias, jefa.",
       "team_size": null,
       "featured": false
     },

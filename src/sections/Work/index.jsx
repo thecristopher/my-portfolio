@@ -18,7 +18,7 @@ const Work = () => {
   const pickedTech = usePickedTech();
 
   return (
-    <section id="work" className="relative py-28 sm:py-40">
+    <section id="work" className="relative pt-28 sm:pt-40">
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 sm:px-6">
         <SectionHeading
           eyebrow="Experience"

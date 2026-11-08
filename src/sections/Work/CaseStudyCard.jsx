@@ -78,7 +78,7 @@ const CaseStudyCard = ({ study, index }) => {
             type="button"
             onClick={() => setIsOpen((open) => !open)}
             aria-expanded={isOpen}
-            className="flex items-center gap-1.5 text-sm font-medium text-accent"
+            className="-my-2 flex items-center gap-1.5 py-2 text-sm font-medium text-accent"
           >
             {isOpen ? "Less" : "How it went"}
             <Plus size={15} className={`transition-transform duration-300 ${isOpen ? "rotate-45" : ""}`} aria-hidden="true" />

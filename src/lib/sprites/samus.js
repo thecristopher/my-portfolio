@@ -1,48 +1,49 @@
 import samusAtlas from "../../assets/sprites/samus.png";
 import samusShot from "../../assets/sprites/samus-shot.png";
-import zeroSuitAtlas from "../../assets/sprites/zero-suit.png";
 import gunship from "../../assets/sprites/gunship.png";
 
-// one animation per row, every frame in a cell of the same size, feet resting on the cell's floor and lined up so she
-// doesn't jitter. the frames face right, a sprite facing left is drawn mirrored
-
-/** Samus Aran in the Power Suit, from Super Metroid: the hunter. Small, so she's drawn at whole multiples only. */
-export const SAMUS = {
-  src: samusAtlas,
-  cell: { width: 45, height: 53 },
-  columns: 10,
-  animations: {
-    idle: { row: 0, frames: 1, fps: 1, loop: true },
-    run: { row: 1, frames: 10, fps: 16, loop: true },
-    aim: { row: 2, frames: 1, fps: 1, loop: true },
-    aimDiagonal: { row: 3, frames: 1, fps: 1, loop: true },
-    aimUp: { row: 4, frames: 1, fps: 1, loop: true },
-    fire: { row: 5, frames: 1, fps: 1, loop: true },
-    fireDiagonal: { row: 6, frames: 1, fps: 1, loop: true },
-    fireUp: { row: 7, frames: 1, fps: 1, loop: true },
-    morph: { row: 8, frames: 8, fps: 14, loop: true },
-    forward: { row: 9, frames: 1, fps: 1, loop: true },
-  },
-  // where the arm cannon ends on each aiming pose, in sprite px from the cell's top left. firing keeps the same aim
-  muzzles: {
-    aim: { x: 35, y: 23 },
-    aimDiagonal: { x: 30, y: 11 },
-    aimUp: { x: 21, y: 8 },
-  },
-};
+// one animation per row, every frame in a cell of the same size and facing right, a sprite facing left is drawn
+// mirrored. every frame was cut so the same point of her lands on the cell's anchor: the helmet and the feet when she
+// stands, runs or jumps, the middle of her body when she spins and the floor under the ball when she rolls. that's what
+// keeps her from jittering from one frame to the next
 
 /**
- * Samus out of the suit, in the Zero Suit, for the end of the hunt: standing, spinning her pistol in victory, and
- * flipping aboard her ship.
+ * Samus Aran in the Power Suit, from Super Metroid. Small, so she's drawn at whole multiples only. Animations with a
+ * stride play by how far she travels, one frame every stride sprite px, so her feet and the ball never skate.
  */
-export const ZERO_SUIT = {
-  src: zeroSuitAtlas,
-  cell: { width: 53, height: 91 },
-  columns: 8,
+export const SAMUS = {
+  src: samusAtlas,
+  cell: { width: 38, height: 48 },
+  columns: 10,
+  // the point of the cell that sits on her spot on the ground, in sprite px from the cell's top left
+  anchor: { x: 21, y: 47 },
   animations: {
-    idle: { row: 0, frames: 8, fps: 8, loop: true },
-    victory: { row: 1, frames: 2, fps: 3, loop: true },
-    flip: { row: 2, frames: 3, fps: 12, loop: true },
+    forward: { row: 0, frames: 4, fps: 3, loop: true },
+    aim: { row: 1, frames: 1, fps: 1, loop: true },
+    aimDiagonal: { row: 2, frames: 1, fps: 1, loop: true },
+    aimUp: { row: 3, frames: 1, fps: 1, loop: true },
+    run: { row: 4, frames: 10, stride: 4.5, loop: true },
+    runAim: { row: 5, frames: 10, stride: 4.5, loop: true },
+    runDiagonal: { row: 6, frames: 10, stride: 4.5, loop: true },
+    jump: { row: 7, frames: 1, fps: 1, loop: true },
+    jumpDiagonal: { row: 8, frames: 1, fps: 1, loop: true },
+    jumpUp: { row: 9, frames: 1, fps: 1, loop: true },
+    land: { row: 10, frames: 3, fps: 14, loop: false },
+    somersault: { row: 11, frames: 8, fps: 20, loop: true },
+    spaceJump: { row: 12, frames: 8, fps: 24, loop: true },
+    screwAttack: { row: 13, frames: 8, fps: 28, loop: true },
+    curl: { row: 14, frames: 1, fps: 1, loop: true },
+    morph: { row: 15, frames: 8, stride: 6, loop: true },
+  },
+  // where the arm cannon ends on each aiming pose, in sprite px from the cell's top left. running and firing keep the
+  // same aim, so they share these
+  muzzles: {
+    aim: { x: 37, y: 19 },
+    aimDiagonal: { x: 34, y: 7 },
+    aimUp: { x: 25, y: 4 },
+    jump: { x: 35, y: 19 },
+    jumpDiagonal: { x: 34, y: 4 },
+    jumpUp: { x: 25, y: 0 },
   },
 };
 

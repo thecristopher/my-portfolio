@@ -126,6 +126,15 @@ const ShelfLight = () => (
   />
 );
 
+// the shelf's ends dissolve into the page on both sides, plank and cartridges together, so it reads as a shelf on the
+// wall instead of a bar across the page, and cartridges slide in out of the dark instead of off a hard edge
+const ShelfEnds = () => (
+  <div className="pointer-events-none absolute inset-x-0 -top-4 -bottom-14 z-20" aria-hidden="true">
+    <span className="absolute inset-y-0 left-0 w-[12%] bg-gradient-to-r from-ink to-transparent" />
+    <span className="absolute inset-y-0 right-0 w-[12%] bg-gradient-to-l from-ink to-transparent" />
+  </div>
+);
+
 const Caption = () => (
   <p className="mx-auto w-full max-w-6xl px-4 text-sm font-semibold text-muted sm:px-6">The rest of the shelf. Pull one out.</p>
 );
@@ -168,6 +177,7 @@ const Shelf = ({ repos }) => {
             <ShelfEnd />
           </motion.ul>
           <Plank />
+          <ShelfEnds />
         </div>
       </div>
     </div>

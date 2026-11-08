@@ -26,7 +26,7 @@ const Skills = () => {
   const tools = about ? markMainStack(about.skill_levels, about.main_stack ?? []) : [];
 
   return (
-    <section id="skills" className="relative overflow-hidden py-28 sm:py-40">
+    <section id="skills" className="relative overflow-hidden pt-28 pb-10 sm:pt-40">
       {/* the heading and the grid sit above the orbit's starfield, so no star ever lands on a word or a card */}
       <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-16 px-4 sm:px-6">
         <SectionHeading
@@ -43,7 +43,9 @@ const Skills = () => {
       </div>
 
       {tools.length > 0 && (
-        <div className="px-4 pt-6 pb-32 sm:px-6 sm:pt-10 sm:pb-48">
+        // room on the sides for the chips on the outer ring, which sit centered on its edge and would be cut by the
+        // screen, and on top for the mission briefing
+        <div className="px-7 pt-20 pb-32 sm:px-10 sm:pt-24 sm:pb-48">
           <Orbit tools={tools} projects={projects} pickedTech={pickedTech} onPick={(tool) => showJobsUsing(tool, projects)} />
         </div>
       )}

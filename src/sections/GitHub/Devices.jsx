@@ -31,7 +31,7 @@ export const Monitor = ({ progress, typed }) => {
       <span className="h-2.5 w-[28%] rounded-t-lg bg-gradient-to-b from-[#3a3a41] to-[#1e1e22] shadow-[0_10px_18px_-6px_#000]" aria-hidden="true" />
       <div className="mt-6 flex w-full items-end justify-center gap-[3.5%]">
         <DeskKeyboard typed={typed} className="w-[60%]" />
-        <Mouse className="w-[4.5%]" />
+        <Mouse className="w-[5.5%]" />
       </div>
     </motion.div>
   );

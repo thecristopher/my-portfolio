@@ -89,7 +89,7 @@ const ChestCount = ({ count, opened, active }) => (
 );
 
 const Heading = () => (
-  <p className="max-w-md text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">
+  <p className="max-w-md text-xl leading-tight font-semibold tracking-tight min-[400px]:text-2xl sm:text-3xl">
     Every title I've held, <span className="text-muted">from the first line of code to the org chart.</span>
   </p>
 );
@@ -127,7 +127,8 @@ const Overworld = ({ steps }) => {
   return (
     <div id="career-timeline" ref={sectionRef} style={{ height }} className="relative">
       <div className="sticky top-0 flex h-svh flex-col justify-center gap-8 overflow-hidden pt-14">
-        <div className="mx-auto flex w-full max-w-6xl items-end justify-between gap-6 px-4 sm:px-6">
+        {/* on the narrowest phones the chest count drops under the heading, so the heading keeps the full width */}
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-end justify-between gap-x-6 gap-y-3 px-4 sm:px-6">
           <Heading />
           <ChestCount count={steps.length} opened={world.opened} active={world.isAt ? world.index : -1} />
         </div>
