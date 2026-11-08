@@ -63,16 +63,14 @@ const CreditBlock = ({ block }) => (
   </div>
 );
 
-// the characters walking the page belong to their studios, and the rippers who pulled them out of the games did the hard part
+// the characters walking the page belong to their studios, and every sheet came from the same archive
 const SpriteCredits = () => (
   <div className="flex max-w-xl flex-col items-center gap-2">
     <p className="text-xs tracking-[0.3em] text-[#a99fd6] uppercase" style={PIXEL}>
       Sprites
     </p>
     <p className="text-sm leading-relaxed text-[#d9d3f0]">
-      Link is from The Legend of Zelda: A Link to the Past, © Nintendo, sprites ripped by Mister Man. Jill Valentine, the zombie, the Cerberus and the Tyrant are from Marvel vs. Capcom, ©
-      Capcom. Samus Aran and the Metroid larva are from Super Metroid, ©
-      Nintendo, ripped by Barack Obama. Every sheet comes from{" "}
+      Link, Samus Aran and the Metroid are © Nintendo. Jill Valentine, the zombie, the Cerberus and the Tyrant are © Capcom. Every sheet comes from{" "}
       <a href="https://www.spriters-resource.com" target="_blank" rel="noreferrer" className={LINK_CLASS}>
         The Spriters Resource
       </a>
