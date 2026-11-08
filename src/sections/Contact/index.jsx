@@ -3,7 +3,7 @@ import { motion, useMotionTemplate, useReducedMotion, useScroll } from "framer-m
 import { ArrowUpRight, Check, Copy } from "lucide-react";
 import Magnetic from "../../components/Magnetic";
 import { LoadError, SkeletonLines } from "../../components/Skeleton";
-import BugHunt from "./BugHunt";
+import Showdown from "./Showdown";
 import Bottle from "./Bottle";
 import Sea from "./Sea";
 import { Moon, Stars } from "./Dusk";
@@ -50,7 +50,8 @@ const SunsetHeadline = ({ progress, isStill }) => {
   const clipPath = useMotionTemplate`inset(-0.2em ${unlit}% -0.3em 0)`;
 
   return (
-    <h2 className="text-[clamp(2.75rem,min(10vw,14svh),8.5rem)] leading-[0.92] font-semibold tracking-[-0.055em]">
+    // narrow enough that "keeping." always drops to its own line, so the promise never runs straight across the sun
+    <h2 className="max-w-[9em] text-[clamp(2.75rem,min(10vw,14svh),8.5rem)] leading-[0.92] font-semibold tracking-[-0.055em]">
       <span className="block">Let's build</span>
       <span className="relative block">
         <span className="block text-line-strong">something worth keeping.</span>
@@ -64,6 +65,9 @@ const SunsetHeadline = ({ progress, isStill }) => {
 
 // low enough that the headline always ends above the water and the pier, even on a short wide screen
 const HORIZON = "74%";
+// the sky fades in from the page over its top edge, so the sunset rises out of the section above instead of starting
+// at a hard line where its glow gets cut off
+const SKY_FEATHER = "linear-gradient(to bottom, transparent, black 22svh)";
 
 // the reflection as plain stripes, for anyone who asked for less movement
 const StillReflection = () => (
@@ -84,8 +88,9 @@ const LAMP_ON = lampWindows(PIER_LAMPS, [0.45, 0.85]).map(([start]) => start);
 // wherever the cursor stirs the water, while the stars come out, the moon climbs on the other side and the lamps on the
 // pier turn on
 const Sunset = ({ progress, isStill }) => {
-  // by the end only the last sliver is left above the water, so the sunset actually finishes
-  const sunY = useScrollRange(progress, [0, 0.95], ["-30%", "90%"]);
+  // it starts low enough that its glow stays under the feathered top edge, and by the end only the last sliver is left
+  // above the water, so the sunset actually finishes
+  const sunY = useScrollRange(progress, [0, 0.95], ["-8%", "90%"]);
   const sky = useScrollRange(progress, [0, 0.9], [0.15, 0.6]);
   const still = { y: "30%" };
   const step = useStep(progress);
@@ -94,14 +99,16 @@ const Sunset = ({ progress, isStill }) => {
   const pierRef = useRef(null);
   return (
     <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-      <motion.div className="bg-sunset absolute inset-x-0 top-0 blur-3xl" style={{ height: HORIZON, opacity: isStill ? 0.35 : sky, maskImage: "linear-gradient(to bottom, transparent, black)" }} />
-      <Stars progress={progress} isStill={isStill} height={HORIZON} />
-      <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height: HORIZON }}>
-        <Moon progress={progress} isStill={isStill} />
-        <motion.span
-          className="absolute bottom-0 left-[70%] aspect-square w-[min(56vmin,30rem)] -translate-x-1/2 rounded-full"
-          style={{ ...(isStill ? still : { y: sunY }), background: "radial-gradient(circle at 50% 40%, #fff4d1 0%, var(--color-sunset-1) 45%, var(--color-sunset-2) 100%)", boxShadow: "0 0 120px 30px color-mix(in oklab, var(--color-sunset-1) 45%, transparent)" }}
-        />
+      <div className="absolute inset-0" style={{ maskImage: SKY_FEATHER }}>
+        <motion.div className="bg-sunset absolute inset-x-0 top-0 blur-3xl" style={{ height: HORIZON, opacity: isStill ? 0.35 : sky, maskImage: "linear-gradient(to bottom, transparent, black)" }} />
+        <Stars progress={progress} isStill={isStill} height={HORIZON} />
+        <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height: HORIZON }}>
+          <Moon progress={progress} isStill={isStill} />
+          <motion.span
+            className="absolute bottom-0 left-[70%] aspect-square w-[min(56vmin,30rem)] -translate-x-1/2 rounded-full"
+            style={{ ...(isStill ? still : { y: sunY }), background: "radial-gradient(circle at 50% 40%, #fff4d1 0%, var(--color-sunset-1) 45%, var(--color-sunset-2) 100%)", boxShadow: "0 0 120px 30px color-mix(in oklab, var(--color-sunset-1) 45%, transparent)" }}
+          />
+        </div>
       </div>
       <div className="sea absolute inset-x-0 bottom-0" style={{ top: HORIZON }}>
         {isStill ? <StillReflection /> : <Sea progress={progress} calmRef={pierRef} />}
@@ -112,6 +119,22 @@ const Sunset = ({ progress, isStill }) => {
     </div>
   );
 };
+
+// after the sun is down the page stays at dusk: a faint violet over the email, then the night closing in at the bottom
+// into the same sky the footer opens with, so the arc runs sunset, dusk, night without stepping back into daylight
+const FOOTER_SKY = "#03050f";
+const Nightfall = () => (
+  <div className="pointer-events-none absolute inset-x-0 top-0 bottom-0" aria-hidden="true">
+    <span
+      className="absolute inset-x-0 top-0 bottom-[var(--nightfall)]"
+      style={{ background: "linear-gradient(to bottom, transparent, color-mix(in oklab, var(--color-sunset-3) 7%, transparent) 55%, color-mix(in oklab, var(--color-sunset-3) 10%, transparent))" }}
+    />
+    <span
+      className="absolute inset-x-0 bottom-0 h-[var(--nightfall)]"
+      style={{ background: `linear-gradient(to bottom, color-mix(in oklab, var(--color-sunset-3) 10%, transparent), color-mix(in oklab, var(--color-sunset-3) 30%, ${FOOTER_SKY}) 45%, ${FOOTER_SKY})` }}
+    />
+  </div>
+);
 
 // the closing scene, pinned while the sun sets and the line fills with its light
 const SunsetScene = () => {
@@ -180,7 +203,7 @@ const Socials = ({ socials, cueJill }) => (
 
 // the address itself, huge, then the ground Jill stands on: the ways to send it and the socials on the left of it, her
 // on the right answering each one. below lg she gets the ground to herself under them
-const Email = ({ contact, onCopy, cue, cueJill, hasSent }) => {
+const Email = ({ contact, onCopy, cue, cueJill }) => {
   // a copied address is on its way: Jill celebrates and a bottle sets out to sea
   const sendOff = () => {
     cueJill("copy");
@@ -221,7 +244,7 @@ const Email = ({ contact, onCopy, cue, cueJill, hasSent }) => {
           </div>
           <Socials socials={contact.socials} cueJill={cueJill} />
         </div>
-        <BugHunt cue={cue} hasSent={hasSent} className="lg:col-start-1 lg:row-start-1" />
+        <Showdown cue={cue} className="lg:col-start-1 lg:row-start-1" />
       </div>
     </motion.div>
   );
@@ -234,29 +257,27 @@ const Contact = () => {
   // the cue Jill reacts to next, from the address, the buttons or the socials
   const [cue, setCue] = useState(null);
   const cueJill = (name, detail) => setCue((last) => ({ name, detail, key: (last?.key ?? 0) + 1 }));
-  // copying the address or opening it in a mail app puts the email on its way, which is Jill's mission complete
-  const [hasSent, setHasSent] = useState(false);
-  const cueAndSend = (name, detail) => {
-    cueJill(name, detail);
-    if (name === "copy" || name === "handCopy" || name === "send") setHasSent(true);
-  };
 
   return (
     // copying the address by hand, instead of with the button, gets its own nod from her
-    <section id="contact" onCopy={() => cueAndSend("handCopy")} className="relative pb-24 sm:pb-32">
+    <section id="contact" onCopy={() => cueJill("handCopy")} className="relative">
       <SunsetScene />
-      <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 pt-20 sm:px-6">
+      {/* the night band is as tall as the room left under the last line, so no text ever sits on the dark */}
+      <div className="relative pb-[var(--nightfall)] [--nightfall:16rem] sm:[--nightfall:20rem]">
+        <Nightfall />
+      <div className="relative mx-auto flex max-w-6xl flex-col gap-16 px-4 pt-20 sm:px-6">
         <motion.p {...rise(0.1)} className="max-w-2xl text-2xl leading-snug font-medium text-pretty sm:text-3xl">
           Hiring, building something, or just want to argue about Neovim configs? Write me. <span className="text-muted">I read every message, and I answer all of them.</span>
         </motion.p>
 
         {isLoading && <SkeletonLines lines={2} />}
         {isError && !contact && <LoadError what="the contact details" />}
-        {contact && <Email contact={contact} onCopy={() => setBottles((count) => count + 1)} cue={cue} cueJill={cueAndSend} hasSent={hasSent} />}
+        {contact && <Email contact={contact} onCopy={() => setBottles((count) => count + 1)} cue={cue} cueJill={cueJill} />}
 
         <p className="text-sm text-faint">
           Thanks for scrolling all the way down.
         </p>
+      </div>
       </div>
       <Bottle launch={bottles} />
     </section>

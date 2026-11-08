@@ -67,6 +67,14 @@ const useShots = (onLanded) => {
   return { shots, fire, land };
 };
 
+// the ledge she patrols under the orbit, a thin line of light fading out at both ends, so she stands on something
+const Floor = ({ top, length }) => (
+  <span
+    className="absolute left-0 h-px"
+    style={{ top, width: length, background: "linear-gradient(90deg, transparent, var(--color-line-strong) 15%, var(--color-sunset-3) 50%, var(--color-line-strong) 85%, transparent)", opacity: 0.8 }}
+  />
+);
+
 // a "!" over her head the moment she spots the larva
 const Alert = ({ scale }) => (
   <motion.span
@@ -192,7 +200,8 @@ const useShipFlight = (stage, shipRef, orbitRef) => {
 const Hunter = ({ target, sighting, orbitRef, isHidden, isEnding, onShotLanded }) => {
   const isStill = useReducedMotion();
   const shipRef = useRef(null);
-  const scale = useMediaQuery("(min-width: 640px)") ? 3 : 2;
+  // a size smaller on a short laptop, so she still fits under the orbit there
+  const scale = useMediaQuery("(min-width: 640px) and (min-height: 820px)") ? 3 : 2;
   const width = SAMUS.cell.width * scale;
   const track = useTrack(orbitRef, width);
   const stage = useEndingStage(isEnding);
@@ -213,6 +222,12 @@ const Hunter = ({ target, sighting, orbitRef, isHidden, isEnding, onShotLanded }
   return (
     <>
       <div className={`pointer-events-none absolute top-full left-0 transition-opacity ${isHidden ? "opacity-0" : ""}`} aria-hidden="true">
+        <Floor top={SAMUS.cell.height * scale} length={track + width} />
+        {/* her shadow stays on the floor when she hops, so a jump reads as a jump */}
+        <motion.span
+          className="absolute -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-black/20 blur-[3px] dark:bg-black/60"
+          style={{ left: width / 2, top: SAMUS.cell.height * scale, width: width * 0.55, height: 6 * scale, x }}
+        />
         {/* her feet: everything about her is placed from this point on the ground */}
         <motion.div className="absolute" style={{ left: width / 2, top: SAMUS.cell.height * scale, x, y: lift }}>
           {hasShip && <Gunship side={shipSide} stage={stage} flight={flight} scale={scale} isStill={isStill} shipRef={shipRef} />}

@@ -36,7 +36,7 @@ const SectionMenu = ({ sections, activeId, onClose }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.3, ease: easeOutExpo }}
-      className="glass absolute inset-x-0 top-full flex flex-col border-b border-line bg-ink/95! px-4 pt-2 pb-6 lg:hidden"
+      className="glass absolute inset-x-0 top-full flex flex-col border-b border-line bg-ink! px-4 pt-2 pb-6 lg:hidden"
     >
       {sections.map((section) => (
         <li key={section.id}>

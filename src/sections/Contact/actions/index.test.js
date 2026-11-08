@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   aliveCount,
-  bugMotion,
-  bugStop,
+  enemyMotion,
+  enemyStop,
   cueFor,
   dripPoint,
   hitFor,
@@ -11,14 +11,21 @@ import {
   jillStep,
   lineFor,
   lampWindows,
-  isMissionComplete,
-  nextBugWait,
+  nextEnemyWait,
+  missionMarks,
   pickTarget,
   reflectionShift,
   reflectionStrength,
   rippleAt,
-  squashLine,
+  takedownLine,
   starField,
+  bodyWidth,
+  finalePlan,
+  firesRocket,
+  jillFront,
+  needsHandgun,
+  pickKind,
+  tyrantStep,
 } from ".";
 
 describe("starField", () => {
@@ -142,7 +149,7 @@ describe("jillStep", () => {
     expect(jillStart(true)).toMatchObject({ pose: "idle", queue: [], hasArrived: true });
   });
 
-  it("given a bug still crawling, expect her to draw the handgun instead of throwing the combo", () => {
+  it("given a zombie still shambling in, expect her to draw the handgun instead of throwing the combo", () => {
     expect(jillStep(standing, { type: "combo", isFar: true }).pose).toBe("shoot");
   });
 
@@ -151,7 +158,7 @@ describe("jillStep", () => {
     expect(jillStep(shooting, { type: "cue", name: "radio" }).pose).toBe("shoot");
   });
 
-  it("given a bug to fight, expect a punch with the kick and roundhouse lined up", () => {
+  it("given a zombie at her feet, expect a punch with the kick and roundhouse lined up", () => {
     const fighting = jillStep(standing, { type: "combo" });
     expect(fighting.pose).toBe("punch");
     expect(fighting.queue).toEqual(["kick", "roundhouse"]);
@@ -167,18 +174,34 @@ describe("jillStep", () => {
     expect(jillStep(fighting, { type: "ended" }).pose).toBe("kick");
   });
 
-  it("given the end of the page mid fight, expect the beret to come off once the combo is done", () => {
+  it("given the end of the page mid fight, expect the rocket launcher to come out once the combo is done", () => {
     let state = jillStep(standing, { type: "combo" });
     state = jillStep(state, { type: "missionComplete" });
     state = jillStep(jillStep(jillStep(state, { type: "ended" }), { type: "ended" }), { type: "ended" });
-    expect(state.pose).toBe("beret");
+    expect(state.pose).toBe("rocketRaise");
+  });
+
+  it("given the mission complete, expect the launcher raised, aimed and then the beret off", () => {
+    const raise = jillStep(standing, { type: "missionComplete" });
+    const aim = jillStep(raise, { type: "ended" });
+    const beret = jillStep(aim, { type: "ended" });
+    expect([raise.pose, aim.pose, beret.pose]).toEqual(["rocketRaise", "rocketAim", "beret"]);
   });
 
   it("given the beret came off, expect Malenia to see her hair down from then on", () => {
-    const beret = jillStep(standing, { type: "missionComplete" });
+    const beret = jillStep(jillStep(jillStep(standing, { type: "missionComplete" }), { type: "ended" }), { type: "ended" });
     const after = jillStep(beret, { type: "ended" });
     expect(after.pose).toBe("hairDown");
     expect(jillStep(after, { type: "missionComplete" })).toBe(after);
+  });
+
+  it("given the visitor asked for less movement, expect the beret right away with no Tyrant to fight", () => {
+    expect(jillStep(jillStart(true), { type: "missionComplete" }).pose).toBe("beret");
+  });
+
+  it("given the launcher aimed at the Tyrant, expect Claire's combo request to wait", () => {
+    const aim = jillStep(jillStep(standing, { type: "missionComplete" }), { type: "ended" });
+    expect(jillStep(aim, { type: "combo" })).toBe(aim);
   });
 
   it("given the same cue twice, expect a new take so the move plays again", () => {
@@ -243,28 +266,18 @@ describe("lineFor", () => {
   });
 });
 
-describe("isMissionComplete", () => {
-  it("given Claire copied the address, expect the mission complete right away", () => {
-    expect(isMissionComplete(true, 0)).toBe(true);
-  });
-
-  it("given Inde squashed three bugs without writing yet, expect it complete too", () => {
-    expect(isMissionComplete(false, 3)).toBe(true);
-  });
-
-  it("given Malenia only squashed two and sent nothing, expect Jill still on duty", () => {
-    expect(isMissionComplete(false, 2)).toBe(false);
-  });
-});
-
 describe("jillStep after the mission", () => {
   const standing = jillStep(jillStep(jillStep(jillStart(), { type: "arrive" }), { type: "ended" }), { type: "ended" });
 
-  it("given Claire's copy just made her happy, expect the beret to wait for the happy to finish", () => {
+  it("given Claire's copy just made her happy, expect the finale to wait for the happy to finish", () => {
     const happy = jillStep(standing, { type: "cue", name: "copy" });
     const done = jillStep(happy, { type: "missionComplete" });
     expect(done.pose).toBe("happy");
-    expect(jillStep(done, { type: "ended" }).pose).toBe("beret");
+    expect(jillStep(done, { type: "ended" }).pose).toBe("rocketRaise");
+  });
+
+  it("given the launcher coming out, expect her to call out the Tyrant", () => {
+    expect(jillStep(standing, { type: "missionComplete" }).said).toContain("Tyrant");
   });
 
   it("given the beret queued, expect Inde hovering a social not to wipe it out", () => {
@@ -274,24 +287,26 @@ describe("jillStep after the mission", () => {
   });
 
   it("given her hair down, expect Malenia's cues and combos to leave her standing down", () => {
-    const hairDown = jillStep(jillStep(standing, { type: "missionComplete" }), { type: "ended" });
+    let hairDown = jillStep(standing, { type: "missionComplete" });
+    for (let step = 0; step < 3; step++) hairDown = jillStep(hairDown, { type: "ended" });
+    expect(hairDown.pose).toBe("hairDown");
     expect(jillStep(hairDown, { type: "cue", name: "radio" })).toBe(hairDown);
     expect(jillStep(hairDown, { type: "combo" })).toBe(hairDown);
   });
 });
 
 describe("hitFor", () => {
-  it("given the punch and the kick, expect sparks on the bug", () => {
+  it("given the punch and the kick, expect sparks on the zombie", () => {
     expect(hitFor("punch")).toBe("spark");
     expect(hitFor("kick")).toBe("spark");
   });
 
-  it("given the roundhouse, expect the bug squashed for Claire", () => {
-    expect(hitFor("roundhouse")).toBe("squash");
+  it("given the roundhouse, expect the zombie down for Claire", () => {
+    expect(hitFor("roundhouse")).toBe("down");
   });
 
-  it("given the shot from across the stage, expect the bug squashed", () => {
-    expect(hitFor("shoot")).toBe("squash");
+  it("given the shot from across the stage, expect the enemy down", () => {
+    expect(hitFor("shoot")).toBe("down");
   });
 
   it("given Jill just showing Inde the herb, expect no hit at all", () => {
@@ -299,64 +314,167 @@ describe("hitFor", () => {
   });
 });
 
-describe("bugMotion", () => {
-  it("given the 2x stage, expect a crawl across twice the floor to take about as long as Claire's 1x crawl", () => {
-    const small = bugMotion("crawling", 280, 1).transition.duration;
-    const big = bugMotion("crawling", 560, 2).transition.duration;
+describe("enemyMotion", () => {
+  it("given the 2x stage, expect a walk across twice the floor to take as long as Claire's 1x walk", () => {
+    const small = enemyMotion("coming", 280, 1, "zombie").transition.duration;
+    const big = enemyMotion("coming", 560, 2, "zombie").transition.duration;
     expect(big).toBeCloseTo(small);
   });
 
-  it("given a short crawl, expect Inde's bug to still take a moment to arrive", () => {
-    expect(bugMotion("crawling", 20, 2).transition.duration).toBe(2.5);
+  it("given a zombie shambling across Inde's lawn, expect it to keep its own slow pace", () => {
+    expect(enemyMotion("coming", 70, 2, "zombie").transition.duration).toBe(1);
   });
 
-  it("given the roundhouse at 2x, expect Malenia's bug to fly twice as far", () => {
-    const small = bugMotion("squashed", 500, 1);
-    const big = bugMotion("squashed", 500, 2);
-    expect(500 - big.x).toBe(2 * (500 - small.x));
-    expect(big.y).toBe(2 * small.y);
+  it("given a Cerberus, expect it to cover the same ground far faster than a zombie", () => {
+    expect(enemyMotion("coming", 600, 1, "cerberus").transition.duration).toBeLessThan(enemyMotion("coming", 600, 1, "zombie").transition.duration);
+  });
+
+  it("given a zombie waiting at Claire's door, expect it to sway in place instead of standing frozen", () => {
+    expect(enemyMotion("waiting", 500, 2, "zombie").x).toEqual([500, 506, 500]);
+  });
+
+  it("given a zombie taken down, expect it to drop right where it stood", () => {
+    expect(enemyMotion("down", 500, 2, "zombie").x).toBe(500);
   });
 });
 
-describe("bug hunt", () => {
-  const bugs = [
-    { id: 1, status: "squashed" },
+describe("the showdown", () => {
+  const enemies = [
+    { id: 1, status: "down" },
     { id: 2, status: "waiting" },
-    { id: 3, status: "crawling" },
+    { id: 3, status: "coming" },
   ];
 
-  it("given a clicked bug still around, expect the combo to land on it", () => {
-    expect(pickTarget(bugs, 3)).toBe(3);
+  it("given a clicked enemy still up, expect the combo to land on it", () => {
+    expect(pickTarget(enemies, 3)).toBe(3);
   });
 
-  it("given Jill clicked instead, expect the first bug still around", () => {
-    expect(pickTarget(bugs)).toBe(2);
+  it("given Jill clicked instead, expect the first enemy still up", () => {
+    expect(pickTarget(enemies)).toBe(2);
   });
 
-  it("given every bug squashed, expect nothing left for Malenia to hit", () => {
-    expect(pickTarget([{ id: 1, status: "squashed" }])).toBeNull();
+  it("given every enemy down, expect nothing left for Malenia to hit", () => {
+    expect(pickTarget([{ id: 1, status: "down" }])).toBeNull();
   });
 
-  it("counts only the bugs still bothering Claire", () => {
-    expect(aliveCount(bugs)).toBe(2);
+  it("counts only the enemies still bothering Claire", () => {
+    expect(aliveCount(enemies)).toBe(2);
   });
 
-  it("stops a bug right in front of Jill, never past the start of the corner", () => {
-    expect(bugStop(400, 154, 30)).toBe(235);
-    expect(bugStop(60, 154, 30)).toBe(0);
+  it("stops an enemy right in front of Jill, never past the start of the corner", () => {
+    expect(enemyStop(400, 85, 30)).toBe(227);
+    expect(enemyStop(60, 85, 30)).toBe(0);
   });
 
-  it("stops the bugs further out when Jill is drawn twice as big, so her kick still reaches Claire's pest", () => {
-    expect(bugStop(800, 308, 36, 2)).toBe(800 - 154 - 116 - 36);
+  it("stops enemies further out when Jill is drawn twice as big, so her kick still reaches the zombie at Claire's door", () => {
+    expect(enemyStop(800, jillFront(2), 70, 2)).toBe(800 - 170 - 116 - 70);
   });
 
-  it("waits between the shortest and longest gap for the next bug", () => {
-    expect(nextBugWait(0)).toBe(7000);
-    expect(nextBugWait(1)).toBe(14000);
+  it("stops a Cerberus further out than a zombie, since its body is longer", () => {
+    expect(enemyStop(800, 85, bodyWidth("cerberus"))).toBeLessThan(enemyStop(800, 85, bodyWidth("zombie")));
   });
 
-  it("says the squash count in plain words for Inde", () => {
-    expect(squashLine(1)).toBe("1 bug squashed");
-    expect(squashLine(4)).toBe("4 bugs squashed");
+  it("sends the next enemy within a few seconds, so Inde always has something to shoot", () => {
+    expect(nextEnemyWait(0)).toBe(2500);
+    expect(nextEnemyWait(1)).toBe(4000);
+  });
+
+  it("says the takedown count in plain words for Inde", () => {
+    expect(takedownLine(1)).toBe("1 enemy down");
+    expect(takedownLine(3)).toBe("3 enemies down");
+  });
+});
+
+describe("pickKind", () => {
+  it("given the first enemy of Claire's visit, expect a slow zombie to learn on", () => {
+    expect(pickKind(0)).toBe("zombie");
+  });
+
+  it("given the second, expect a Cerberus", () => {
+    expect(pickKind(1)).toBe("cerberus");
+  });
+
+  it("given the third, expect them to keep taking turns", () => {
+    expect(pickKind(2)).toBe("zombie");
+  });
+});
+
+describe("missionMarks", () => {
+  it("given Malenia's first takedown, expect one mark of three lit", () => {
+    expect(missionMarks(1, 3)).toEqual([true, false, false]);
+  });
+
+  it("given more takedowns than the goal, expect every mark lit and no extra ones", () => {
+    expect(missionMarks(5, 3)).toEqual([true, true, true]);
+  });
+});
+
+describe("needsHandgun", () => {
+  it("given Malenia's zombie still shambling in, expect the handgun", () => {
+    expect(needsHandgun({ kind: "zombie", status: "coming" })).toBe(true);
+  });
+
+  it("given a zombie already at Jill's feet, expect the combo", () => {
+    expect(needsHandgun({ kind: "zombie", status: "waiting" })).toBe(false);
+  });
+
+  it("given a Cerberus at her feet, expect the handgun anyway", () => {
+    expect(needsHandgun({ kind: "cerberus", status: "waiting" })).toBe(true);
+  });
+
+  it("given nothing to fight, expect no handgun", () => {
+    expect(needsHandgun(undefined)).toBe(false);
+  });
+});
+
+describe("firesRocket", () => {
+  it("given the launcher aimed, expect the rocket to leave from that aim", () => {
+    expect(firesRocket("rocketAim")).toBe(true);
+  });
+
+  it("given her still hoisting it, expect no rocket yet", () => {
+    expect(firesRocket("rocketRaise")).toBe(false);
+  });
+});
+
+describe("tyrantStep", () => {
+  it("given the finale starting, expect the Tyrant climbing out", () => {
+    expect(tyrantStep(null, "start")).toBe("emerge");
+  });
+
+  it("given him all the way out, expect the roar", () => {
+    expect(tyrantStep("emerge", "risen")).toBe("roar");
+  });
+
+  it("given the rocket landing on Malenia's nemesis, expect him hit", () => {
+    expect(tyrantStep("roar", "hit")).toBe("hit");
+  });
+
+  it("given him hit, expect nothing to bring him back", () => {
+    expect(tyrantStep("hit", "start")).toBe("hit");
+  });
+
+  it("given the finale asked to start twice, expect him to keep roaring", () => {
+    expect(tyrantStep("roar", "start")).toBe("roar");
+  });
+});
+
+describe("finalePlan", () => {
+  const plan = finalePlan(1000, 2);
+
+  it("given a wide stage, expect the Tyrant out on the left and the muzzle on Jill's side", () => {
+    expect(plan.tyrant).toBeLessThan(plan.muzzle.x);
+  });
+
+  it("given the launcher on her shoulder, expect the muzzle above the ground", () => {
+    expect(plan.muzzle.up).toBeGreaterThan(0);
+  });
+
+  it("given the rocket's target, expect it on the Tyrant", () => {
+    expect(plan.target.x).toBe(plan.tyrant);
+  });
+
+  it("given Inde's phone, expect the Tyrant still standing on the stage", () => {
+    expect(finalePlan(340, 1).tyrant).toBeGreaterThan(0);
   });
 });

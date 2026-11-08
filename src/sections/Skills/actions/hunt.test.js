@@ -6,6 +6,7 @@ import {
   encounterStage,
   energyLeft,
   hasLanded,
+  huntBriefing,
   huntLine,
   huntStart,
   huntStep,
@@ -127,5 +128,19 @@ describe("energyLeft", () => {
 
   it("given every hit taken, expect none left", () => {
     expect(energyLeft(3)).toEqual([false, false, false]);
+  });
+});
+
+describe("huntBriefing", () => {
+  it("given the larva untouched in Malenia's orbit, expect the alert and how to hurt it", () => {
+    expect(huntBriefing({ hits: 0, isDefeated: false })).toEqual({ title: "Metroid detected", hint: "Hit it when it peeks out" });
+  });
+
+  it("given Claire landed a hit, expect a nudge to find where it fled", () => {
+    expect(huntBriefing({ hits: 1, isDefeated: false }).hint).toBe("It moved. Find it again");
+  });
+
+  it("given Inde finished it off, expect the win and nothing more to do", () => {
+    expect(huntBriefing({ hits: HITS_TO_DEFEAT, isDefeated: true })).toEqual({ title: "Metroid defeated", hint: null });
   });
 });

@@ -5,7 +5,7 @@ import Editor from "./Editor";
 // the drills it runs inside the editor, called out on their own so they never get lost in the feature list
 const Practice = () => (
   <div className="relative overflow-hidden rounded-2xl p-5 ring-1 ring-glow/30" style={{ background: "linear-gradient(140deg, color-mix(in oklab, var(--color-glow) 16%, transparent), transparent 70%)" }}>
-    <p className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-glow uppercase">
+    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold tracking-[0.18em] text-glow uppercase">
       <Dumbbell size={14} aria-hidden="true" />
       <span className="whitespace-nowrap">Built in:</span> <span className="whitespace-nowrap">{MAIN_PROJECT.practice.name}</span>
     </p>
@@ -41,7 +41,7 @@ const Pitch = ({ isWide }) => (
  *   and padding that fit the device's glass, isWide lays it out across an ultrawide
  */
 const Screen = ({ typed, shape, isWide = false }) => (
-  <a href={MAIN_PROJECT.url} target="_blank" rel="noreferrer" className={`group relative grid gap-8 overflow-hidden bg-stage text-stage-fg ${isWide ? "grid-cols-[0.95fr_0.9fr_1.35fr] grid-rows-1 items-stretch" : ""} ${shape}`}>
+  <a href={MAIN_PROJECT.url} target="_blank" rel="noreferrer" className={`group relative grid gap-8 overflow-hidden bg-stage text-stage-fg ${isWide ? "grid-cols-[0.95fr_0.9fr_1.35fr] grid-rows-1 items-stretch" : "grid-cols-[minmax(0,1fr)]"} ${shape}`}>
     <span className="bg-sunset pointer-events-none absolute -top-40 -right-32 size-[28rem] rounded-full opacity-25 blur-3xl transition-opacity duration-700 group-hover:opacity-40" aria-hidden="true" />
     <Pitch isWide={isWide} />
     {isWide && (

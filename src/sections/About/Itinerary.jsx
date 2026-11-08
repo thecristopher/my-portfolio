@@ -36,6 +36,24 @@ const Stop = ({ stop, index, state }) => (
  * the stop it's at glows and the ones it already passed stay lit.
  * @param {{ journey: object[], times: number[], progress: import("framer-motion").MotionValue<number> }} props
  */
+// when the strip is wider than the screen its ends fade out, so a stop sliding past the edge reads as more to come
+// instead of a word cut in half
+const EDGE_FADE = "linear-gradient(to right, transparent, black 2rem, black calc(100% - 2rem), transparent)";
+
+const useIsClipped = (ref) => {
+  const [isClipped, setIsClipped] = useState(false);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return undefined;
+    const measure = () => setIsClipped(element.scrollWidth > element.clientWidth + 1);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [ref]);
+  return isClipped;
+};
+
 const Itinerary = ({ journey, times, progress }) => {
   const [reached, setReached] = useState(() => journeyStep(times, progress.get()));
   useMotionValueEvent(progress, "change", (value) => setReached(journeyStep(times, value)));
@@ -44,13 +62,20 @@ const Itinerary = ({ journey, times, progress }) => {
   // moving the page
   useEffect(() => {
     const stop = strip.current?.querySelectorAll("li")[reached];
-    if (stop) strip.current.scrollTo({ left: stop.offsetLeft - 16, behavior: "smooth" });
+    // a little of the stop before stays in view, under the fade, so it's clear the strip goes on to the left
+    if (stop) strip.current.scrollTo({ left: stop.offsetLeft - 48, behavior: "smooth" });
   }, [reached]);
   const fill = useScrollRange(progress, [times[0] ?? 0, times[times.length - 1] ?? 1], [0, 1]);
+  const isClipped = useIsClipped(strip);
   if (journey.length === 0) return null;
 
   return (
-    <div ref={strip} className="no-scrollbar relative mt-14 overflow-x-auto md:mt-0" aria-label="Every job I held, oldest first, and the city it was in">
+    <div
+      ref={strip}
+      className="no-scrollbar relative mt-14 overflow-x-auto md:mt-0"
+      style={isClipped ? { maskImage: EDGE_FADE } : undefined}
+      aria-label="Every job I held, oldest first, and the city it was in"
+    >
       <div className="relative min-w-[44rem]">
         <span className="absolute inset-x-0 top-0 h-px bg-line" aria-hidden="true" />
         <motion.span className="bg-sunset absolute inset-x-0 top-0 h-[2px] origin-left" style={{ scaleX: fill }} aria-hidden="true" />

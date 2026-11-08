@@ -4,7 +4,7 @@ import { useScrollRange } from "../../hooks/useScrollRange";
 import { useGetProjectsQuery } from "../../api/projectsApi";
 import { easeOutExpo } from "../../lib/motion";
 import { careerJourney, chapterFade, journeyTimes, stopCard } from "./actions";
-import { BEATS, LIGHTS, STOPS } from "./mapStory";
+import { BEATS, LIGHTS, MAP, STOPS } from "./mapStory";
 import Itinerary from "./Itinerary";
 import Loupe from "./Loupe";
 import ReachMap from "./ReachMap";
@@ -52,14 +52,17 @@ const Scene = ({ progress, isStill }) => {
     <div className="flex w-full flex-col gap-6">
       <div className="flex items-end justify-between gap-6">
         <p className="text-sm font-semibold text-muted">Where I worked, and where the work reached</p>
-        <p className="hidden text-xs text-faint sm:block">Hover a light to see the work behind it</p>
+        {/* a touch iPad has the room for the wide layout but no hover, so it gets told to tap */}
+        <p className="hidden text-xs text-faint pointer-fine:sm:block">Hover a light to see the work behind it</p>
+        <p className="hidden text-xs text-faint md:pointer-coarse:block">Tap a light to see the work behind it</p>
       </div>
       <div className="relative h-24 sm:h-20">
         {STOPS.map((stop, index) => (
           <Chapter key={stop.id} stop={stop} progress={progress} isFirst={index === 0} isLast={index === STOPS.length - 1} />
         ))}
       </div>
-      <div className="relative">
+      {/* never taller than the screen leaves room for, so the whole scene fits under the nav on a short laptop */}
+      <div className="relative mx-auto w-full" style={{ maxWidth: `calc((100svh - 22rem) * ${MAP.width / MAP.height})` }}>
         <ReachMap progress={progress} isStill={isStill} />
         <Loupe journey={journey} times={times} progress={progress} isStill={isStill} />
         <Lights lights={LIGHTS} progress={progress} openKey={openKey} cardFor={cardFor} onOpen={open} onClose={close} />
@@ -98,7 +101,8 @@ const Reach = () => {
 
   return (
     <div ref={ref} className="relative h-[420svh]">
-      <div className="sticky top-0 flex h-svh items-center">
+      {/* centered in the screen under the nav, not behind it */}
+      <div className="sticky top-0 flex h-svh items-center pt-14">
         <Scene progress={scrollYProgress} isStill={false} />
       </div>
     </div>

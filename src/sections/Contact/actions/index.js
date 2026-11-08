@@ -36,4 +36,6 @@ export const lampWindows = (count, [start, end]) => {
 
 export * from "./sea";
 export * from "./jill";
-export * from "./bugs";
+export * from "./enemies";
+export * from "./finale";
+export * from "./survival";

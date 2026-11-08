@@ -39,6 +39,16 @@ export const huntStep = (state, name, names, random = Math.random) => {
 };
 
 /**
+ * The mission briefing over the orbit: how to hurt the larva while it's still out there, and the win once it's down.
+ * @param {ReturnType<typeof huntStart>} state the hunt
+ * @returns {{ title: string, hint: string | null }}
+ */
+export const huntBriefing = (state) => {
+  if (state.isDefeated) return { title: "Metroid defeated", hint: null };
+  return { title: "Metroid detected", hint: state.hits === 0 ? "Hit it when it peeks out" : "It moved. Find it again" };
+};
+
+/**
  * What the statusline says when the hunt is won. Every hit before that plays out in the opened card itself.
  * @param {ReturnType<typeof huntStart>} state the hunt
  * @returns {string | null} null until the larva is defeated

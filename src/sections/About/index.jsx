@@ -23,7 +23,7 @@ const About = () => {
   const { data: about, isLoading, isError } = useGetAboutQuery();
 
   return (
-    <section id="about" className="relative py-28 sm:py-40">
+    <section id="about" className="relative pt-28 sm:pt-40">
       <div className="mx-auto flex max-w-6xl flex-col gap-20 px-4 sm:gap-28 sm:px-6">
         <SectionHeading
           eyebrow="About"

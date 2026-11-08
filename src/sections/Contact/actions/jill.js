@@ -1,15 +1,22 @@
-// the combo she throws at a bug, one move after the other
+// the combo she throws at an enemy at her feet, one move after the other
 const COMBO = ["punch", "kick", "roundhouse"];
 
-// the moves she makes from across the stage, for a bug that hasn't reached her yet
+// the move she makes from across the stage, for an enemy that hasn't reached her yet, or any dog
 const SHOT = "shoot";
+
+// how her mission ends: the Tyrant breaks out of the ground, she hoists the rocket launcher, aims and fires, then takes
+// her beret off. anyone who asked for less movement gets just the beret
+const FINALE = ["rocketRaise", "rocketAim", "beret"];
+const STILL_FINALE = ["beret"];
 
 // what she says over the arena for the moves that talk, written for whoever is about to send the email
 const LINES = {
   point: "Need to reach Cristopher? That address up there is the way in.",
   radio: "Jill here. Send it, he answers every message.",
   happy: "Address copied. Go write him, I'll cover you.",
-  shoot: "Bug down. Nothing gets between you and that inbox.",
+  shoot: "Down. Nothing gets between you and that inbox.",
+  rocketRaise: "A Tyrant. Of course it's a Tyrant. Stand back.",
+  down: "I'm hit... send him that email for me.",
   beret: "Mission complete. He'll take it from here.",
 };
 
@@ -27,6 +34,7 @@ const CUES = {
   send: { pose: "happy", line: "Mail app's opening. Go on, I'll hold the line." },
   copy: { pose: "happy", line: LINES.happy },
   handCopy: { pose: "happy", line: "Copied it by hand. Old school, I like that." },
+  start: { pose: "radio", line: "Jill here. Something's moving out there. Cover me." },
 };
 
 /**
@@ -45,18 +53,27 @@ export const cueFor = (name, detail) => {
  * Where Jill starts: dashing in and then pointing up at the email, unless the visitor asked for less movement, then
  * already standing in place.
  * @param {boolean} isStill whether to skip the entrance
- * @returns {{ pose: string, queue: string[], isHairDown: boolean, hasArrived: boolean, take: number, said: string | null }}
+ * @param {number} take where her move count starts, so a fresh life still plays every move fresh
+ * @returns {{ pose: string, queue: string[], isHairDown: boolean, isDown: boolean, hasArrived: boolean, take: number, said: string | null, isStill: boolean }}
  *   take counts every pose she plays, so the same move asked for twice still plays twice, said is the line she opened
- *   the pose with
+ *   the pose with, isDown whether she's out of health on the floor, isStill whether she skips the big moves
  */
-export const jillStart = (isStill = false) => ({
+export const jillStart = (isStill = false, take = 0) => ({
   pose: isStill ? "idle" : "dash",
   queue: isStill ? [] : ["point"],
   isHairDown: false,
+  isDown: false,
   hasArrived: isStill,
-  take: 0,
+  take,
   said: null,
+  isStill,
 });
+
+/**
+ * @param {string} pose the move she's making
+ * @returns {boolean} whether it's the aim the rocket leaves the launcher from
+ */
+export const firesRocket = (pose) => pose === "rocketAim";
 
 /**
  * @param {string} pose
@@ -66,23 +83,31 @@ export const isAttacking = (pose) => COMBO.includes(pose) || pose === SHOT;
 
 const restPose = (state) => (state.isHairDown ? "hairDown" : "idle");
 const play = (state, pose, queue = [], said = lineFor(pose)) => ({ ...state, pose, queue, take: state.take + 1, said });
-const isBusy = (state) => !state.hasArrived || isAttacking(state.pose) || state.pose === "beret" || state.pose === "dash";
-const hasMissionStarted = (state) => state.isHairDown || state.pose === "beret" || state.queue.includes("beret");
+const isFinale = (pose) => FINALE.includes(pose);
+const isBusy = (state) => !state.hasArrived || state.isDown || isAttacking(state.pose) || isFinale(state.pose) || state.pose === "dash";
+const hasMissionStarted = (state) => state.isHairDown || isFinale(state.pose) || state.queue.some(isFinale);
 const isResting = (state) => state.hasArrived && state.pose === restPose(state);
 // once the beret is off or on its way she's off duty: every other move has her beret on, so she stops making them
 const isOffDuty = (state) => hasMissionStarted(state);
 
 const playNext = (state) => (state.queue.length > 0 ? play(state, state.queue[0], state.queue.slice(1)) : play(state, restPose(state)));
 
-// taking the beret off is a once per visit moment. whatever she's in the middle of, even a quick reaction, plays out
-// first and the beret waits its turn
+// the finale is a once per visit moment. whatever she's in the middle of, even a quick reaction, plays out first and
+// the finale waits its turn
 const completeMission = (state) => {
   if (hasMissionStarted(state)) return state;
-  if (!isResting(state)) return { ...state, queue: [...state.queue, "beret"] };
-  return play(state, "beret");
+  const finale = state.isStill ? STILL_FINALE : FINALE;
+  if (!isResting(state)) return { ...state, queue: [...state.queue, ...finale] };
+  return play(state, finale[0], finale.slice(1));
 };
 
-const finishPose = (state) => playNext({ ...state, isHairDown: state.isHairDown || state.pose === "beret" });
+// on the floor she stays down, the last frame holding, until she gets another life
+const finishPose = (state) => (state.isDown ? state : playNext({ ...state, isHairDown: state.isHairDown || state.pose === "beret" }));
+
+// a bite only shows when she's free to flinch: in the middle of a move she takes it without breaking stride
+const flinch = (state) => (isBusy(state) || isOffDuty(state) ? state : play(state, "hurt", [], null));
+
+const fall = (state) => (state.isDown ? state : { ...play(state, "down"), isDown: true });
 
 // the dash lands her on her spot a moment before its last frames finish, so she arrives without cutting it short
 const arrive = (state) => {
@@ -94,18 +119,22 @@ const arrive = (state) => {
 const playCue = (state, cue) => play(state, cue.pose, [], cue.line);
 
 /**
- * Jill's next pose after something happens: she arrives, gets a reaction cue, is asked to fight, finishes a move or
- * completes the mission. Reactions and combos never cut into a combo or into her taking off the beret, and once the
- * mission is complete she stands down with her hair down for good.
+ * Jill's next pose after something happens: she arrives, gets a reaction cue, is asked to fight, takes a bite, runs
+ * out of health, gets another life, finishes a move or completes the mission. Reactions and combos never cut into a
+ * combo or into the finale, and once the mission is complete she takes down the Tyrant with the rocket launcher and
+ * stands down with her hair down for good.
  * @param {ReturnType<typeof jillStart>} state where she is now
- * @param {{ type: "arrive" | "cue" | "combo" | "ended" | "missionComplete", name?: string, detail?: string, isFar?: boolean }} event
- *   name and detail are the action for a cue (see cueFor), isFar sends a shot at a bug still crawling instead of the combo
+ * @param {{ type: "arrive" | "cue" | "combo" | "hurt" | "die" | "revive" | "ended" | "missionComplete", name?: string, detail?: string, isFar?: boolean }} event
+ *   name and detail are the action for a cue (see cueFor), isFar sends a shot at an enemy still coming instead of the combo
  * @returns {ReturnType<typeof jillStart>} where she is next
  */
 export const jillStep = (state, event) => {
   if (event.type === "arrive") return arrive(state);
   if (event.type === "ended") return finishPose(state);
   if (event.type === "missionComplete") return completeMission(state);
+  if (event.type === "die") return fall(state);
+  if (event.type === "revive") return jillStart(state.isStill, state.take + 1);
+  if (event.type === "hurt") return flinch(state);
   if (isBusy(state) || isOffDuty(state)) return state;
   if (event.type === "cue") return playCue(state, cueFor(event.name, event.detail));
   if (event.type === "combo" && event.isFar) return play(state, SHOT);
@@ -113,25 +142,14 @@ export const jillStep = (state, event) => {
   return state;
 };
 
-// how many bugs she has to squash for the mission to count as complete, when nobody has sent the email yet
-export const BUGS_TO_WIN = 3;
-
 /**
- * Whether the mission is complete: the email is on its way, copied or opened in a mail app, or she has squashed
- * enough bugs.
- * @param {boolean} hasSent whether the visitor copied the address or opened their mail app
- * @param {number} squashed bugs squashed so far
- * @returns {boolean}
- */
-export const isMissionComplete = (hasSent, squashed) => hasSent || squashed >= BUGS_TO_WIN;
-
-/**
- * What a finished move does to the bug in front of her.
+ * What a finished move does to the enemy in front of her.
  * @param {string} pose the move that just finished
- * @returns {"spark" | "squash" | null} the first hits spark, the last one squashes, anything else doesn't touch it
+ * @returns {"spark" | "down" | null} the first hits spark, the last one takes it down, anything else doesn't touch it
  */
 export const hitFor = (pose) => {
-  if (pose === "roundhouse" || pose === SHOT) return "squash";
+  if (pose === "roundhouse" || pose === SHOT) return "down";
   if (pose === "punch" || pose === "kick") return "spark";
   return null;
 };
+

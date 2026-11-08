@@ -187,6 +187,15 @@ const ReachMap = ({ progress, isStill }) => {
             opacity="0.9"
           />
         </motion.g>
+        {/* a faint ghost of the coast from the first frame, so the scene opens on a map and the glowing line traces it */}
+        <path
+          d={COAST}
+          fill="none"
+          stroke="var(--color-line-strong)"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ strokeWidth: "calc(0.3px / var(--zoom, 1))", strokeDasharray: "calc(1.2px / var(--zoom, 1)) calc(1.2px / var(--zoom, 1))" }}
+        />
         <motion.path
           d={COAST}
           style={{ pathLength: coastLength, strokeWidth: "calc(0.4px / var(--zoom, 1))" }}

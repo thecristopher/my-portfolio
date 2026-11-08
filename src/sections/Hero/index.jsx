@@ -48,15 +48,19 @@ const Actions = () => (
         <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-0.5" />
       </a>
     </Magnetic>
-    <a href="#contact" onClick={(event) => event.stopPropagation()} className="px-2 text-sm font-medium text-glow underline-offset-4 hover:underline">
+    <a href="#contact" onClick={(event) => event.stopPropagation()} className="px-2 py-3 text-sm font-medium text-glow underline-offset-4 hover:underline">
       Get in touch
     </a>
   </div>
 );
 
-// what the photo says once it fills the stage, laid over its darkest corner
+// what the photo says once it fills the stage, laid over its darkest corner. on a phone that corner is his face, so a
+// shade rises behind the words to keep them readable over it
 const Caption = ({ about, story, style }) => (
-  <motion.div style={style} className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-5 p-6 text-stage-fg sm:p-10">
+  <motion.div
+    style={style}
+    className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-5 bg-gradient-to-t from-black/75 via-black/45 to-transparent p-6 pt-24 text-stage-fg sm:bg-none sm:p-10"
+  >
     <p className="text-sm text-stage-fg/70">
       {about?.location ?? "Rosarito, Mexico"} · {about?.years_of_experience ?? 9}+ years shipping
     </p>
@@ -65,9 +69,14 @@ const Caption = ({ about, story, style }) => (
   </motion.div>
 );
 
+// it can land over the portrait on a short screen, so it sits in a frosted chip that reads on the photo and the page alike
 const ScrollCue = ({ style }) => (
-  <motion.p style={style} className="absolute inset-x-0 bottom-6 z-20 flex justify-center text-faint" aria-hidden="true">
-    <motion.span animate={{ y: [0, 6, 0] }} transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}>
+  <motion.p style={style} className="absolute inset-x-0 bottom-6 z-20 flex justify-center text-muted" aria-hidden="true">
+    <motion.span
+      animate={{ y: [0, 6, 0] }}
+      transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+      className="grid size-9 place-items-center rounded-full bg-[color-mix(in_oklab,var(--color-ink)_70%,transparent)] shadow-sm backdrop-blur"
+    >
       <ArrowDown size={18} />
     </motion.span>
   </motion.p>
