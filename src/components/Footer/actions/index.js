@@ -5,7 +5,7 @@ export const CREDIT_BLOCKS = [
   { role: "Built with", names: ["React", "Vite", "Tailwind CSS", "Framer Motion", "Lenis", "Redux Toolkit", "React PDF"] },
   { role: "Set in", names: ["Geist", "Geist Mono", "Pixelify Sans"] },
   { role: "Filmed on location in", names: ["Rosarito, Baja California"] },
-  { role: "Guest stars", names: ["Link, The Legend of Zelda: A Link to the Past", "Jill Valentine, Marvel vs. Capcom", "A pixel Cristopher, drawn by hand"] },
+  { role: "Guest stars", names: ["Link", "Samus Aran", "Jill Valentine", "A pixel Cristopher, drawn by hand"] },
 ];
 
 /**
